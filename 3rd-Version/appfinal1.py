@@ -2847,6 +2847,10 @@ def _load_policy_context(log_path):
             (df.get("PICK_GROUP") == group)
             & (df.get("PICK_FINAL_NORM") == pick)
         ].copy()
+    def _subset_pick(pick):
+        return df[df.get("PICK_FINAL_NORM") == pick].copy()
+    def _subset_group(group):
+        return df[df.get("PICK_GROUP") == group].copy()
 
     # 1X2 quantiles: global (all rows)
     ctx["ms1_p_over25_q60"] = _q(df.get("P_OVER25_ADJ"), 0.60)
@@ -2878,6 +2882,39 @@ def _load_policy_context(log_path):
     if not bttsn.empty:
         ctx["bttsn_p_bttsy_q50"] = _q(bttsn.get("P_BTTSY_ADJ"), 0.50)
         ctx["bttsn_pick_margin_q50"] = _q(bttsn.get("PICK_MARGIN"), 0.50)
+
+    # --- Pre-gate thresholds (low-risk) ---
+    g1x2 = _subset_group("1X2")
+    if not g1x2.empty:
+        ctx["gate_1x2_prob_q60"] = _q(g1x2.get("PICK_PROB_ADJ"), 0.60)
+        ctx["gate_1x2_odd_q60"] = _q(g1x2.get("PICK_ODD"), 0.60)
+        ctx["gate_1x2_margin_q60"] = _q(g1x2.get("PICK_MARGIN"), 0.60)
+
+    ou_over = _subset_pick("Over2.5")
+    if not ou_over.empty:
+        ctx["gate_over_prob_q60"] = _q(ou_over.get("PICK_PROB_ADJ"), 0.60)
+        ctx["gate_over_odd_q60"] = _q(ou_over.get("PICK_ODD"), 0.60)
+
+    ou_under = _subset_pick("Under2.5")
+    if not ou_under.empty:
+        ctx["gate_under_prob_q60"] = _q(ou_under.get("PICK_PROB_ADJ"), 0.60)
+        ctx["gate_under_odd_q60"] = _q(ou_under.get("PICK_ODD"), 0.60)
+
+    bttsy_pick = _subset_pick("BTTS_Yes")
+    if not bttsy_pick.empty:
+        ctx["gate_bttsy_prob_q60"] = _q(bttsy_pick.get("PICK_PROB_ADJ"), 0.60)
+        ctx["gate_bttsy_odd_q60"] = _q(bttsy_pick.get("PICK_ODD"), 0.60)
+
+    bttsn_pick = _subset_pick("BTTS_No")
+    if not bttsn_pick.empty:
+        ctx["gate_bttsn_prob_q70"] = _q(bttsn_pick.get("PICK_PROB_ADJ"), 0.70)
+        ctx["gate_bttsn_odd_q50"] = _q(bttsn_pick.get("PICK_ODD"), 0.50)
+
+    x_pick = _subset_pick("X")
+    if not x_pick.empty:
+        ctx["gate_x_prob_q75"] = _q(x_pick.get("PICK_PROB_ADJ"), 0.75)
+        ctx["gate_x_odd_q50"] = _q(x_pick.get("PICK_ODD"), 0.50)
+        ctx["gate_x_over_q50"] = _q(x_pick.get("P_OVER25_ADJ"), 0.50)
 
     under = log_df[
         (log_df.get("PICK_GROUP") == "OU")
@@ -3112,10 +3149,15 @@ def pick_best_market(row: pd.Series, params=None, debug_context=None):
     }
 
     candidates = []
+    candidates_all = []
     cands_reason = ""
     saw_prob_finite = False
     saw_odd_finite = False
     k_mis = 0.75
+    pre_gate = _resolve_param("ENABLE_PRE_GATE", 0.0, params, debug_context)
+    policy_ctx = None
+    if isinstance(debug_context, dict):
+        policy_ctx = debug_context.get("policy_ctx") or debug_context.get("gate_ctx")
 
     def _group_of(label: str) -> str:
         if label in ("MS1", "X", "MS2"):
@@ -3259,41 +3301,104 @@ def pick_best_market(row: pd.Series, params=None, debug_context=None):
         p_adj = p ** alpha
 
         score = p_adj * (1.0 + bonus) * market_weight
+        gate_ok = True
+        if pre_gate and isinstance(policy_ctx, dict):
+            def _th(key):
+                return _f(policy_ctx.get(key))
+            if label in ("MS1", "MS2"):
+                t_prob = _th("gate_1x2_prob_q60")
+                if np.isfinite(t_prob) and np.isfinite(prob_eff) and prob_eff < t_prob:
+                    gate_ok = False
+                t_odd = _th("gate_1x2_odd_q60")
+                if np.isfinite(t_odd) and np.isfinite(odd_f) and odd_f > t_odd:
+                    gate_ok = False
+                t_margin = _th("gate_1x2_margin_q60")
+                if np.isfinite(t_margin) and np.isfinite(margin) and margin < t_margin:
+                    gate_ok = False
+            elif label == "X":
+                t_prob = _th("gate_x_prob_q75")
+                if np.isfinite(t_prob) and np.isfinite(prob_eff) and prob_eff < t_prob:
+                    gate_ok = False
+                t_odd = _th("gate_x_odd_q50")
+                if np.isfinite(t_odd) and np.isfinite(odd_f) and odd_f > t_odd:
+                    gate_ok = False
+                t_over = _th("gate_x_over_q50")
+                if np.isfinite(t_over) and np.isfinite(p_over_adj) and p_over_adj > t_over:
+                    gate_ok = False
+            elif label == "Over2.5":
+                t_prob = _th("gate_over_prob_q60")
+                if np.isfinite(t_prob) and np.isfinite(prob_eff) and prob_eff < t_prob:
+                    gate_ok = False
+                t_odd = _th("gate_over_odd_q60")
+                if np.isfinite(t_odd) and np.isfinite(odd_f) and odd_f > t_odd:
+                    gate_ok = False
+            elif label == "Under2.5":
+                t_prob = _th("gate_under_prob_q60")
+                if np.isfinite(t_prob) and np.isfinite(prob_eff) and prob_eff < t_prob:
+                    gate_ok = False
+                t_odd = _th("gate_under_odd_q60")
+                if np.isfinite(t_odd) and np.isfinite(odd_f) and odd_f > t_odd:
+                    gate_ok = False
+            elif label == "BTTS_Yes":
+                t_prob = _th("gate_bttsy_prob_q60")
+                if np.isfinite(t_prob) and np.isfinite(prob_eff) and prob_eff < t_prob:
+                    gate_ok = False
+                t_odd = _th("gate_bttsy_odd_q60")
+                if np.isfinite(t_odd) and np.isfinite(odd_f) and odd_f > t_odd:
+                    gate_ok = False
+            elif label == "BTTS_No":
+                t_prob = _th("gate_bttsn_prob_q70")
+                if np.isfinite(t_prob) and np.isfinite(prob_eff) and prob_eff < t_prob:
+                    gate_ok = False
+                t_odd = _th("gate_bttsn_odd_q50")
+                if np.isfinite(t_odd) and np.isfinite(odd_f) and odd_f > t_odd:
+                    gate_ok = False
         try:
-            candidates.append(
-                {
-                    "market": label,
-                    "mkt": label,
-                    "prob": prob,
-                    "prob_eff": prob_eff,
-                    "prob_adj": p_adj,
-                    "alpha": alpha,
-                    "odd": odd,
-                    "ev": ev,
-                    "row_simq": row_simq,
-                    "score": score,
-                    "mispricing": float(mis_bonus) if np.isfinite(mis_bonus) else 0.0,
-                    "mis_bonus": mis_bonus,
-                    "sim_bonus": sim_bonus,
-                    "implied_today": implied_today,
-                    "sim_imp": sim_imp,
-                    "scaled_bonus": scaled_bonus,
-                    "bonus": bonus,
-                    "x_lift": x_lift,
-                    "group": group,
-                    "market_weight": market_weight,
-                    "opening_edge": opening_edge,
-                    "pos_gap": pos_gap,
-                    "p_over_adj": p_over_adj,
-                    "p_draw": prob_f,
-                    "draw_odd": draw_odd,
-                }
-            )
+            cand = {
+                "market": label,
+                "mkt": label,
+                "prob": prob,
+                "prob_eff": prob_eff,
+                "prob_adj": p_adj,
+                "alpha": alpha,
+                "odd": odd,
+                "ev": ev,
+                "row_simq": row_simq,
+                "score": score,
+                "mispricing": float(mis_bonus) if np.isfinite(mis_bonus) else 0.0,
+                "mis_bonus": mis_bonus,
+                "sim_bonus": sim_bonus,
+                "implied_today": implied_today,
+                "sim_imp": sim_imp,
+                "scaled_bonus": scaled_bonus,
+                "bonus": bonus,
+                "x_lift": x_lift,
+                "group": group,
+                "market_weight": market_weight,
+                "opening_edge": opening_edge,
+                "pos_gap": pos_gap,
+                "p_over_adj": p_over_adj,
+                "p_draw": prob_f,
+                "draw_odd": draw_odd,
+                "gate_ok": gate_ok,
+            }
+            candidates_all.append(cand)
+            if gate_ok:
+                candidates.append(cand)
         except Exception:
             cands_reason = "EXCEPTION_IN_CAND_BUILD"
             continue
 
     if not candidates:
+        if pre_gate and isinstance(policy_ctx, dict):
+            try:
+                st.session_state["PRE_GATE_FALLBACK"] = int(st.session_state.get("PRE_GATE_FALLBACK", 0)) + 1
+            except Exception:
+                pass
+        if candidates_all:
+            candidates = candidates_all
+            if not cands_reason:
+                cands_reason = "PRE_GATE_ALL"
         if not saw_prob_finite:
             cands_reason = "MISSING_PROBS"
         elif not saw_odd_finite:
@@ -3962,6 +4067,77 @@ def pick_best_market_synth(row, return_debug: bool = False, params=None, debug_c
 
             })
 
+    pre_gate = _resolve_param("ENABLE_PRE_GATE", 0.0, params, debug_context)
+    policy_ctx = None
+    if isinstance(debug_context, dict):
+        policy_ctx = debug_context.get("policy_ctx") or debug_context.get("gate_ctx")
+    if pre_gate and isinstance(policy_ctx, dict) and items:
+        def _th(key):
+            return _to_float(policy_ctx.get(key), np.nan)
+        def _gate_item(it):
+            mkt = it.get("market")
+            prob = _to_float(it.get("prob_pct"), np.nan)
+            prob = (prob / 100.0) if np.isfinite(prob) else np.nan
+            odd = _to_float(it.get("odd"), np.nan)
+            if mkt in ("MS1", "MS2"):
+                t_prob = _th("gate_1x2_prob_q60")
+                if np.isfinite(t_prob) and np.isfinite(prob) and prob < t_prob:
+                    return False
+                t_odd = _th("gate_1x2_odd_q60")
+                if np.isfinite(t_odd) and np.isfinite(odd) and odd > t_odd:
+                    return False
+            if mkt == "X":
+                t_prob = _th("gate_x_prob_q75")
+                if np.isfinite(t_prob) and np.isfinite(prob) and prob < t_prob:
+                    return False
+                t_odd = _th("gate_x_odd_q50")
+                if np.isfinite(t_odd) and np.isfinite(odd) and odd > t_odd:
+                    return False
+                t_over = _th("gate_x_over_q50")
+                p_over = _to_float(row.get("P_OVER25_ADJ"), np.nan)
+                if np.isfinite(t_over) and np.isfinite(p_over) and p_over > t_over:
+                    return False
+            if mkt == "Over2.5":
+                t_prob = _th("gate_over_prob_q60")
+                if np.isfinite(t_prob) and np.isfinite(prob) and prob < t_prob:
+                    return False
+                t_odd = _th("gate_over_odd_q60")
+                if np.isfinite(t_odd) and np.isfinite(odd) and odd > t_odd:
+                    return False
+            if mkt == "Under2.5":
+                t_prob = _th("gate_under_prob_q60")
+                if np.isfinite(t_prob) and np.isfinite(prob) and prob < t_prob:
+                    return False
+                t_odd = _th("gate_under_odd_q60")
+                if np.isfinite(t_odd) and np.isfinite(odd) and odd > t_odd:
+                    return False
+            if mkt == "BTTS_Yes":
+                t_prob = _th("gate_bttsy_prob_q60")
+                if np.isfinite(t_prob) and np.isfinite(prob) and prob < t_prob:
+                    return False
+                t_odd = _th("gate_bttsy_odd_q60")
+                if np.isfinite(t_odd) and np.isfinite(odd) and odd > t_odd:
+                    return False
+            if mkt == "BTTS_No":
+                t_prob = _th("gate_bttsn_prob_q70")
+                if np.isfinite(t_prob) and np.isfinite(prob) and prob < t_prob:
+                    return False
+                t_odd = _th("gate_bttsn_odd_q50")
+                if np.isfinite(t_odd) and np.isfinite(odd) and odd > t_odd:
+                    return False
+            return True
+        before_n = len(items)
+        gated = [it for it in items if _gate_item(it)]
+        if gated:
+            items = gated
+        after_n = len(items)
+        try:
+            st.session_state["PRE_GATE_SYNTH_TOTAL"] = int(st.session_state.get("PRE_GATE_SYNTH_TOTAL", 0)) + before_n
+            st.session_state["PRE_GATE_SYNTH_KEEP"] = int(st.session_state.get("PRE_GATE_SYNTH_KEEP", 0)) + after_n
+            st.session_state["PRE_GATE_SYNTH_DROP"] = int(st.session_state.get("PRE_GATE_SYNTH_DROP", 0)) + max(0, before_n - after_n)
+        except Exception:
+            pass
+
 
 
     if len(items) < 2:
@@ -4355,6 +4531,9 @@ def build_prediction_table(res: pd.DataFrame, policy_ctx: dict | None = None) ->
 
     _dd = locals().get("debug_dict")
     ctx = _dd if isinstance(_dd, dict) and _dd else debug_global
+    if isinstance(ctx, dict):
+        ctx = dict(ctx)
+        ctx["policy_ctx"] = policy_ctx
 
     if st.session_state.get("DEBUG_MODE", False):
         _PICK_SWITCH_AUDIT_ROWS.clear()
@@ -4827,6 +5006,16 @@ def build_prediction_table(res: pd.DataFrame, policy_ctx: dict | None = None) ->
 def run_pipeline(past_file, future_file, params):
 
     debug_dict = {"stage": "start"}
+    try:
+        st.session_state["PRE_GATE_TOTAL"] = 0
+        st.session_state["PRE_GATE_KEEP"] = 0
+        st.session_state["PRE_GATE_DROP"] = 0
+        st.session_state["PRE_GATE_FALLBACK"] = 0
+        st.session_state["PRE_GATE_SYNTH_TOTAL"] = 0
+        st.session_state["PRE_GATE_SYNTH_KEEP"] = 0
+        st.session_state["PRE_GATE_SYNTH_DROP"] = 0
+    except Exception:
+        pass
 
     try:
 
@@ -5509,6 +5698,19 @@ def render_tabs(pred_df, res, knn, past, future, debug):
 
                     view["Score_Exp"] = ""
                 # PICK_FINAL rozetleri kaldirildi (sadece policy ikonu kalacak)
+
+            if st.session_state.get("PRE_GATE_ENABLED"):
+                pg_total = int(st.session_state.get("PRE_GATE_TOTAL", 0))
+                pg_keep = int(st.session_state.get("PRE_GATE_KEEP", 0))
+                pg_drop = int(st.session_state.get("PRE_GATE_DROP", 0))
+                pg_fallback = int(st.session_state.get("PRE_GATE_FALLBACK", 0))
+                sg_total = int(st.session_state.get("PRE_GATE_SYNTH_TOTAL", 0))
+                sg_keep = int(st.session_state.get("PRE_GATE_SYNTH_KEEP", 0))
+                sg_drop = int(st.session_state.get("PRE_GATE_SYNTH_DROP", 0))
+                st.caption(
+                    f"Pre-gate aktif | keep={pg_keep}/{pg_total} drop={pg_drop} fallback={pg_fallback} | "
+                    f"synth keep={sg_keep}/{sg_total} drop={sg_drop}"
+                )
 
             # --- Policy Summary Cards (non-interactive) ---
             try:
@@ -7900,6 +8102,18 @@ def render_tabs(pred_df, res, knn, past, future, debug):
 
                 if stats_enabled and not res_ready_all.empty:
                     st.markdown("### Istatistik Ozeti")
+                    if st.session_state.get("PRE_GATE_ENABLED"):
+                        pg_total = int(st.session_state.get("PRE_GATE_TOTAL", 0))
+                        pg_keep = int(st.session_state.get("PRE_GATE_KEEP", 0))
+                        pg_drop = int(st.session_state.get("PRE_GATE_DROP", 0))
+                        pg_fallback = int(st.session_state.get("PRE_GATE_FALLBACK", 0))
+                        sg_total = int(st.session_state.get("PRE_GATE_SYNTH_TOTAL", 0))
+                        sg_keep = int(st.session_state.get("PRE_GATE_SYNTH_KEEP", 0))
+                        sg_drop = int(st.session_state.get("PRE_GATE_SYNTH_DROP", 0))
+                        st.caption(
+                            f"Pre-gate aktif | keep={pg_keep}/{pg_total} drop={pg_drop} fallback={pg_fallback} | "
+                            f"synth keep={sg_keep}/{sg_total} drop={sg_drop}"
+                        )
                     day_label = selected_date or "Son gun"
                     if selected_date and not res_ready_view.empty:
                         day_df = res_ready_view
@@ -8243,6 +8457,8 @@ def main():
 
     debug_mode = st.sidebar.checkbox("Show full exceptions", value=False)
     st.session_state["DEBUG_MODE"] = debug_mode
+    pre_gate_enabled = st.sidebar.checkbox("Enable pre-gate (safe)", value=False)
+    st.session_state["PRE_GATE_ENABLED"] = pre_gate_enabled
 
 
 
@@ -8311,6 +8527,7 @@ def main():
                 "manual_features": manual_features,
 
                 "conf_quality_floor": conf_quality_floor,
+                "ENABLE_PRE_GATE": 1.0 if pre_gate_enabled else 0.0,
 
             }
 

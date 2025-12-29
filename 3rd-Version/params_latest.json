@@ -11,5 +11,6 @@
     "default": 1.0
   },
   "manual_features": null,
-  "conf_quality_floor": 0.25
+  "conf_quality_floor": 0.25,
+  "ENABLE_PRE_GATE": 1.0
 }
