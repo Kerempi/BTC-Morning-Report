@@ -1,0 +1,1478 @@
+--- zip/appfinal1.py
++++ 3rd-Version/appfinal1.py
+@@ -1,4 +1,4 @@
+-import streamlit as st
++﻿import streamlit as st
+ 
+ import pandas as pd
+ 
+@@ -1072,7 +1072,7 @@
+ 
+     parts = [f"{h}-{a}({p*100:.0f}%)" for (h, a), p in top3]
+ 
+-    top3_str = " � ".join(parts)
++    top3_str = " · ".join(parts)
+ 
+ 
+ 
+@@ -1190,11 +1190,11 @@
+ 
+ 
+ 
+-    ev = f"Ev:{_fmt1(pH)}% � Ber:{_fmt1(pD)}% � Dep:{_fmt1(pA)}% | Ust:{_fmt1(pOver)}% � Alt:{_fmt1(pUnder)}% | KGV:{_fmt1(pBttsY)}% � KGY:{_fmt1(pBttsN)}% | TRUST:{_fmt1(trust)}"
++    ev = f"Ev:{_fmt1(pH)}% • Ber:{_fmt1(pD)}% • Dep:{_fmt1(pA)}% | Ust:{_fmt1(pOver)}% • Alt:{_fmt1(pUnder)}% | KGV:{_fmt1(pBttsY)}% • KGY:{_fmt1(pBttsN)}% | TRUST:{_fmt1(trust)}"
+ 
+     if score_mode or score_top3:
+ 
+-        ev += f" | Skor:{score_mode} � {score_top3}"
++        ev += f" | Skor:{score_mode} • {score_top3}"
+ 
+ 
+ 
+@@ -2206,7 +2206,7 @@
+ 
+ 
+ 
+-        # --- DEFAULTS (HER PATH I�IN TANIMLI) ---
++        # --- DEFAULTS (HER PATH IÇIN TANIMLI) ---
+ 
+         avg_similarity = 0.0
+ 
+@@ -2723,7 +2723,7 @@
+ 
+     ev_bonus = max([ev for ev in ev_candidates if ev > 0.0], default=0.0)
+ 
+-    # EV bonusunu tamamen devreden �ikardik.
++    # EV bonusunu tamamen devreden çikardik.
+ 
+     # Ana hedef: benzerlik orani + benzerlik kalitesi.
+ 
+@@ -2767,6 +2767,8 @@
+         "ms1_pick_margin_q70": np.nan,
+         "ms2_pick_score_q50": np.nan,
+         "ms2_bestofrank_q80": np.nan,
++        "x_pick_score_q60": np.nan,
++        "x_pick_prob_q90": np.nan,
+         "over_p_over25_q70": np.nan,
+         "over_bestofrank_q70": np.nan,
+         "under_pick_prob_q90": np.nan,
+@@ -2809,6 +2811,11 @@
+         ctx["ms2_pick_score_q50"] = _q(ms2.get("PICK_SCORE_TOTAL"), 0.50)
+         ctx["ms2_bestofrank_q80"] = _q(ms2.get("BestOfRank"), 0.80)
+ 
++    msx = _subset("1X2", "X")
++    if not msx.empty:
++        ctx["x_pick_score_q60"] = _q(msx.get("PICK_SCORE_TOTAL"), 0.60)
++        ctx["x_pick_prob_q90"] = _q(msx.get("PICK_PROB_ADJ"), 0.90)
++
+     over = _subset("OU", "Over2.5")
+     if not over.empty:
+         ctx["over_p_over25_q70"] = _q(over.get("P_OVER25_ADJ"), 0.70)
+@@ -2884,6 +2891,16 @@
+         if np.isfinite(pick_score) and np.isfinite(t_score) and (pick_score >= t_score):
+             if np.isfinite(bor) and np.isfinite(t_bor) and (bor >= t_bor):
+                 return 1, "MS2_SCORE_Q50_BOR_Q80"
++
++    # MSX (Draw): PICK_SCORE_TOTAL <= q60 & PICK_PROB_ADJ <= q90
++    if group == "1X2" and pick == "X":
++        pick_score = _f(row.get("PICK_SCORE_TOTAL"))
++        pick_prob = _f(row.get("PICK_PROB_ADJ"))
++        t_score = _f(ctx.get("x_pick_score_q60"))
++        t_prob = _f(ctx.get("x_pick_prob_q90"))
++        if np.isfinite(pick_score) and np.isfinite(t_score) and (pick_score <= t_score):
++            if np.isfinite(pick_prob) and np.isfinite(t_prob) and (pick_prob <= t_prob):
++                return 1, "MSX_SCORE_Q60_PROB_Q90"
+ 
+     # Over 2.5: P_OVER25_ADJ >= q70 & BestOfRank <= q70
+     if group == "OU" and pick == "Over2.5":
+@@ -2966,7 +2983,7 @@
+     # prob (benzerlik orani) ayniysa kalite ile tie-break yapalim
+     row_simq = float(row.get("SIM_QUALITY", 0.0)) if pd.notna(row.get("SIM_QUALITY")) else 0.0
+ 
+-    # Prob fallbacks: bazi exportlarda Sim_* kolonlari yok, SIM_IMP_* / P_*_ADJ var
++    # Prob fallbacks: bazı exportlarda Sim_* kolonları yok, SIM_IMP_* / P_*_ADJ var
+     p_over = _prob01(row.get("Sim_Over25%"))
+     if not np.isfinite(p_over):
+         p_over = _prob01(row.get("SIM_IMP_OVER25"))
+@@ -3841,6 +3858,33 @@
+ 
+ 
+ 
++    # Allow X (Draw) to enter Top-3 if it's close to top 1X2 and passes a basic gate.
++    # This keeps group-unique behavior but doesn't starve X completely.
++    x_gate_ok = False
++    x_min_draw_pct = _resolve_param("X_MIN_DRAW_PCT", 22.0, params, debug_context)
++    x_gap_max_pct = _resolve_param("X_GAP_MAX_PCT", 4.0, params, debug_context)
++    x_max_draw_odd = _resolve_param("X_MAX_DRAW_ODD", 4.8, params, debug_context)
++
++    x_item = next((it for it in items if it.get("market") == "X"), None)
++    top1_1x2 = next((it for it in top3 if it.get("group") == "1X2"), None)
++    if x_item is not None and top1_1x2 is not None:
++        x_prob = _to_float(x_item.get("prob_pct"), np.nan)
++        top_prob = _to_float(top1_1x2.get("prob_pct"), np.nan)
++        x_gap = top_prob - x_prob if np.isfinite(top_prob) and np.isfinite(x_prob) else np.nan
++        x_odd = _to_float(x_item.get("odd"), np.nan)
++        if (
++            np.isfinite(x_prob)
++            and x_prob >= x_min_draw_pct
++            and np.isfinite(x_gap)
++            and x_gap <= x_gap_max_pct
++            and (not np.isfinite(x_odd) or x_odd <= x_max_draw_odd)
++        ):
++            if all((t.get("market") != "X") for t in top3):
++                top3.append(x_item)
++                x_gate_ok = True
++
++
++
+     if not top3:
+ 
+         return pick_best_market(pd.Series(row), params=params, debug_context=debug_context) if isinstance(row, dict) else pick_best_market(row, params=params, debug_context=debug_context)
+@@ -3955,7 +3999,8 @@
+ 
+         if (best_it["synth_prob_pct"] - top1_row["synth_prob_pct"]) < 1.0:
+ 
+-            best_it = top1_row
++            if not (x_gate_ok and best_it.get("market") == "X"):
++                best_it = top1_row
+ 
+ 
+ 
+@@ -5090,7 +5135,7 @@
+ 
+ 
+ 
+-    # Full dump kolon seti (varsa g�ster)
++    # Full dump kolon seti (varsa göster)
+ 
+     show_cols = [
+ 
+@@ -5123,7 +5168,7 @@
+ 
+ 
+ 
+-    # ? format_map �nce tanimlanmali (senin hatanin ana kaynagi buydu)
++    # ? format_map önce tanimlanmali (senin hatanin ana kaynagi buydu)
+ 
+     format_map = {
+ 
+@@ -5187,7 +5232,7 @@
+ 
+ 
+ 
+-    tab1, tab2, tab3, tab4 = st.tabs(["?? Tahmin Tablosu", "?? Ma� Detayi", "?? Sema & Debug", "?? Tahmin Sonu�lari"])
++    tab1, tab2, tab3, tab4 = st.tabs(["📊 Tahmin Tablosu", "🔎 Maç Detayı", "🧩 Şema & Debug", "📈 Tahmin Sonuçları"])
+ 
+ 
+ 
+@@ -5242,7 +5287,7 @@
+                     view["POLICY_RULE"] = view["Match_ID"].map(pm["POLICY_RULE"]).fillna(view["POLICY_RULE"])
+ 
+             if isinstance(view, pd.DataFrame) and not view.empty:
+-                view["POLICY_ICON"] = np.where(view["POLICY_FLAG"].fillna(0) == 1, "\u00A0\u00A0?\u00A0\u00A0", "")
++                view["POLICY_ICON"] = np.where(view["POLICY_FLAG"].fillna(0) == 1, "\u00A0\u00A0✨\u00A0\u00A0", "")
+ 
+                 if "SCORE_LAM_H" in view.columns and "SCORE_LAM_A" in view.columns:
+ 
+@@ -5279,8 +5324,14 @@
+                                 s = str(v or "")
+                                 return {"HOME": "MS1", "AWAY": "MS2", "DRAW": "X"}.get(s, s)
+                             def _norm_btts(v):
+-                                s = str(v or "")
+-                                return {"BTTS Yes": "BTTS_Yes", "BTTS No": "BTTS_No"}.get(s, s)
++                                s = str(v or "").strip()
++                                s = s.replace(" ", "_")
++                                su = s.upper()
++                                if su in ("BTTS_YES", "BTTSYES"):
++                                    return "BTTS_Yes"
++                                if su in ("BTTS_NO", "BTTSNO"):
++                                    return "BTTS_No"
++                                return s
+                             if "RES_RESULT_1X2" in _lg.columns:
+                                 _lg.loc[_lg["PICK_GROUP"] == "1X2", "HIT"] = (
+                                     _lg["PICK_FINAL"] == _lg["RES_RESULT_1X2"].map(_norm_1x2)
+@@ -5317,250 +5368,101 @@
+                         _lg["HIT_RATE"] = _lg["key"].map(hit_map)
+ 
+                         bucket_bins = [0, 0.14, 0.28, 0.42, 0.56, 0.70, 0.84, 1.0]
+-                        bucket_labels = ["0-14%", "15-28%", "29-42%", "43-56%", "57-70%", "71-84%", "85-100%"]
+-                        _lg["HIT_BUCKET"] = pd.cut(
+-                            _lg["HIT_RATE"], bins=bucket_bins, labels=bucket_labels, include_lowest=True, right=True
+-                        )
+-                        pf = _lg[_lg.get("POLICY_FLAG", 0) == 1]
+-                        if not pf.empty:
+-                            out = pf.groupby("HIT_BUCKET")["HIT"].agg(["count", "mean"]).reset_index()
+-                            out.to_csv(os.path.join(out_dir, "policy_bucket_stats.csv"), index=False)
+-                except Exception:
+-                    pass
+-
+-            if isinstance(log_df, pd.DataFrame) and not log_df.empty:
+-                def _build_hit_df(df_in):
+-                    required = [
+-                        "RES_FTHG",
+-                        "RES_FTAG",
+-                        "RES_RESULT_1X2",
+-                        "RES_RESULT_OU",
+-                        "RES_RESULT_BTTS",
+-                    ]
+-                    if not all(c in df_in.columns for c in required):
+-                        return pd.DataFrame()
+-                    out = df_in.dropna(subset=required).copy()
+-                    if out.empty:
+-                        return out
+-                    out["PICK_RESULT_NORM"] = out.get("PICK_FINAL", out.get("PICK", ""))
+-                    out["HIT"] = np.nan
+-
+-                    def _norm_1x2(v):
+-                        s = str(v or "")
+-                        return {"HOME": "MS1", "AWAY": "MS2", "DRAW": "X"}.get(s, s)
+-
+-                    def _norm_btts(v):
+-                        s = str(v or "")
+-                        return {"BTTS Yes": "BTTS_Yes", "BTTS No": "BTTS_No"}.get(s, s)
+-
+-                    out.loc[out["PICK_GROUP"] == "1X2", "HIT"] = (
+-                        out["PICK_RESULT_NORM"] == out["RES_RESULT_1X2"].map(_norm_1x2)
+-                    )
+-                    out.loc[out["PICK_GROUP"] == "OU", "HIT"] = (
+-                        out["PICK_RESULT_NORM"] == out["RES_RESULT_OU"]
+-                    )
+-                    out.loc[out["PICK_GROUP"] == "BTTS", "HIT"] = (
+-                        out["PICK_RESULT_NORM"] == out["RES_RESULT_BTTS"].map(_norm_btts)
+-                    )
+-                    return out
+-
+-                hit_all = _build_hit_df(log_df)
+-                hit_all = hit_all[hit_all["HIT"].notna()].copy()
+-                if not hit_all.empty:
+-                    flag_all = hit_all[hit_all.get("POLICY_FLAG", 0) == 1]
+-                    total_cnt = len(hit_all)
+-                    total_hit = float(hit_all["HIT"].mean())
+-                    flag_cnt = len(flag_all)
+-                    flag_hit = float(flag_all["HIT"].mean()) if flag_cnt > 0 else np.nan
+-
+-                    gen_grp_rows = []
+-                    grp_sum_all = hit_all.groupby("PICK_GROUP")["HIT"].agg(["count", "mean"]).reset_index()
+-                    for _, r in grp_sum_all.iterrows():
+-                        gen_grp_rows.append(f"{r['PICK_GROUP']} {r['mean']:.0%} (n={int(r['count'])})")
+-
+-                    grp_rows = []
+-                    if flag_cnt > 0:
+-                        grp_sum = flag_all.groupby("PICK_GROUP")["HIT"].agg(["count", "mean"]).reset_index()
+-                        for _, r in grp_sum.iterrows():
+-                            grp_rows.append(f"{r['PICK_GROUP']} {r['mean']:.0%} (n={int(r['count'])})")
+-
+-                    league_rows = []
+-                    if flag_cnt > 0 and "League" in flag_all.columns:
+-                        lg = flag_all.groupby("League")["HIT"].agg(["count", "mean"]).reset_index()
+-                        lg = lg[lg["count"] >= 3].sort_values("mean", ascending=False).head(5)
+-                        for _, r in lg.iterrows():
+-                            league_rows.append(f"{r['League']}: {r['mean']:.0%} (n={int(r['count'])})")
+-
+-                    card_style = """
+-                    <style>
+-                    .policy-cards {display:flex; gap:10px; margin: 6px 0 12px 0;}
+-                    .policy-card {flex:1; padding:10px 12px; border-radius:12px; background: linear-gradient(135deg, #f7f2e8 0%, #fff7ea 100%); border:1px solid #eee2cc;}
+-                    .policy-card h4 {margin:0 0 6px 0; font-size:13px; color:#7b6a52; letter-spacing:0.2px;}
+-                    .policy-card .big {font-size:26px; font-weight:700; color:#2f2a1f; margin-bottom:2px;}
+-                    .policy-card .sub {font-size:12px; color:#8a7a66;}
+-                    .policy-card .grid {display:flex; gap:16px; align-items:flex-start;}
+-                    .policy-card .left {min-width:120px;}
+-                    .policy-card .right {flex:1;}
+-                    .policy-card .list {margin-top:4px; font-size:13px; color:#5b4d3a; line-height:1.45; display:grid; grid-template-columns: 1fr 1fr; gap:4px 12px;}
+-                    .policy-card .list span {display:block;}
+-                    .legend {display:grid; grid-template-columns: 1fr; gap:6px; margin-top:4px;}
+-                    .legend-row {display:flex; align-items:center; gap:8px; font-size:12px; color:#5b4d3a;}
+-                    .legend-chip {width:14px; height:14px; border-radius:3px; border:1px solid rgba(0,0,0,0.05);}
+-                    </style>
+-                    """
+-                    st.markdown(card_style, unsafe_allow_html=True)
+-
+-                    st.markdown(
+-                        f"""
+-                        <div class="policy-cards">
+-                          <div class="policy-card">
+-                            <h4>Genel Basari</h4>
+-                            <div class="grid">
+-                              <div class="left">
+-                                <div class="big">{total_hit:.0%}</div>
+-                                <div class="sub">Toplam basari (n={total_cnt})</div>
+-                              </div>
+-                              <div class="right">
+-                                <div class="sub">Pick group dagilimi</div>
+-                                <div class="list">{''.join([f'<span>{x}</span>' for x in gen_grp_rows]) if gen_grp_rows else 'Yok'}</div>
+-                              </div>
+-                            </div>
+-                          </div>
+-                          <div class="policy-card">
+-                            <h4>Policy Basari</h4>
+-                            <div class="grid">
+-                              <div class="left">
+-                                <div class="big">{(flag_hit if np.isfinite(flag_hit) else 0):.0%}</div>
+-                                <div class="sub">Policy basari (n={flag_cnt})</div>
+-                              </div>
+-                              <div class="right">
+-                                <div class="sub">Pick group dagilimi</div>
+-                                <div class="list">{''.join([f'<span>{x}</span>' for x in grp_rows]) if grp_rows else 'Group kirilimi yok'}</div>
+-                              </div>
+-                            </div>
+-                          </div>
+-                          <div class="policy-card">
+-                            <h4>En Iyi Ligler (Policy)</h4>
+-                            <div class="grid">
+-                              <div class="left">
+-                                <div class="big">{len(league_rows) if league_rows else 0}</div>
+-                                <div class="sub">Uygun lig sayisi</div>
+-                              </div>
+-                              <div class="right">
+-                                <div class="list">{''.join([f'<span>{x}</span>' for x in league_rows]) if league_rows else 'Yeterli veri yok'}</div>
+-                              </div>
+-                            </div>
+-                          </div>
+-                          <div class="policy-card">
+-                            <h4>Hit Rate Renkleri</h4>
+-                            <div class="legend">
+-                              <div class="legend-row"><span class="legend-chip" style="background:#f8d7da;"></span>0�14% � Zayif</div>
+-                              <div class="legend-row"><span class="legend-chip" style="background:#f3b7b7;"></span>15�28% � D�s�k</div>
+-                              <div class="legend-row"><span class="legend-chip" style="background:#f7d6b5;"></span>29�42% � Orta</div>
+-                              <div class="legend-row"><span class="legend-chip" style="background:#fff3cd;"></span>43�56% � Dengeli</div>
+-                              <div class="legend-row"><span class="legend-chip" style="background:#e2f0d9;"></span>57�70% � Iyi</div>
+-                              <div class="legend-row"><span class="legend-chip" style="background:#cbe8c1;"></span>71�84% � �ok Iyi</div>
+-                              <div class="legend-row"><span class="legend-chip" style="background:#b7e4c7;"></span>85�100% � Elit</div>
+-                            </div>
+-                          </div>
+-                        </div>
+-                        """,
+-                        unsafe_allow_html=True,
+-                    )
+-
+-                    # Bucket summary table (general vs policy) from live log.
+-                    bucket_bins = [0, 0.14, 0.28, 0.42, 0.56, 0.70, 0.84, 1.0]
+-                    bucket_labels = [
+-                        "0�14% � Zayif",
+-                        "15�28% � D�s�k",
+-                        "29�42% � Orta",
+-                        "43�56% � Dengeli",
+-                        "57�70% � Iyi",
+-                        "71�84% � �ok Iyi",
+-                        "85�100% � Elit",
+-                    ]
+-                    if {"League", "PICK_FINAL", "PICK_GROUP", "RES_FTHG", "RES_FTAG"}.issubset(log_df.columns):
+-                        lg = log_df.dropna(subset=["RES_FTHG", "RES_FTAG"]).copy()
+-                        if not lg.empty:
+-                            lg["PICK_RESULT_NORM"] = lg.get("PICK_FINAL", lg.get("PICK", ""))
+-                            lg["HIT"] = np.nan
+-
+-                            def _norm_1x2(v):
+-                                s = str(v or "")
+-                                return {"HOME": "MS1", "AWAY": "MS2", "DRAW": "X"}.get(s, s)
+-
+-                            def _norm_btts(v):
+-                                s = str(v or "")
+-                                return {"BTTS Yes": "BTTS_Yes", "BTTS No": "BTTS_No"}.get(s, s)
+-
+-                            lg.loc[lg["PICK_GROUP"] == "1X2", "HIT"] = (
+-                                lg["PICK_RESULT_NORM"] == lg["RES_RESULT_1X2"].map(_norm_1x2)
+-                            )
+-                            lg.loc[lg["PICK_GROUP"] == "OU", "HIT"] = (
+-                                lg["PICK_RESULT_NORM"] == lg["RES_RESULT_OU"]
+-                            )
+-                            lg.loc[lg["PICK_GROUP"] == "BTTS", "HIT"] = (
+-                                lg["PICK_RESULT_NORM"] == lg["RES_RESULT_BTTS"].map(_norm_btts)
+-                            )
+-
+-                            stats = (
+-                                lg[lg["HIT"].notna()]
+-                                .groupby(["League", "PICK_FINAL"])["HIT"]
+-                                .mean()
+-                                .reset_index()
+-                            )
+-                            stats["key"] = stats["League"].astype(str) + "||" + stats["PICK_FINAL"].astype(str)
+-                            hit_map = dict(zip(stats["key"], stats["HIT"]))
+-                            lg["key"] = lg["League"].astype(str) + "||" + lg["PICK_FINAL"].astype(str)
+-                            lg["HIT_RATE"] = lg["key"].map(hit_map)
+-                            lg["HIT_BUCKET"] = pd.cut(
+-                                lg["HIT_RATE"], bins=bucket_bins, labels=bucket_labels, include_lowest=True, right=True
+-                            )
+-
+-                            def _bucket_rates(df_in):
+-                                out = df_in.groupby("HIT_BUCKET")["HIT"].agg(["count", "mean"]).reset_index()
+-                                out = out.set_index("HIT_BUCKET")
+-                                return out
+-
+-                            all_b = _bucket_rates(lg[lg["HIT"].notna()])
+-                            pf = lg[(lg.get("POLICY_FLAG", 0) == 1) & (lg["HIT"].notna())]
+-                            pf_b = _bucket_rates(pf) if not pf.empty else pd.DataFrame()
+-
+-                            rows = []
+-                            for lbl in bucket_labels:
+-                                g = all_b.loc[lbl, "mean"] if lbl in all_b.index else np.nan
+-                                p = pf_b.loc[lbl, "mean"] if (not pf_b.empty and lbl in pf_b.index) else np.nan
+-                                rows.append({"Aralik": lbl, "Genel Basari": g, "Policy Basari": p})
+-
+-                            bucket_df = pd.DataFrame(rows)
+-                            bucket_df["Genel Basari"] = bucket_df["Genel Basari"].map(
+-                                lambda v: f"{v:.0%}" if pd.notna(v) else "-"
+-                            )
+-                            bucket_df["Policy Basari"] = bucket_df["Policy Basari"].map(
+-                                lambda v: f"{v:.0%}" if pd.notna(v) else "-"
+-                            )
+-                            bucket_color_map = {
+-                                "0�14% � Zayif": "#f8d7da",
+-                                "15�28% � D�s�k": "#f3b7b7",
+-                                "29�42% � Orta": "#f7d6b5",
+-                                "43�56% � Dengeli": "#fff3cd",
+-                                "57�70% � Iyi": "#e2f0d9",
+-                                "71�84% � �ok Iyi": "#cbe8c1",
+-                                "85�100% � Elit": "#b7e4c7",
+-                            }
+-
+-                            def _bucket_row_bg(r):
+-                                color = bucket_color_map.get(r.get("Aralik"), "")
+-                                if not color:
+-                                    return [""] * len(bucket_df.columns)
+-                                return [f"background-color: {color}"] * len(bucket_df.columns)
+-
+-                            st.dataframe(
+-                                bucket_df.style.apply(_bucket_row_bg, axis=1),
+-                                use_container_width=True,
+-                            )
+-
+-
++                        bucket_labels = [
++                            "0-14% - Zayif",
++                            "15-28% - Dusuk",
++                            "29-42% - Orta",
++                            "43-56% - Dengeli",
++                            "57-70% - Iyi",
++                            "71-84% - Cok Iyi",
++                            "85-100% - Elit",
++                        ]
++                        if {"League", "PICK_FINAL", "PICK_GROUP", "RES_FTHG", "RES_FTAG"}.issubset(log_df.columns):
++                            lg = log_df.dropna(subset=["RES_FTHG", "RES_FTAG"]).copy()
++                            if not lg.empty:
++                                lg["PICK_RESULT_NORM"] = lg.get("PICK_FINAL", lg.get("PICK", ""))
++                                lg["HIT"] = np.nan
++
++                                def _norm_1x2(v):
++                                    s = str(v or "")
++                                    return {"HOME": "MS1", "AWAY": "MS2", "DRAW": "X"}.get(s, s)
++
++                                def _norm_btts(v):
++                                    s = str(v or "").strip()
++                                    s = s.replace(" ", "_")
++                                    su = s.upper()
++                                    if su in ("BTTS_YES", "BTTSYES"):
++                                        return "BTTS_Yes"
++                                    if su in ("BTTS_NO", "BTTSNO"):
++                                        return "BTTS_No"
++                                    return s
++
++                                lg.loc[lg["PICK_GROUP"] == "1X2", "HIT"] = (
++                                    lg["PICK_RESULT_NORM"] == lg["RES_RESULT_1X2"].map(_norm_1x2)
++                                )
++                                lg.loc[lg["PICK_GROUP"] == "OU", "HIT"] = (
++                                    lg["PICK_RESULT_NORM"] == lg["RES_RESULT_OU"]
++                                )
++                                lg.loc[lg["PICK_GROUP"] == "BTTS", "HIT"] = (
++                                    lg["PICK_RESULT_NORM"] == lg["RES_RESULT_BTTS"].map(_norm_btts)
++                                )
++
++                                stats = (
++                                    lg[lg["HIT"].notna()]
++                                    .groupby(["League", "PICK_FINAL"])["HIT"]
++                                    .mean()
++                                    .reset_index()
++                                )
++                                stats["key"] = stats["League"].astype(str) + "||" + stats["PICK_FINAL"].astype(str)
++                                hit_map = dict(zip(stats["key"], stats["HIT"]))
++                                lg["key"] = lg["League"].astype(str) + "||" + lg["PICK_FINAL"].astype(str)
++                                lg["HIT_RATE"] = lg["key"].map(hit_map)
++                                lg["HIT_BUCKET"] = pd.cut(
++                                    lg["HIT_RATE"], bins=bucket_bins, labels=bucket_labels, include_lowest=True, right=True
++                                )
++
++                                def _bucket_rates(df_in):
++                                    out = df_in.groupby("HIT_BUCKET")["HIT"].agg(["count", "mean"]).reset_index()
++                                    out = out.set_index("HIT_BUCKET")
++                                    return out
++
++                                all_b = _bucket_rates(lg[lg["HIT"].notna()])
++                                pf = lg[(lg.get("POLICY_FLAG", 0) == 1) & (lg["HIT"].notna())]
++                                pf_b = _bucket_rates(pf) if not pf.empty else pd.DataFrame()
++
++                                rows = []
++                                for lbl in bucket_labels:
++                                    g = all_b.loc[lbl, "mean"] if lbl in all_b.index else np.nan
++                                    p = pf_b.loc[lbl, "mean"] if (not pf_b.empty and lbl in pf_b.index) else np.nan
++                                    rows.append({"Aralik": lbl, "Genel Basari": g, "Policy Basari": p})
++
++                                bucket_df = pd.DataFrame(rows)
++                                bucket_df["Genel Basari"] = bucket_df["Genel Basari"].map(
++                                    lambda v: f"{v:.0%}" if pd.notna(v) else "-"
++                                )
++                                bucket_df["Policy Basari"] = bucket_df["Policy Basari"].map(
++                                    lambda v: f"{v:.0%}" if pd.notna(v) else "-"
++                                )
++                                bucket_color_map = {
++                                    "0-14% - Zayif": "#f8d7da",
++                                    "15-28% - Dusuk": "#f3b7b7",
++                                    "29-42% - Orta": "#f7d6b5",
++                                    "43-56% - Dengeli": "#fff3cd",
++                                    "57-70% - Iyi": "#e2f0d9",
++                                    "71-84% - Cok Iyi": "#cbe8c1",
++                                    "85-100% - Elit": "#b7e4c7",
++                                }
++
++                                def _bucket_row_bg(r):
++                                    color = bucket_color_map.get(r.get("Aralik"), "")
++                                    if not color:
++                                        return [""] * len(bucket_df.columns)
++                                    return [f"background-color: {color}"] * len(bucket_df.columns)
++
++                                st.dataframe(
++                                    bucket_df.style.apply(_bucket_row_bg, axis=1),
++                                    use_container_width=True,
++                                )
+ 
+             if view.empty:
+ 
+@@ -5587,8 +5489,14 @@
+                                 s = str(v or "")
+                                 return {"HOME": "MS1", "AWAY": "MS2", "DRAW": "X"}.get(s, s)
+                             def _norm_btts(v):
+-                                s = str(v or "")
+-                                return {"BTTS Yes": "BTTS_Yes", "BTTS No": "BTTS_No"}.get(s, s)
++                                s = str(v or "").strip()
++                                s = s.replace(" ", "_")
++                                su = s.upper()
++                                if su in ("BTTS_YES", "BTTSYES"):
++                                    return "BTTS_Yes"
++                                if su in ("BTTS_NO", "BTTSNO"):
++                                    return "BTTS_No"
++                                return s
+                             _m["HIT"] = np.nan
+                             _m.loc[_m["PICK_GROUP"] == "1X2", "HIT"] = (
+                                 _m["PICK_FINAL"] == _m["RES_RESULT_1X2"].map(_norm_1x2)
+@@ -5609,12 +5517,12 @@
+                             hit_map = dict(zip(keys, pd.to_numeric(stats["HIT"], errors="coerce")))
+ 
+                 bucket_labels = [
+-                    ("Zayif", 0.14),
+-                    ("D�s�k", 0.28),
++                    ("Zayıf", 0.14),
++                    ("Düşük", 0.28),
+                     ("Orta", 0.42),
+                     ("Dengeli", 0.56),
+-                    ("Iyi", 0.70),
+-                    ("�ok Iyi", 0.84),
++                    ("İyi", 0.70),
++                    ("Çok İyi", 0.84),
+                     ("Elit", 1.00),
+                 ]
+ 
+@@ -5682,647 +5590,121 @@
+                         st.write(
+                             f"Hitrate debug: rows={total_rows}, n/a={na_rows}, hit_map={len(hit_map) if hit_map else 0}"
+                         )
++                        if "PICK_FINAL" in view.columns:
++                            x_picks = int((view["PICK_FINAL"] == "X").sum())
++                            st.write(f"X picks (view): {x_picks}")
++                    except Exception:
++                        pass
++                    try:
++                        dbg_src = None
++                        if isinstance(res, pd.DataFrame) and "_candidates" in res.columns and "PICK_FINAL" in res.columns:
++                            dbg_src = res
++                        elif isinstance(_pred, pd.DataFrame) and "_candidates" in _pred.columns:
++                            dbg_src = _pred
++                        else:
++                            dbg_src = view
++
++                        if isinstance(dbg_src, pd.DataFrame):
++                            if "Sim_Draw%" in dbg_src.columns:
++                                sd = pd.to_numeric(dbg_src["Sim_Draw%"], errors="coerce")
++                                st.write(f"Sim_Draw% finite: {int(sd.notna().sum())} | mean={sd.mean():.3f}")
++                            if "Poisson_Draw_Pct" in dbg_src.columns:
++                                pd_ = pd.to_numeric(dbg_src["Poisson_Draw_Pct"], errors="coerce")
++                                st.write(f"Poisson_Draw_Pct finite: {int(pd_.notna().sum())} | mean={pd_.mean():.3f}")
++                            if "DrawOdd" in dbg_src.columns:
++                                do = pd.to_numeric(dbg_src["DrawOdd"], errors="coerce")
++                                st.write(f"DrawOdd finite: {int(do.notna().sum())} | mean={do.mean():.2f}")
++
++                        def _norm_mkt(v):
++                            s = str(v or "").strip().lower().replace(" ", "").replace("_", "")
++                            return {
++                                "ms1": "MS1",
++                                "1": "MS1",
++                                "home": "MS1",
++                                "x": "X",
++                                "draw": "X",
++                                "msx": "X",
++                                "ms2": "MS2",
++                                "2": "MS2",
++                                "away": "MS2",
++                                "over25": "Over2.5",
++                                "over2.5": "Over2.5",
++                                "under25": "Under2.5",
++                                "under2.5": "Under2.5",
++                                "bttsyes": "BTTS_Yes",
++                                "bttsno": "BTTS_No",
++                            }.get(s, v)
++
++                        if isinstance(dbg_src, pd.DataFrame) and "_candidates" in dbg_src.columns:
++                            rows_with_cands = 0
++                            x_in_cands = 0
++                            x_rank_list = []
++                            x_topn = 0
++                            x_topn_rows = []
++                            topn = 3
++                            for _, r in dbg_src.iterrows():
++                                cands = r.get("_candidates")
++                                if not isinstance(cands, list) or not cands:
++                                    continue
++                                rows_with_cands += 1
++                                scored = []
++                                for c in cands:
++                                    if not isinstance(c, dict):
++                                        continue
++                                    m = _norm_mkt(c.get("mkt", c.get("market", c.get("pick", ""))))
++                                    sc = c.get("score", c.get("score_total", np.nan))
++                                    try:
++                                        sc = float(sc)
++                                    except Exception:
++                                        sc = np.nan
++                                    scored.append((m, sc, c))
++                                scored = sorted(scored, key=lambda t: (t[1] if np.isfinite(t[1]) else -1e9), reverse=True)
++                                ranks = [i + 1 for i, (m, _, _) in enumerate(scored) if m == "X"]
++                                if not ranks:
++                                    continue
++                                x_in_cands += 1
++                                x_rank = min(ranks)
++                                x_rank_list.append(x_rank)
++                                if x_rank <= topn:
++                                    x_topn += 1
++                                    if len(x_topn_rows) < 5:
++                                        best = scored[0] if scored else ("", np.nan, {})
++                                        x_row = {
++                                            "Match_ID": r.get("Match_ID", ""),
++                                            "League": r.get("League", ""),
++                                            "HomeTeam": r.get("HomeTeam", ""),
++                                            "AwayTeam": r.get("AwayTeam", ""),
++                                            "X_rank": x_rank,
++                                            "X_score": next((s for m, s, _ in scored if m == "X"), np.nan),
++                                            "X_prob_eff": next((c.get("prob_eff", np.nan) for m, _, c in scored if m == "X"), np.nan),
++                                            "X_prob_adj": next((c.get("prob_adj", np.nan) for m, _, c in scored if m == "X"), np.nan),
++                                            "X_odd": next((c.get("odd", np.nan) for m, _, c in scored if m == "X"), np.nan),
++                                            "Top1_mkt": best[0],
++                                            "Top1_score": best[1],
++                                            "Sim_Draw%": r.get("Sim_Draw%", np.nan),
++                                            "Poisson_Draw_Pct": r.get("Poisson_Draw_Pct", np.nan),
++                                            "DrawOdd": r.get("DrawOdd", np.nan),
++                                        }
++                                        x_topn_rows.append(x_row)
++                            st.write(
++                                f"X in Top-{topn} (rows with cands): {x_topn}/{rows_with_cands} | rows_with_cands={rows_with_cands}"
++                            )
++                            st.write(
++                                f"X in candidates: {x_in_cands} | avg rank={float(np.mean(x_rank_list)) if x_rank_list else np.nan:.2f} | min rank={min(x_rank_list) if x_rank_list else 'n/a'}"
++                            )
++                            if x_topn_rows:
++                                st.write("X Top-N sample (first 5):")
++                                st.dataframe(pd.DataFrame(x_topn_rows), use_container_width=True)
+                     except Exception:
+                         pass
+                 if isinstance(_pred, pd.DataFrame) and not _pred.empty:
+                     ts = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
+                     csv_bytes = _pred.to_csv(index=False).encode("utf-8")
+                     st.download_button(
+-                        "?? Download Predictions CSV (FULL)",
++                        "Download Predictions CSV",
+                         data=csv_bytes,
+-                        file_name=f"pred_full_{ts}.csv",
++                        file_name=f"predictions_{ts}.csv",
+                         mime="text/csv",
+-                    )
+-
+-
+-
+-            with st.expander("Detay G�r�n�m (Full Dump)", expanded=False):
+-
+-                FULL_COLS = [
+-
+-                    "Match_ID","Date","League","Hitrate","HomeTeam","AwayTeam",
+-
+-                    "POLICY_FLAG","POLICY_RULE",
+-
+-                    "PICK","PICK_PROB","PICK_ODD",
+-
+-                "Sim_Home%","Sim_Draw%","Sim_Away%","Sim_Over25%","Sim_Under25%","Sim_BTTS_Yes%","Sim_BTTS_No%",
+-
+-                "SIM_QUALITY","EFFECTIVE_N","TRUST_PCT",
+-                "P_OVER25_ADJ","P_BTTSY_ADJ","MISPRICING_PICK",
+-                "XG_WEIGHT_CFG",
+-                "XG_MICRO_BIAS_HOME","XG_MICRO_BIAS_DRAW","XG_MICRO_BIAS_AWAY",
+-                "XG_MICRO_BIAS_OVER25","XG_MICRO_BIAS_BTTS",
+-                "SCORE_LAM_H","SCORE_LAM_A",
+-
+-                ]
+-
+-                FULL_COLS = [c for c in FULL_COLS if c in res.columns]
+-
+-                st.dataframe(res[FULL_COLS].style.format(format_map), use_container_width=True)
+-
+-
+-
+-        with tab2:
+-
+-            st.subheader("Ma� detayi")
+-
+-            label_options = []
+-
+-            for _, row in res.iterrows():
+-
+-                d = row.get("Date")
+-
+-                date_str = d.strftime("%Y-%m-%d") if pd.notna(d) else ""
+-
+-                label_options.append(
+-
+-                    f"{row['HomeTeam']} vs {row['AwayTeam']} | {row['League']} | {date_str} | {row['Match_ID']}"
+-
+-                )
+-
+-            pick = st.selectbox("Ma� se�", label_options, index=0)
+-
+-            if pick:
+-
+-                selected_match_id = pick.split(" | ")[-1]
+-
+-                matching_futures = future[future["Match_ID"] == selected_match_id]
+-
+-                if matching_futures.empty:
+-
+-                    st.error("Se�ilen ma� bulunamadi.")
+-
+-                else:
+-
+-                    frow = matching_futures.iloc[0]  # Ilk esleseni al
+-
+-                    selected_idx = frow.name  # index
+-
+-                    stats = res[res["Match_ID"] == selected_match_id].iloc[0].to_dict()
+-
+-                    sim_df = st.session_state.get("_sim_cache", {}).get(selected_match_id, pd.DataFrame())
+-
+-                    row1 = st.columns(3)
+-
+-                    row1[0].metric("Ev %", f"{float(stats.get('Sim_Home%', 0.0)):.1%}")
+-
+-                    row1[1].metric("Berabere %", f"{float(stats.get('Sim_Draw%', 0.0)):.1%}")
+-
+-                    row1[2].metric("Deplasman %", f"{float(stats.get('Sim_Away%', 0.0)):.1%}")
+-
+-                    row2 = st.columns(3)
+-
+-                    row2[0].metric("�st 2.5 %", f"{float(stats.get('Sim_Over25%', 0.0)):.1%}")
+-
+-                    row2[1].metric("Alt 2.5 %", f"{float(stats.get('Sim_Under25%', 0.0)):.1%}")
+-
+-                    row2[2].metric("Avg Benzerlik", f"{float(stats.get('Avg_Similarity', 0.0)):.3f}")
+-
+-                    row3 = st.columns(3)
+-
+-                    row3[0].metric("BTTS Evet %", f"{float(stats.get('Sim_BTTS_Yes%', 0.0)):.1%}")
+-
+-                    row3[1].metric("BTTS Hayir %", f"{float(stats.get('Sim_BTTS_No%', 0.0)):.1%}")
+-
+-                    row3[2].metric("Benzer Ma� Sayisi", int(stats.get('N', 0)))
+-
+-                    row4 = st.columns(3)
+-
+-                    row4[0].metric("SIM_QUALITY", f"{stats['SIM_QUALITY']:.3f}")
+-
+-                    row4[1].metric("EFFECTIVE_N", f"{stats['EFFECTIVE_N']:.2f}")
+-
+-                    row4[2].metric("TRUST_PCT", f"{float(stats.get('TRUST_PCT', 0.0)):.1f}")
+-
+-                    debug_context = st.session_state.get("_debug", {}) if hasattr(st, "session_state") else {}
+-                    try:
+-                        trace_dict, trace_text = build_decision_trace(stats, debug_context=debug_context)
+-                        with st.expander("?? Decision Trace", expanded=False):
+-                            st.code(trace_text)
+-                            st.json(trace_dict)
+-                    except Exception as e:
+-                        if st.session_state.get("DEBUG_MODE", False):
+-                            st.error(f"Decision Trace error: {e}")
+-
+-                    row5 = st.columns(2)
+-
+-                    row5[0].metric("Same league neighbors", stats['same_league_count'])
+-
+-                    row5[1].metric("Global neighbors", stats['global_count'])
+-
+-                    st.markdown("### ?? Senaryo")
+-
+-                    scenario_text = stats.get("SCENARIO_TEXT", "")
+-
+-                    scenario_ev = stats.get("SCENARIO_EVIDENCE", "")
+-
+-                    if scenario_text:
+-
+-                        st.info(scenario_text)
+-
+-                        if scenario_ev:
+-
+-                            st.caption(scenario_ev)
+-
+-                    else:
+-
+-                        st.info("Veriler cok karmasik ve birbirine zit sinyaller veriyor. Bu macta istatistiksel bir trend yakalamak zor, canli bahiste gidisati gormek daha saglikli olabilir.")
+-
+-                    with st.expander("?? Sentez Debug (Top-3 adaylar + kurallar)", expanded=False):
+-
+-                        try:
+-
+-                            best_dbg = pick_best_market_synth(stats, return_debug=True, params=debug.get("chosen_params") if isinstance(debug, dict) else None, debug_context=debug)
+-                            dbg = (best_dbg or {}).get("debug", {}) if isinstance(best_dbg, dict) else {}
+-                            cand = dbg.get("candidates", [])
+-                            st.write("SCENARIO_ID:", dbg.get("scenario_id"))
+-                            st.write("SCENARIO_TITLE:", dbg.get("scenario_title"))
+-                            st.write("lamH / lamA:", dbg.get("lamH"), dbg.get("lamA"))
+-                            st.write("PICK_MARGIN:", dbg.get("pick_margin"))
+-                            if cand:
+-                                df_dbg = pd.DataFrame(cand)
+-                                show_cols = ["chosen","market","group","base_prob_pct","bias_trust","bias_score","bias_scenario","bias_rank","bias_total","synth_prob_pct","odd"]
+-
+-                                df_dbg = df_dbg[[c for c in show_cols if c in df_dbg.columns]]
+-
+-                                for c in ["base_prob_pct","bias_trust","bias_score","bias_scenario","bias_rank","bias_total","synth_prob_pct","odd"]:
+-
+-                                    if c in df_dbg.columns:
+-
+-                                        df_dbg[c] = pd.to_numeric(df_dbg[c], errors="coerce").round(2)
+-
+-                                st.dataframe(df_dbg, use_container_width=True, hide_index=True)
+-
+-                                chosen_rows = df_dbg[df_dbg.get("chosen", False) == True] if "chosen" in df_dbg.columns else pd.DataFrame()
+-
+-                                if len(chosen_rows) > 0:
+-
+-                                    ch = chosen_rows.iloc[0].to_dict()
+-
+-                                    st.markdown(
+-
+-                                        f"**Se�ilen:** `{ch.get('market')}`  |  "
+-
+-                                        f"Base={ch.get('base_prob_pct')}% ? Synth={ch.get('synth_prob_pct')}%  "
+-
+-                                        f"(bias {float(ch.get('bias_total', 0.0)):+.2f} puan)"
+-
+-                                    )
+-
+-                            st.caption(
+-
+-                                "Not: SCORE_LAM toplami y�ksekse Under2.5 k���k ceza yer, d�s�kse bonus alir. "
+-
+-                                "Senaryo bias'lari ve diger bias'lar k���k (�2-4 puan) tutulur."
+-
+-                            )
+-
+-                        except Exception as e:
+-
+-                            st.error(f"Sentez debug �retilemedi: {e}")
+-
+-
+-
+-                    league_goals_avg_10 = np.nan
+-
+-
+-                    league_goals_avg_50 = np.nan
+-
+-
+-                    league_regime = "n/a"
+-
+-
+-                    league_regime_score = 0.0
+-
+-
+-                    home_trend_score = 0.0
+-
+-
+-                    away_trend_score = 0.0
+-                    _regime_cache = st.session_state.setdefault("_regime_cache", {})
+-                    league_name = frow.get("League")
+-                    home_team = frow.get("HomeTeam")
+-                    away_team = frow.get("AwayTeam")
+-                    league_key = ("LP", league_name) if league_name else None
+-                    home_key = ("TT", home_team) if home_team else None
+-                    away_key = ("TT", away_team) if away_team else None
+-
+-                    league_goals_avg_10 = np.nan
+-                    league_goals_avg_50 = np.nan
+-                    league_regime = "n/a"
+-                    league_regime_score = 0.0
+-                    league_conf = 0.0
+-                    league_n_long = 0
+-                    home_gf_avg_10 = np.nan
+-                    home_gf_avg_50 = np.nan
+-                    home_trend_score = 0.0
+-                    home_trend_n = 0
+-                    away_gf_avg_10 = np.nan
+-                    away_gf_avg_50 = np.nan
+-                    away_trend_score = 0.0
+-                    away_trend_n = 0
+-                    home_xg_trend_score = 0.0
+-                    away_xg_trend_score = 0.0
+-                    home_metric_used = "n/a"
+-                    away_metric_used = "n/a"
+-                    home_xg_metric_used = "n/a"
+-                    away_xg_metric_used = "n/a"
+-                    home_trend_reason = "metric_n/a"
+-                    away_trend_reason = "metric_n/a"
+-                    home_xg_trend_reason = "metric_n/a"
+-                    away_xg_trend_reason = "metric_n/a"
+-
+-                    if isinstance(past, pd.DataFrame) and not past.empty:
+-                        past_league = (
+-                            past[past["League"] == league_name]
+-                            if ("League" in past.columns and league_name)
+-                            else past
+-                        )
+-                        if {"HomeTeam", "AwayTeam"}.issubset(past.columns) and home_team:
+-                            past_home = past[
+-                                (past["HomeTeam"] == home_team)
+-                                | (past["AwayTeam"] == home_team)
+-                            ]
+-                        else:
+-                            past_home = past
+-                        if {"HomeTeam", "AwayTeam"}.issubset(past.columns) and away_team:
+-                            past_away = past[
+-                                (past["HomeTeam"] == away_team)
+-                                | (past["AwayTeam"] == away_team)
+-                            ]
+-                        else:
+-                            past_away = past
+-
+-                        if league_key and league_key in _regime_cache:
+-                            lp = _regime_cache.get(league_key, {})
+-                        else:
+-                            lp = compute_league_profile(past_league, target_league=league_name)
+-                            if league_key:
+-                                _regime_cache[league_key] = lp
+-                        if home_key and home_key in _regime_cache:
+-                            ht = _regime_cache.get(home_key, {})
+-                        else:
+-                            ht = compute_team_trend(past_home, home_team)
+-                            if home_key:
+-                                _regime_cache[home_key] = ht
+-                        if away_key and away_key in _regime_cache:
+-                            at = _regime_cache.get(away_key, {})
+-                        else:
+-                            at = compute_team_trend(past_away, away_team)
+-                            if away_key:
+-                                _regime_cache[away_key] = at
+-                        if len(_regime_cache) > 500:
+-                            _regime_cache.pop(next(iter(_regime_cache)))
+-
+-                        league_goals_avg_10 = lp.get("goals_avg_10", np.nan)
+-                        league_goals_avg_50 = lp.get("goals_avg_50", np.nan)
+-                        league_regime = lp.get("league_regime", "n/a")
+-                        league_regime_score = lp.get("league_regime_score", 0.0)
+-                        league_conf = lp.get("conf", 0.0)
+-                        league_n_long = lp.get("n_long", 0)
+-
+-                        home_gf_avg_10 = ht.get("short_mean", np.nan)
+-                        home_gf_avg_50 = ht.get("long_mean", np.nan)
+-                        home_trend_score = ht.get("trend_score", 0.0)
+-                        home_trend_n = ht.get("n_matches", 0)
+-                        away_gf_avg_10 = at.get("short_mean", np.nan)
+-                        away_gf_avg_50 = at.get("long_mean", np.nan)
+-                        away_trend_score = at.get("trend_score", 0.0)
+-                        away_trend_n = at.get("n_matches", 0)
+-
+-                        home_xg_trend_score = ht.get("xg_trend_score", 0.0)
+-                        away_xg_trend_score = at.get("xg_trend_score", 0.0)
+-
+-                        home_metric_used = ht.get("metric_used", "n/a")
+-                        away_metric_used = at.get("metric_used", "n/a")
+-                        home_xg_metric_used = ht.get("xg_metric_used", "n/a")
+-                        away_xg_metric_used = at.get("xg_metric_used", "n/a")
+-                        home_trend_reason = ht.get("trend_reason", "metric_n/a")
+-                        away_trend_reason = at.get("trend_reason", "metric_n/a")
+-                        home_xg_trend_reason = ht.get("xg_trend_reason", "metric_n/a")
+-                        away_xg_trend_reason = at.get("xg_trend_reason", "metric_n/a")
+-
+-                        if not isinstance(league_regime, str) or league_regime.strip() == "" or league_regime.lower() == "nan":
+-                            league_regime = "n/a"
+-                        if not np.isfinite(league_regime_score):
+-                            league_regime_score = 0.0
+-                        if not np.isfinite(home_trend_score):
+-                            home_trend_score = 0.0
+-                        if not np.isfinite(away_trend_score):
+-                            away_trend_score = 0.0
+-                        if not np.isfinite(home_xg_trend_score):
+-                            home_xg_trend_score = 0.0
+-                        if not np.isfinite(away_xg_trend_score):
+-                            away_xg_trend_score = 0.0
+-
+-                        sim_df = sim_df.copy()
+-                        sim_defaults = {
+-                            "SIM_LEAGUE_REGIME": "n/a",
+-                            "SIM_LEAGUE_REGIME_SCORE": 0.0,
+-                            "SIM_LEAGUE_GOALS_AVG_10": np.nan,
+-                            "SIM_LEAGUE_GOALS_AVG_50": np.nan,
+-                            "SIM_LEAGUE_CONF": 0.0,
+-                            "SIM_LEAGUE_N_LONG": 0,
+-                        }
+-                        if "League" in sim_df.columns and isinstance(past, pd.DataFrame) and not past.empty:
+-                            league_profile_map = {}
+-                            for row_league in sim_df["League"].dropna().unique():
+-                                cache_key = ("LP_SIM", row_league)
+-                                if cache_key in _regime_cache:
+-                                    lp_sim = _regime_cache.get(cache_key, {})
+-                                else:
+-                                    if "League" in past.columns and row_league:
+-                                        past_league = past[past["League"] == row_league]
+-                                    else:
+-                                        past_league = past
+-                                    lp_sim = compute_league_profile(past_league, target_league=row_league)
+-                                    _regime_cache[cache_key] = lp_sim
+-                                league_profile_map[row_league] = lp_sim
+-
+-                            sim_df["SIM_LEAGUE_REGIME"] = sim_df["League"].map(
+-                                lambda lg: league_profile_map.get(lg, {}).get("league_regime", "n/a")
+-                            )
+-                            sim_df["SIM_LEAGUE_REGIME_SCORE"] = sim_df["League"].map(
+-                                lambda lg: league_profile_map.get(lg, {}).get("league_regime_score", 0.0)
+-                            )
+-                            sim_df["SIM_LEAGUE_GOALS_AVG_10"] = sim_df["League"].map(
+-                                lambda lg: league_profile_map.get(lg, {}).get("goals_avg_10", np.nan)
+-                            )
+-                            sim_df["SIM_LEAGUE_GOALS_AVG_50"] = sim_df["League"].map(
+-                                lambda lg: league_profile_map.get(lg, {}).get("goals_avg_50", np.nan)
+-                            )
+-                            sim_df["SIM_LEAGUE_CONF"] = sim_df["League"].map(
+-                                lambda lg: league_profile_map.get(lg, {}).get("conf", 0.0)
+-                            )
+-                            sim_df["SIM_LEAGUE_N_LONG"] = sim_df["League"].map(
+-                                lambda lg: league_profile_map.get(lg, {}).get("n_long", 0)
+-                            )
+-                        else:
+-                            for col, default in sim_defaults.items():
+-                                sim_df[col] = default
+-
+-                        sim_has_xg = isinstance(past, pd.DataFrame) and {"xG_Home", "xG_Away"}.issubset(past.columns)
+-                        if {"HomeTeam", "AwayTeam"}.issubset(sim_df.columns) and isinstance(past, pd.DataFrame) and not past.empty:
+-                            teams = pd.concat(
+-                                [sim_df["HomeTeam"], sim_df["AwayTeam"]],
+-                                ignore_index=True,
+-                            ).dropna().unique()
+-                            team_trend_map = {}
+-                            for team in teams:
+-                                cache_key = ("TT_SIM", team)
+-                                if cache_key in _regime_cache:
+-                                    tt = _regime_cache.get(cache_key, {})
+-                                else:
+-                                    tt = compute_team_trend(past, team)
+-                                    _regime_cache[cache_key] = tt
+-                                team_trend_map[team] = tt
+-
+-                            sim_df["SIM_HOME_TREND_SCORE"] = sim_df["HomeTeam"].map(
+-                                lambda t: team_trend_map.get(t, {}).get("trend_score", 0.0)
+-                            )
+-                            sim_df["SIM_HOME_TREND_N"] = sim_df["HomeTeam"].map(
+-                                lambda t: team_trend_map.get(t, {}).get("n_matches", 0)
+-                            )
+-                            sim_df["SIM_HOME_TREND_REASON"] = sim_df["HomeTeam"].map(
+-                                lambda t: team_trend_map.get(t, {}).get("trend_reason", "metric_n/a")
+-                            )
+-                            sim_df["SIM_HOME_METRIC_USED"] = sim_df["HomeTeam"].map(
+-                                lambda t: team_trend_map.get(t, {}).get("metric_used", "n/a")
+-                            )
+-                            sim_df["SIM_AWAY_TREND_SCORE"] = sim_df["AwayTeam"].map(
+-                                lambda t: team_trend_map.get(t, {}).get("trend_score", 0.0)
+-                            )
+-                            sim_df["SIM_AWAY_TREND_N"] = sim_df["AwayTeam"].map(
+-                                lambda t: team_trend_map.get(t, {}).get("n_matches", 0)
+-                            )
+-                            sim_df["SIM_AWAY_TREND_REASON"] = sim_df["AwayTeam"].map(
+-                                lambda t: team_trend_map.get(t, {}).get("trend_reason", "metric_n/a")
+-                            )
+-                            sim_df["SIM_AWAY_METRIC_USED"] = sim_df["AwayTeam"].map(
+-                                lambda t: team_trend_map.get(t, {}).get("metric_used", "n/a")
+-                            )
+-                            if sim_has_xg:
+-                                sim_df["SIM_HOME_XG_TREND_SCORE"] = sim_df["HomeTeam"].map(
+-                                    lambda t: team_trend_map.get(t, {}).get("xg_trend_score", 0.0)
+-                                )
+-                                sim_df["SIM_AWAY_XG_TREND_SCORE"] = sim_df["AwayTeam"].map(
+-                                    lambda t: team_trend_map.get(t, {}).get("xg_trend_score", 0.0)
+-                                )
+-                                sim_df["SIM_HOME_XG_TREND_REASON"] = sim_df["HomeTeam"].map(
+-                                    lambda t: team_trend_map.get(t, {}).get("xg_trend_reason", "metric_n/a")
+-                                )
+-                                sim_df["SIM_AWAY_XG_TREND_REASON"] = sim_df["AwayTeam"].map(
+-                                    lambda t: team_trend_map.get(t, {}).get("xg_trend_reason", "metric_n/a")
+-                                )
+-                        else:
+-                            sim_df["SIM_HOME_TREND_SCORE"] = 0.0
+-                            sim_df["SIM_HOME_TREND_N"] = 0
+-                            sim_df["SIM_HOME_TREND_REASON"] = "metric_n/a"
+-                            sim_df["SIM_HOME_METRIC_USED"] = "n/a"
+-                            sim_df["SIM_AWAY_TREND_SCORE"] = 0.0
+-                            sim_df["SIM_AWAY_TREND_N"] = 0
+-                            sim_df["SIM_AWAY_TREND_REASON"] = "metric_n/a"
+-                            sim_df["SIM_AWAY_METRIC_USED"] = "n/a"
+-                            sim_df["SIM_HOME_XG_TREND_SCORE"] = 0.0
+-                            sim_df["SIM_AWAY_XG_TREND_SCORE"] = 0.0
+-                            sim_df["SIM_HOME_XG_TREND_REASON"] = "metric_n/a"
+-                            sim_df["SIM_AWAY_XG_TREND_REASON"] = "metric_n/a"
+-
+-                        for col in [
+-                            "SIM_HOME_TREND_SCORE",
+-                            "SIM_AWAY_TREND_SCORE",
+-                            "SIM_HOME_XG_TREND_SCORE",
+-                            "SIM_AWAY_XG_TREND_SCORE",
+-                        ]:
+-                            if col in sim_df.columns:
+-                                s = pd.to_numeric(sim_df[col], errors="coerce").fillna(0.0)
+-                                sim_df[col] = s.mask(s.abs() < 1e-9, 0.0)
+-
+-                    def _fmt2(v):
+-
+-
+-
+-
+-                        f = _safe_float(v)
+-
+-
+-
+-                        return f"{f:.2f}" if np.isfinite(f) else "NA"
+-                    st.session_state["dbg_league_regime"] = {
+-                        "TARGET_LEAGUE_REGIME": league_regime,
+-                        "TARGET_LEAGUE_REGIME_SCORE": league_regime_score,
+-                        "TARGET_LEAGUE_GOALS_AVG_10": league_goals_avg_10,
+-                        "TARGET_LEAGUE_GOALS_AVG_50": league_goals_avg_50,
+-                        "TARGET_LEAGUE_CONF": league_conf,
+-                        "TARGET_LEAGUE_N_LONG": league_n_long,
+-                        "TARGET_HOME_GF_AVG_10": home_gf_avg_10,
+-                        "TARGET_HOME_GF_AVG_50": home_gf_avg_50,
+-                        "TARGET_HOME_TREND_SCORE": home_trend_score,
+-                        "TARGET_HOME_TREND_N": home_trend_n,
+-                        "TARGET_HOME_METRIC_USED": home_metric_used,
+-                        "TARGET_HOME_TREND_REASON": home_trend_reason,
+-                        "TARGET_AWAY_GF_AVG_10": away_gf_avg_10,
+-                        "TARGET_AWAY_GF_AVG_50": away_gf_avg_50,
+-                        "TARGET_AWAY_TREND_SCORE": away_trend_score,
+-                        "TARGET_AWAY_TREND_N": away_trend_n,
+-                        "TARGET_AWAY_METRIC_USED": away_metric_used,
+-                        "TARGET_AWAY_TREND_REASON": away_trend_reason,
+-                        "TARGET_HOME_XG_TREND_SCORE": home_xg_trend_score,
+-                        "TARGET_AWAY_XG_TREND_SCORE": away_xg_trend_score,
+-                        "TARGET_HOME_XG_TREND_REASON": home_xg_trend_reason,
+-                        "TARGET_AWAY_XG_TREND_REASON": away_xg_trend_reason,
+-                    }
+-                    st.caption(
+-                        f"Regime={league_regime} score={_fmt2(league_regime_score)} L10={_fmt2(league_goals_avg_10)} L50={_fmt2(league_goals_avg_50)} | "
+-                        f"H_GF10={_fmt2(home_gf_avg_10)} H_GF50={_fmt2(home_gf_avg_50)} Hscore={_fmt2(home_trend_score)} HN={home_trend_n} | "
+-                        f"A_GF10={_fmt2(away_gf_avg_10)} A_GF50={_fmt2(away_gf_avg_50)} Ascore={_fmt2(away_trend_score)} AN={away_trend_n} | "
+-                        f"Hr={home_trend_reason} Ar={away_trend_reason}"
+-                    )
+-                    if home_xg_metric_used == "xG_for" or away_xg_metric_used == "xG_for":
+-                        st.caption(
+-                            f"HxGr={home_xg_trend_reason} AxGr={away_xg_trend_reason}"
+-                        )
+-                    st.markdown("### ?? Benzer Ma�lara G�re Dagilim (Top 10)")
+-                    top10 = sim_df.head(10).copy()
+-
+-                    c1, c2, c3 = st.columns(3)
+-
+-                    # 1X2
+-
+-                    with c1:
+-
+-                        st.markdown("**1X2**")
+-
+-                        df1 = pd.DataFrame([
+-
+-                            ["MS1", float((top10["Result"]=="HOME").mean())],
+-
+-                            ["X",   float((top10["Result"]=="DRAW").mean())],
+-
+-                            ["MS2", float((top10["Result"]=="AWAY").mean())],
+-
+-                        ], columns=["Se�enek","Oran"])
+-
+-                        st.dataframe(df1.style.format({"Oran":"{:.1%}"}), use_container_width=True)
+-
+-                    # Over / Under
+-
+-                    with c2:
+-
+-                        st.markdown("**Over / Under 2.5**")
+-
+-                        over = float(top10["Is_Over25"].mean()) if "Is_Over25" in top10.columns else 0.0
+-
+-                        df2 = pd.DataFrame([["Over 2.5", over], ["Under 2.5", 1-over]], columns=["Se�enek","Oran"])
+-
+-                        st.dataframe(df2.style.format({"Oran":"{:.1%}"}), use_container_width=True)
+-
+-                    # BTTS
+-
+-                    with c3:
+-
+-                        st.markdown("**BTTS**")
+-
+-                        btts = float(top10["Is_BTTS"].mean()) if "Is_BTTS" in top10.columns else 0.0
+-
+-                        df3 = pd.DataFrame([["BTTS Yes", btts], ["BTTS No", 1-btts]], columns=["Se�enek","Oran"])
+-
+-                        st.dataframe(df3.style.format({"Oran":"{:.1%}"}), use_container_width=True)
+-
+-                    st.caption(f"KNN feature set: {len(debug['feature_cols'])} s�tun (xG agirlik {debug['chosen_params']['weight_config']['xg']})")
+-
+-                    show_advanced_cols = st.checkbox("Advanced (Regime/Trend kolonlari)", value=False)
+-                    st.write("Benzer ma�lar")
+-                    sim_cols = [
+-                        "Date", "League", "HomeTeam", "AwayTeam",
+-                        "FTHG", "FTAG", "FT_Score",
+-                        "Result_1X2", "Result_OU", "Result_BTTS",
+-                        "xG_Home", "xG_Away", "xG_Total",
+-                        "TotalGoals", "Similarity_Score",
+-                    ]
+-                    if show_advanced_cols:
+-                        extra_cols = [
+-                            "TARGET_LEAGUE_REGIME", "TARGET_LEAGUE_REGIME_SCORE",
+-                            "TARGET_LEAGUE_GOALS_AVG_10", "TARGET_LEAGUE_GOALS_AVG_50",
+-                            "TARGET_LEAGUE_CONF", "TARGET_LEAGUE_N_LONG",
+-                            "TARGET_HOME_GF_AVG_10", "TARGET_HOME_GF_AVG_50", "TARGET_HOME_TREND_SCORE", "TARGET_HOME_TREND_N",
+-                            "TARGET_AWAY_GF_AVG_10", "TARGET_AWAY_GF_AVG_50", "TARGET_AWAY_TREND_SCORE", "TARGET_AWAY_TREND_N",
+-                            "SIM_LEAGUE_REGIME", "SIM_LEAGUE_REGIME_SCORE",
+-                            "SIM_LEAGUE_GOALS_AVG_10", "SIM_LEAGUE_GOALS_AVG_50",
+-                            "SIM_LEAGUE_CONF", "SIM_LEAGUE_N_LONG",
+-                            "SIM_HOME_TREND_SCORE", "SIM_HOME_TREND_N",
+-                            "SIM_AWAY_TREND_SCORE", "SIM_AWAY_TREND_N",
+-                            "SIM_HOME_TREND_REASON", "SIM_HOME_METRIC_USED",
+-                            "SIM_AWAY_TREND_REASON", "SIM_AWAY_METRIC_USED",
+-                        ]
+-                        if "SIM_HOME_XG_TREND_SCORE" in sim_df.columns or "SIM_AWAY_XG_TREND_SCORE" in sim_df.columns:
+-                            extra_cols += ["SIM_HOME_XG_TREND_SCORE", "SIM_AWAY_XG_TREND_SCORE"]
+-                        sim_cols = sim_cols + extra_cols
+-                    for c in ["FTHG", "FTAG", "TotalGoals"]:
+-
+-                        if c in sim_df.columns:
+-
+-                            sim_df[c] = pd.to_numeric(sim_df[c], errors="coerce").round(0).astype("Int64")
+-
+-                    for c in ["xG_Home", "xG_Away"]:
+-
+-                        if c in sim_df.columns:
+-
+-                            sim_df[c] = pd.to_numeric(sim_df[c], errors="coerce").round(2)
+-
+-                    if "xG_Home" in sim_df.columns and "xG_Away" in sim_df.columns:
+-
+-                        sim_df["xG_Total"] = (sim_df["xG_Home"] + sim_df["xG_Away"]).round(2)
+-
+-                    if "FTHG" in sim_df.columns and "FTAG" in sim_df.columns:
+-                        hg = pd.to_numeric(sim_df["FTHG"], errors="coerce")
+-                        ag = pd.to_numeric(sim_df["FTAG"], errors="coerce")
+-                        sim_df["Result_1X2"] = np.where(
+-                            hg > ag,
+-                            "HOME",
+-                            np.where(hg < ag, "AWAY", "DRAW"),
+-                        )
+-                        tg = hg + ag
+-                        sim_df["Result_OU"] = np.where(tg >= 3, "Over2.5", "Under2.5")
+-                        sim_df["Result_BTTS"] = np.where((hg > 0) & (ag > 0), "BTTS Yes", "BTTS No")
+-
+-                    if "FTHG" in sim_df.columns and "FTAG" in sim_df.columns:
+-
+-                        sim_df["FT_Score"] = (
+-
+-                            sim_df["FTHG"].astype("Int64").astype(str)
+-
+-                            + "-"
+-
+-                            + sim_df["FTAG"].astype("Int64").astype(str)
+-
+-                        )
+-
+-                    sim_cols = [c for c in sim_cols if c in sim_df.columns]
+-
+-                    display_count = min(len(sim_df), debug['chosen_params']['k_same'] + debug['chosen_params']['k_global'])
+-
+-                    if isinstance(sim_df, pd.DataFrame) and not sim_df.empty:
+-                        ts = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
+-                        sim_csv = sim_df[sim_cols].to_csv(index=False).encode("utf-8")
+-                        st.download_button(
+-                            "?? Download Similar Matches CSV",
+-                            data=sim_csv,
+-                            file_name=f"sim_matches_{ts}.csv",
+-                            mime="text/csv",
+-                        )
+-
+-                    fmt = {"Similarity_Score": "{:.3f}"}
+-                    for c in ["xG_Home", "xG_Away", "xG_Total"]:
+-                        if c in sim_df.columns:
+-                            fmt[c] = "{:.2f}"
+-                    st.dataframe(
+-
+-                        sim_df[sim_cols].head(display_count).style.format(fmt),
+-
+-                        use_container_width=True,
+-
+                     )
+ 
+         with tab3:
+@@ -6405,7 +5787,7 @@
+ 
+             feature_weight_df = pd.DataFrame(list(debug["feature_weights"].items()), columns=["feature", "weight"])
+ 
+-            st.write("Se�ilen featurelar ve agirliklari:")
++            st.write("Seçilen featurelar ve agirliklari:")
+ 
+             st.dataframe(feature_weight_df)
+ 
+@@ -6421,7 +5803,7 @@
+ 
+                 null_df["null_ratio"] = null_df["null_ratio"].map("{:.1%}".format)
+ 
+-                st.write("Null ratio (en y�ksek 20):")
++                st.write("Null ratio (en yüksek 20):")
+ 
+                 st.dataframe(null_df)
+ 
+@@ -6431,13 +5813,13 @@
+ 
+             if debug["drop_records"]:
+ 
+-                st.write("D�s�r�len kolonlar (sebep):")
++                st.write("Düsürülen kolonlar (sebep):")
+ 
+                 st.dataframe(pd.DataFrame(debug["drop_records"]))
+ 
+             else:
+ 
+-                st.write("D�s�r�len kolon yok.")
++                st.write("Düsürülen kolon yok.")
+ 
+             st.write("xG bilgisi:")
+ 
+@@ -6445,7 +5827,7 @@
+ 
+                 info = debug["xg_info"].get(col, {"included": False, "reason": "veride yok"})
+ 
+-                status = "Dahil" if info["included"] else "Hari�"
++                status = "Dahil" if info["included"] else "Hariç"
+ 
+                 st.write(f"- {col}: {status} ({info['reason']})")
+ 
+@@ -6504,7 +5886,7 @@
+             st.json(debug["sim_quality_q"])
+ 
+         with tab4:
+-            st.subheader("Tahmin Sonu�lari")
++            st.subheader("Tahmin Sonuçları")
+ 
+             log_path = os.path.join(os.path.dirname(__file__), "pred_results_log.csv")
+             result_cols = ["RES_FTHG", "RES_FTAG", "RES_RESULT_1X2", "RES_RESULT_OU", "RES_RESULT_BTTS", "RES_UPDATED_AT"]
+@@ -6697,7 +6079,7 @@
+             else:
+                 log_df["Date"] = pd.to_datetime(log_df.get("Date"), errors="coerce").dt.strftime("%Y-%m-%d")
+                 date_list = sorted([d for d in log_df["Date"].dropna().unique().tolist()])
+-                selected_date = st.selectbox("Tarih se�", date_list, index=0) if date_list else ""
++                selected_date = st.selectbox("Tarih seç", date_list, index=0) if date_list else ""
+ 
+                 view_df = log_df[log_df["Date"] == selected_date].copy() if selected_date else log_df.copy()
+ 
+@@ -6773,7 +6155,7 @@
+                         view_df = view_df.copy()
+                         view_df["HIT_ICON"] = ""
+                         view_df.loc[hit_view.index, "HIT_ICON"] = np.where(hit_view["HIT"], "O", "X")
+-                        # ROI: 1 birim bahis (dogruysa odd-1, yanlissa -1)
++                        # ROI: 1 birim bahis (doğruysa odd-1, yanlışsa -1)
+                         if "PICK_ODD" in view_df.columns:
+                             odds = pd.to_numeric(view_df["PICK_ODD"], errors="coerce")
+                             stake = pd.Series(
+@@ -6788,7 +6170,7 @@
+                             )
+                 if "POLICY_FLAG" not in view_df.columns:
+                     view_df["POLICY_FLAG"] = 0
+-                view_df["POLICY_ICON"] = np.where(view_df["POLICY_FLAG"].fillna(0) == 1, "?", "")
++                view_df["POLICY_ICON"] = np.where(view_df["POLICY_FLAG"].fillna(0) == 1, "✨", "")
+                 if "SOURCE" not in view_df.columns:
+                     view_df["SOURCE"] = "LIVE"
+                 if "LOCKED" not in view_df.columns:
+@@ -7012,7 +6394,7 @@
+                                 )
+     else:
+ 
+-        st.warning("Analiz sonucunda g�sterilecek ma� yok.")
++        st.warning("Analiz sonucunda gösterilecek maç yok.")
+ 
+ 
+ 
+@@ -7024,11 +6406,11 @@
+ 
+ def main():
+ 
+-    st.sidebar.header("1) CSV Y�kle")
+-
+-    past_file = st.sidebar.file_uploader("Ge�mis Ma�lar (past) CSV", type="csv")
+-
+-    future_file = st.sidebar.file_uploader("Gelecek Ma�lar (future) CSV", type="csv")
++    st.sidebar.header("1) CSV Yükle")
++
++    past_file = st.sidebar.file_uploader("Geçmis Maçlar (past) CSV", type="csv")
++
++    future_file = st.sidebar.file_uploader("Gelecek Maçlar (future) CSV", type="csv")
+ 
+ 
+ 
+@@ -7044,7 +6426,7 @@
+ 
+     null_threshold = st.sidebar.slider("Future missing tolerance", 0.0, 1.0, 0.8, 0.05)
+ 
+-    # Varsayilani agresif olmasin: 0.25 daha ger�ek�i (senin quantile teshisine uyuyor)
++    # Varsayilani agresif olmasin: 0.25 daha gerçekçi (senin quantile teshisine uyuyor)
+ 
+     conf_quality_floor = st.sidebar.slider("CONF quality floor", 0.0, 1.0, 0.25, 0.01)
+ 
+@@ -7089,7 +6471,7 @@
+ 
+         try:
+ 
+-            # �nce temp standardize for feature selection
++            # Önce temp standardize for feature selection
+ 
+             raw_past_temp = DataEngine.load_csv(past_file)
+ 
+@@ -7113,7 +6495,7 @@
+ 
+             if feature_mode == "Manual pick":
+ 
+-                default_selection = [col for col in possible_features if col in ("xG_Home", "xG_Away") or future_temp[col].isna().mean() <= null_threshold][:10]  # �rnek default
++                default_selection = [col for col in possible_features if col in ("xG_Home", "xG_Away") or future_temp[col].isna().mean() <= null_threshold][:10]  # örnek default
+ 
+                 manual_features = st.sidebar.multiselect("Select features", possible_features, default=default_selection)
+ 
+@@ -7173,7 +6555,7 @@
+ 
+             if st.session_state.get("_pipeline_key") != key:
+ 
+-                with st.spinner("Pipeline �alisiyor..."):
++                with st.spinner("Pipeline çalisiyor..."):
+ 
+                     pred_df, res, knn, past, future, debug = run_pipeline(past_file, future_file, params)
+ 
+@@ -7223,7 +6605,7 @@
+ 
+     else:
+ 
+-        st.info("Sol men�den Past + Future CSV y�kle.")
++        st.info("Sol menüden Past + Future CSV yükle.")
+ 
+ 
+ 

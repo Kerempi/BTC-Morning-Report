@@ -1,0 +1,32 @@
+﻿# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+
+# Envs
+.venv/
+venv/
+
+# Editors
+.vscode/
+
+# Local caches
+kmquant_cache/
+kmquant_journal/
+journal/
+
+# Archives
+*.zip
+
+# Large/raw data (keep logs)
+Xg-New-Past.xlsm
+XG-new-past.csv
+XG-new-future.csv
+XGfuture.csv
+XGPast.csv
+cleaned-*.csv
+cleaned_past-*.csv
+3rd-Version/Cleaned-Data/
+3rd-Version/Backtest-Out/backtest_predictions.csv

@@ -5,6 +5,8 @@ import pickle
 from typing import Tuple, Any, Dict, List, Optional
 import warnings
 import datetime
+import traceback
+import time
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import plotly.express as px
@@ -31,6 +33,71 @@ import streamlit as st
 import re
 import os
 
+pool_view = None
+
+# ------------------------------------------------------------------
+# Safe badge helper (used by pool_view before BestOf block defines it)
+# ------------------------------------------------------------------
+def get_match_character_badge(row: pd.Series) -> str:
+    try:
+        if bool(row.get("Danger_Flag", False)):
+            return "DANGER"
+        if bool(row.get("Trap_Flag", False)):
+            return "TRAP"
+        arch = str(row.get("Archetype", "") or "")
+        if "Under" in arch or "LOW" in arch:
+            return "COLD"
+        if "Over" in arch or "HIGH" in arch:
+            return "HOT"
+        return "OK"
+    except Exception:
+        return ""
+
+# ------------------------------------------------------------------
+# CANONICAL DEFENSE HELPERS (single source of truth)
+# ------------------------------------------------------------------
+def _ensure_unique_index(df):
+    import pandas as pd
+
+    if df is None or not hasattr(df, "reset_index"):
+        return pd.DataFrame()
+    # her kritik pipeline başında tek standart
+    return df.reset_index(drop=True)
+
+def _align_mask(mask, df):
+    import numpy as np
+    import pandas as pd
+
+    if df is None:
+        return pd.Series([], dtype=bool)
+    if len(df) == 0:
+        return pd.Series([], index=df.index, dtype=bool)
+
+    if isinstance(mask, pd.Series):
+        return mask.reindex(df.index).fillna(False).astype(bool)
+
+    arr = np.asarray(mask, dtype=bool)
+    if arr.shape[0] != len(df):
+        arr = np.resize(arr, len(df))
+    return pd.Series(arr, index=df.index, dtype=bool)
+
+def _dbg_to_array(val, n):
+    import numpy as np
+    import pandas as pd
+
+    if n <= 0:
+        return np.asarray([])
+
+    if isinstance(val, pd.Series):
+        arr = val.to_numpy()
+    elif np.isscalar(val):
+        arr = np.full(n, val)
+    else:
+        arr = np.asarray(val)
+
+    if arr.shape[0] != n:
+        arr = np.resize(arr, n)
+    return np.asarray(arr).reshape(-1)
 
 # ------------------------------------------------------------------
 # JOURNAL DIRECTORY (single source of truth)
@@ -47,6 +114,9 @@ def _journal_dir() -> str:
 #         os.makedirs(path, exist_ok=True)
 #     except Exception:
 #         pass
+    # Robust: derive journal folder relative to app file if available
+    base = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()
+    path = str(base / "journal")
     return path
 
 
@@ -80,7 +150,7 @@ def _robust_to_datetime(s: pd.Series) -> pd.Series:
 #     except Exception:
 #         pass
     # First pass: dayfirst=True (TR/EU)
-#     dt = pd.to_datetime(ss, errors="coerce", dayfirst=True)
+    dt = pd.to_datetime(ss, errors="coerce", dayfirst=True)
     # Second pass: fill remaining with dayfirst=False
     if dt.isna().any():
         dt2 = pd.to_datetime(ss, errors="coerce", dayfirst=False)
@@ -141,6 +211,7 @@ def _top_n_with_ties(
 #             df.iloc[n - 1][score_col], errors="coerce"))
 #     except Exception:
 #         return df.head(n)
+    nth_score = float(pd.to_numeric(df.iloc[n - 1][score_col], errors="coerce"))
     if not math.isfinite(nth_score):
         return df.head(n)
     thr = nth_score - float(eps)
@@ -163,11 +234,9 @@ def _get_current_sim_cfg_from_session_state() -> dict:
 
 
 def _sim_cfg_hash(cfg: dict) -> str:
-#     try:  # AUTO-COMMENTED (illegal global try)
-#         s = json.dumps(cfg, sort_keys=True, ensure_ascii=False)
-#     except Exception:
-#         s = str(cfg)
-    return hashlib.md5(s.encode('utf-8')).hexdigest()
+    import json, hashlib
+    s = json.dumps(cfg, sort_keys=True, default=str)
+    return hashlib.md5(s.encode("utf-8")).hexdigest()
 
 
 def maybe_refresh_similarity_on_session_predictions() -> None:
@@ -219,6 +288,10 @@ def _poisson_over_probs(lmb: float):
 #         l = float(lmb)
 #     except Exception:
 #         return (None, None, None)
+    try:
+        l = float(lmb)
+    except Exception:
+        l = float("nan")
     if not np.isfinite(l) or l <= 0:
         return (None, None, None)
     # P(X<=k) = e^-l * sum_{i=0..k} l^i/i!
@@ -244,6 +317,10 @@ def _poisson_quantile(lam: float, q: float, max_k: int = 15) -> float:
 #         lam = float(lam)
 #     except Exception:
 #         return float("nan")
+    try:
+        lam = float(lam)
+    except Exception:
+        return float("nan")
     if not np.isfinite(lam) or lam < 0:
         return float("nan")
     q = float(q)
@@ -282,10 +359,6 @@ def add_mdl_features(df: pd.DataFrame) -> pd.DataFrame:
     # defaults for new MDL+KNN profile columns (filled later if possible)
     if "DRAW_PRESSURE" not in d.columns:
         d["DRAW_PRESSURE"] = np.nan
-    if "TG_Q75" not in d.columns:
-        d["TG_Q75"] = np.nan
-    if "TG_Q90" not in d.columns:
-        d["TG_Q90"] = np.nan
 
     # --- 1X / 2X from similarity probabilities (if present)
     p1 = pd.to_numeric(d.get("SIM_P1", np.nan), errors="coerce")
@@ -311,6 +384,10 @@ def add_mdl_features(df: pd.DataFrame) -> pd.DataFrame:
     d["P_O35"] = np.nan
 
     if xg_h and xg_a:
+        if "TG_Q75" not in d.columns:
+            d["TG_Q75"] = np.nan
+        if "TG_Q90" not in d.columns:
+            d["TG_Q90"] = np.nan
         lam = pd.to_numeric(d[xg_h], errors="coerce").fillna(
             0) + pd.to_numeric(d[xg_a], errors="coerce").fillna(0)
         lam = lam.clip(lower=0.05)
@@ -328,6 +405,12 @@ def add_mdl_features(df: pd.DataFrame) -> pd.DataFrame:
         # --- Poisson-based total-goals quantiles (proxy for tail / variance)
         d["TG_Q75"] = lam.apply(lambda lam: _poisson_quantile(lam, 0.75))
         d["TG_Q90"] = lam.apply(lambda lam: _poisson_quantile(lam, 0.90))
+    else:
+        try:
+            st.session_state.setdefault("_dbg_pool_stages", {})
+            st.session_state["_dbg_pool_stages"]["tg_compute_skipped_reason"] = "missing_xg_inputs"
+        except Exception:
+            pass
 
     # --- PROFILE_CONF: single numeric profile quality (0..1)
     primary = d.get("Seçim", "")
@@ -564,7 +647,9 @@ def ensure_bestofrank(df: pd.DataFrame) -> pd.DataFrame:
 # Helper: ensure implied/model-vs-market/trap columns exist on any view dataframe
 # -----------------------------------------------------------------------------#
 def _ensure_trap_cols(_df: pd.DataFrame) -> pd.DataFrame:
-    if _df is None or len(_df) == 0:
+    if _df is None:
+        return pd.DataFrame()
+    if len(_df) == 0:
         return _df
     # Robust Prob -> Prob_dec
     if "Prob_dec" not in _df.columns:
@@ -794,7 +879,224 @@ def _ensure_trap_cols(_df: pd.DataFrame) -> pd.DataFrame:
         _df["MDL_quantile"] = _mdl.rank(pct=True, method="average")
         _df["MDL_rank"] = _mdl.rank(ascending=False, method="min")
 
-        return _df
+    return _df if isinstance(_df, pd.DataFrame) else pd.DataFrame()
+
+
+REQUIRED_VIEW_COLS = [
+    "Match_ID", "Date", "League", "HomeTeam", "AwayTeam", "Seçim", "Odd", "Prob",
+    "EV", "PROFILE_CONF", "DRAW_PRESSURE", "TG_Q75", "TG_Q90",
+    "SIM_ANCHOR_STRENGTH", "EFFECTIVE_N", "_EN_PEN", "CONF_ICON",
+    "AUTOMOD_ICON", "Karakter",
+]
+
+# ------------------------------------------------------------------
+# Column audit + lineage helpers (debug-only)
+# ------------------------------------------------------------------
+DBG_COL_AUDIT_KEY = "DEBUG_COL_AUDIT"
+
+
+def _dbg_col_audit_enabled() -> bool:
+    return bool(st.session_state.get(DBG_COL_AUDIT_KEY, False))
+
+
+ADV_COLS_TRACKED = [
+    # SIM
+    "SIM_ANCHOR_STRENGTH", "SIM_ANCHOR_GROUP", "SIM_ALPHA", "SIM_QUALITY",
+    "SIM_POver", "SIM_PBTTS", "SIM_MS_STRENGTH", "SIM_OU_STRENGTH",
+    "SIM_BTTS_STRENGTH",
+    # TG
+    "TG_Q75", "TG_Q90",
+    # Model probs
+    "P_Home_Model", "P_Draw_Model", "P_Away_Model", "P_Over_Model",
+    "P_BTTS_Model",
+    # Blend/gates
+    "BLEND_MODE_MS", "LEAGUE_OK_MS", "BLEND_W_LEAGUE_MS",
+    "BLEND_MODE_OB", "LEAGUE_OK_OB", "BLEND_W_LEAGUE_OB",
+    # Core
+    "Prob", "EV", "Score", "GoldenScore", "Final_Confidence", "AMQS",
+    "CONF_percentile", "AMQS_percentile", "AutoMod_Status",
+    # Hygiene
+    "EFFECTIVE_N",
+    # Ranking
+    "BestOfRank",
+]
+
+NECESSITY_BUCKETS = {
+    "MUST-HAVE": {
+        "Prob": "Min prob gate + ranking inputs.",
+        "EV": "Min EV gate + EV top-k selection.",
+        "Score": "Min score gate + ranking inputs.",
+        "GoldenScore": "Ranking input for BestOfRank.",
+        "SIM_ANCHOR_STRENGTH": "BestOf eligibility gate + strength labeling.",
+        "SIM_QUALITY": "KNN gate + reliability filters.",
+        "EFFECTIVE_N": "KNN gate + reliability filters.",
+        "BestOfRank": "BestOf selection/ranking backbone.",
+    },
+    "SHOULD-HAVE": {
+        "Final_Confidence": "Used in dedup/sort + display.",
+        "AMQS": "AutoMod quality core; used for percentiles.",
+        "CONF_percentile": "UI filters / gating sliders.",
+        "AMQS_percentile": "UI filters / gating sliders.",
+        "AutoMod_Status": "UI filters + badge logic.",
+    },
+    "EXPLAINABILITY": {
+        "SIM_ANCHOR_GROUP": "Diagnostic grouping for similarity.",
+        "SIM_ALPHA": "Similarity blending diagnostic.",
+        "SIM_POver": "Character badge context (OU).",
+        "SIM_PBTTS": "Character badge context (BTTS).",
+        "SIM_MS_STRENGTH": "UI/diagnostic strength signal.",
+        "SIM_OU_STRENGTH": "UI/diagnostic strength signal.",
+        "SIM_BTTS_STRENGTH": "UI/diagnostic strength signal.",
+        "TG_Q75": "Profile context (goal tail).",
+        "TG_Q90": "Profile context (goal tail).",
+        "P_Home_Model": "Model component visibility.",
+        "P_Draw_Model": "Model component visibility.",
+        "P_Away_Model": "Model component visibility.",
+        "P_Over_Model": "Model component visibility.",
+        "P_BTTS_Model": "Model component visibility.",
+        "BLEND_MODE_MS": "Blend diagnostics.",
+        "LEAGUE_OK_MS": "Blend diagnostics.",
+        "BLEND_W_LEAGUE_MS": "Blend diagnostics.",
+        "BLEND_MODE_OB": "Blend diagnostics.",
+        "LEAGUE_OK_OB": "Blend diagnostics.",
+        "BLEND_W_LEAGUE_OB": "Blend diagnostics.",
+    },
+}
+
+
+def _col_audit(df: pd.DataFrame, name: str, cols: list) -> dict:
+    """Return a safe, compact column audit summary for df."""
+    out = {"name": name, "rows": 0, "cols_total": 0, "cols": {}}
+    if df is None or not hasattr(df, "columns"):
+        return out
+    try:
+        out["rows"] = int(len(df))
+        out["cols_total"] = int(len(df.columns))
+        for c in cols:
+            if c not in df.columns:
+                out["cols"][c] = {"present": False}
+                continue
+            s = df[c]
+            null_ratio = float(s.isna().mean()) if len(s) else 1.0
+            nunique = int(s.nunique(dropna=True)) if len(s) else 0
+            sample = None
+            try:
+                idx = s.first_valid_index()
+                if idx is not None:
+                    sample = s.loc[idx]
+            except Exception:
+                sample = None
+            if sample is not None:
+                sample = str(sample)
+                if len(sample) > 120:
+                    sample = sample[:120] + "..."
+            out["cols"][c] = {
+                "present": True,
+                "null_ratio": round(null_ratio, 4),
+                "nunique": nunique,
+                "sample": sample,
+            }
+    except Exception:
+        return out
+    return out
+
+
+def _record_col_lineage(df: pd.DataFrame, stage: str, obj_name: str) -> None:
+    """Track column deltas + all-NaN transitions for tracked columns."""
+    if df is None or not hasattr(df, "columns"):
+        return
+    cols = set(df.columns)
+    if "_dbg_col_lineage" not in st.session_state:
+        st.session_state["_dbg_col_lineage"] = []
+    state = st.session_state.get("_dbg_col_lineage_state", {})
+    prev_cols = set(state.get(obj_name, {}).get("cols", []))
+    prev_nonnull = state.get(obj_name, {}).get("nonnull", {})
+
+    added = sorted(cols - prev_cols)
+    removed = sorted(prev_cols - cols)
+
+    all_nan = []
+    became_all_nan = []
+    disappeared = []
+    nonnull = {}
+    for c in ADV_COLS_TRACKED:
+        if c not in df.columns:
+            if c in prev_cols:
+                disappeared.append(c)
+            continue
+        s = df[c]
+        is_all_nan = bool(s.isna().all())
+        all_nan.append(c) if is_all_nan else None
+        nonnull[c] = not is_all_nan
+        if prev_nonnull.get(c, None) is True and is_all_nan:
+            became_all_nan.append(c)
+
+    entry = {
+        "object": obj_name,
+        "stage": stage,
+        "rows": int(len(df)),
+        "cols_total": int(len(df.columns)),
+        "added": added,
+        "removed": removed,
+        "all_nan_tracked": sorted(all_nan),
+        "became_all_nan": sorted(became_all_nan),
+        "disappeared": sorted(disappeared),
+    }
+    st.session_state["_dbg_col_lineage"].append(entry)
+    state[obj_name] = {"cols": sorted(cols), "nonnull": nonnull}
+    st.session_state["_dbg_col_lineage_state"] = state
+
+
+def _store_col_audit(df: pd.DataFrame, name: str) -> None:
+    if not _dbg_col_audit_enabled():
+        return
+    if "_dbg_col_audits" not in st.session_state:
+        st.session_state["_dbg_col_audits"] = {}
+    st.session_state["_dbg_col_audits"][name] = _col_audit(
+        df, name, ADV_COLS_TRACKED)
+
+
+def _maybe_record_col_lineage(df: pd.DataFrame, stage: str, obj_name: str) -> None:
+    if not _dbg_col_audit_enabled():
+        return
+    try:
+        _record_col_lineage(df, stage, obj_name)
+    except Exception:
+        pass
+
+
+def _track_view_error(where: str) -> None:
+    st.session_state["_last_view_error"] = traceback.format_exc()
+    st.session_state["_last_view_error_where"] = where
+
+
+def _safe_view_cols(df: pd.DataFrame, required_cols: list, tag: str = "generic") -> list:
+    if df is None:
+        return []
+    safe_cols = [c for c in required_cols if c in df.columns]
+    missing = sorted(set(required_cols) - set(safe_cols))
+    if missing:
+        key = f"_dbg_missing_cols_{tag}"
+        st.session_state[key] = sorted(set(missing))
+    return safe_cols if safe_cols else list(df.columns)
+
+
+def _ensure_view_cols(df: pd.DataFrame, cols: list) -> pd.DataFrame:
+    if df is None:
+        return pd.DataFrame()
+    out = df.copy()
+    for c in cols:
+        if c not in out.columns:
+            out[c] = np.nan
+    return out[cols] if cols else out
+
+
+def _style_df_for_view(df: pd.DataFrame, required_cols: list) -> pd.DataFrame:
+    if df is None:
+        return pd.DataFrame()
+    if getattr(df, "empty", True):
+        return df
+    return _ensure_view_cols(df, required_cols)
 
 
 def ensure_amqs_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -817,6 +1119,13 @@ def ensure_amqs_columns(df: pd.DataFrame) -> pd.DataFrame:
 #         flat = amqs_num.dropna().round(6).nunique() <= 1
 #     except Exception:
 #         flat = True
+    # guard: AMQS may not exist in some builds/exports
+    try:
+        amqs_series = df.get("AMQS", pd.Series(dtype=float))
+        amqs_num = pd.to_numeric(amqs_series, errors="coerce")
+        flat = (amqs_num.dropna().round(6).nunique() <= 1) if len(amqs_num) else True
+    except Exception:
+        flat = True
 
     if flat:
         # Derive from confidence columns if available (soft signal)
@@ -1271,8 +1580,9 @@ def apply_anchor_decision_discipline(df):
 # -----------------------------
 # Disk cache helpers (reduces Full Mode startup by reusing prior training outputs)
 # -----------------------------
-CACHE_DIR = Path.cwd() / "kmquant_cache"
+CACHE_DIR = Path.home() / ".kmquant_cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
+MAJOR_CACHE_VERSION = "v1"
 
 # -----------------------------
 # Daily coupon journal (persistent)
@@ -1675,6 +1985,12 @@ def _canon_date_series(s: pd.Series) -> pd.Series:
     return pd.to_datetime(s, errors="coerce").dt.strftime("%Y-%m-%d")
 
 
+def _col_series(df, col, default=""):
+    if col in df.columns:
+        return df[col]
+    return pd.Series([default]*len(df), index=df.index)
+
+
 def canonicalize_picklog_df(df: pd.DataFrame) -> pd.DataFrame:
     """Canonicalize Date/Snapshot_Date and identifiers to avoid split-brain formats.
     - Date, Snapshot_Date -> 'YYYY-MM-DD' (string)
@@ -1685,6 +2001,7 @@ def canonicalize_picklog_df(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or df.empty:
         return df
     out = df.copy()
+    out = out.reset_index(drop=True)
 
     # column aliases
     if "HomeTeam" not in out.columns and "Home_Team" in out.columns:
@@ -1702,40 +2019,40 @@ def canonicalize_picklog_df(df: pd.DataFrame) -> pd.DataFrame:
     if "Snapshot_Date" in out.columns:
         out["Snapshot_Date"] = _canon_date_series(out["Snapshot_Date"])
     else:
-        out["Snapshot_Date"] = out.get(
-            "Date", pd.Series([pd.NaT] * len(out))).astype(str)
+        out["Snapshot_Date"] = _col_series(out, "Date", pd.NaT).astype(str)
 
-    # normalize strings
-    for c in ["League", "HomeTeam", "AwayTeam"]:
-        if c in out.columns:
-            out[c] = out[c].astype(str).str.strip().str.lower()
+    # normalize strings - ensure required base cols exist
+    d = _col_series(out, "Date", "").astype(str)
+    l = _col_series(out, "League", "").astype(str).str.strip().str.lower()
+    h = _col_series(out, "HomeTeam", "").astype(str).str.strip().str.lower()
+    a = _col_series(out, "AwayTeam", "").astype(str).str.strip().str.lower()
+    s = _col_series(out, "Seçim", "").astype(str)
+
+    # Update the dataframe with normalized values
+    out["Date"] = d
+    out["League"] = l
+    out["HomeTeam"] = h
+    out["AwayTeam"] = a
+    out["Seçim"] = s
 
     # rebuild Match_ID ALWAYS (this is the key fix)
-    if all(
-    c in out.columns for c in [
-        "League",
-        "Date",
-        "HomeTeam",
-         "AwayTeam"]):
-        out["Match_ID"] = (
-            out["League"].astype(str) + "|" +
-            out["Date"].astype(str) + "|" +
-            out["HomeTeam"].astype(str) + "|" +
-            out["AwayTeam"].astype(str)
-        )
-    else:
-        # last resort: keep existing if present
-        if "Match_ID" not in out.columns:
-            out["Match_ID"] = ""
+    out["Match_ID"] = l + "|" + d + "|" + h + "|" + a
 
     # deterministic Pick_ID
-    if "Pick_ID" not in out.columns:
-        out["Pick_ID"] = out["Match_ID"].astype(
-            str) + "|" + out.get("Seçim", "").astype(str)
-    else:
-        # if Pick_ID contains timestamp-ish date parts, rebuild to canonical
-        out["Pick_ID"] = out["Match_ID"].astype(
-            str) + "|" + out.get("Seçim", "").astype(str)
+    sel = (
+        out["Seçim"] if "Seçim" in out.columns else
+        out["Secim"] if "Secim" in out.columns else
+        out.get("SeA\x02im", pd.Series("", index=out.index))
+    )
+
+    if not isinstance(sel, pd.Series):
+        sel = pd.Series("", index=out.index)
+
+    out["Pick_ID"] = (
+        out.get("Match_ID", pd.Series("", index=out.index)).astype(str)
+        + "|"
+        + sel.astype(str)
+    )
 
     # ensure no dup columns
 #     try:  # AUTO-COMMENTED (illegal global try)
@@ -1751,7 +2068,17 @@ def ensure_match_id(df: pd.DataFrame) -> pd.DataFrame:
     NOTE: We intentionally rebuild Match_ID even if it already exists to avoid mixed formats
     (e.g. '2025-12-20 00:00:00' vs '2025-12-20') that break filtering/dedup.
     """
-    return canonicalize_picklog_df(df)
+    if df is None or not isinstance(df, pd.DataFrame):
+        return pd.DataFrame()
+    if df.empty:
+        return df
+    # If Match_ID is missing or all null/empty, canonicalize
+    if "Match_ID" not in df.columns or df["Match_ID"].isna().all() or (df["Match_ID"].astype(str).str.strip() == "").all():
+        df = canonicalize_picklog_df(df)
+    else:
+        # Even if Match_ID exists, ensure it's canonical by re-canonicalizing
+        df = canonicalize_picklog_df(df)
+    return df
 
 
 def _pick_log_path() -> str:
@@ -1764,6 +2091,7 @@ def _debug_journal_info() -> dict:
 #         app_dir = Path(__file__).resolve().parent
 #     except Exception:
 #         app_dir = Path.cwd()
+    app_dir = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()
     return {
     "cwd": str(
         Path.cwd()), "app_dir": str(app_dir), "journal_dir": str(
@@ -1786,15 +2114,9 @@ def _find_legacy_pick_logs() -> list:
 #     except Exception:
 #         app_dir = Path.cwd()
 #     cwd = Path.cwd()
-    # Common folders seen in older builds
-#     bases = [
-#         cwd / "kmquant_journal",
-#         cwd / "journal",
-#         app_dir / "kmquant_journal",
-#         app_dir / "journal",
-#         app_dir.parent / "kmquant_journal",
-#         app_dir.parent / "journal",
-#     ]
+    app_dir = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()
+    bases = [app_dir, app_dir / "data", Path.cwd(), Path.home() / "Downloads"]
+    bases = [b for b in bases if b.exists()]
     for b in bases:
         for name in ["pick_log.parquet", "pick_log.csv"]:
             p = b / name
@@ -1816,6 +2138,12 @@ def migrate_pick_log_if_needed() -> None:
 #     except Exception:
 #         cur_n = 0
 #         cur = pd.DataFrame()
+    try:
+        cur = load_pick_log()
+        cur_n = 0 if cur is None else int(len(cur))
+    except Exception:
+        cur_n = 0
+        cur = pd.DataFrame()
 
     legacy = _find_legacy_pick_logs()
     if cur_n > 0:
@@ -2158,7 +2486,7 @@ def settle_from_past(
             fill_mask = pl.loc[remaining_idx,
      "__src_row"].isna() & tmp["__src_row"].notna()
             if fill_mask.any():
-                fill_idx = remaining_idx[fill_mask.values]
+                fill_idx = remaining_idx[fill_mask]
                 pl.loc[fill_idx,
     "__src_row"] = tmp.loc[fill_mask,
      "__src_row"].values
@@ -3867,6 +4195,10 @@ def _md5_bytes(b: bytes) -> str:
     return hashlib.md5(b).hexdigest()
 
 
+def _sha1_bytes(b: bytes) -> str:
+    return hashlib.sha1(b).hexdigest() if b else "NONE"
+
+
 def build_stable_cache_key(
     past_md5: str,
     future_md5: str,
@@ -3880,6 +4212,7 @@ def build_stable_cache_key(
         "past": past_md5[:16],
         "future": future_md5[:16],
         "flags": critical_flags or {},
+        "version": MAJOR_CACHE_VERSION,
     }
     raw = json.dumps(payload, sort_keys=True).encode("utf-8")
     return hashlib.sha256(raw).hexdigest()[:24]
@@ -4073,13 +4406,16 @@ st.set_page_config(
 st.sidebar.markdown(f"**Build:** `{CURRENT_VERSION}`")
 
 
-# Clear cache when version changes
+# Track version without auto-clearing caches
 if 'version' not in st.session_state:
     st.session_state.version = CURRENT_VERSION
 elif st.session_state.version != CURRENT_VERSION:
+    st.session_state.version = CURRENT_VERSION
+
+if st.sidebar.button("🧹 Clear cache"):
     st.cache_resource.clear()
     st.cache_data.clear()
-    st.session_state.version = CURRENT_VERSION
+    st.session_state["_cache_hit_flags"] = {"cache_cleared": True}
 
 # ✅ PATCH #2: Global Probability Thresholds (Historical ROI based)
 # 🩹 PATCH 1 Update: Symmetrize OU thresholds
@@ -5451,26 +5787,69 @@ sel["Target_Result"] == 2, sel["Eff_Home_Odd"] - 1, -1)
 def build_market_quality(hist_df: pd.DataFrame) -> Dict[str, float]:
     """Calculates the 'E-Score' (normalized AUC) for each market."""
     quality = {}
+    if not isinstance(hist_df, pd.DataFrame) or hist_df.empty:
+        st.session_state["_market_quality_missing_cols"] = ["hist_df"]
+        st.session_state["_market_quality_cols"] = (
+            list(hist_df.columns)[:200] if isinstance(hist_df, pd.DataFrame) else []
+        )
+        return quality
+    st.session_state["_market_quality_cols"] = list(hist_df.columns)[:200]
+    missing_cols = []
 
     def get_score(y, p):
         if len(np.unique(y)) > 1:
             auc = roc_auc_score(y, p)
             return (auc - 0.5) / 0.2
         return 0.0
-    quality["MS 1"] = get_score(
-        (hist_df["Target_Result"] == 2).astype(int),
-        hist_df["P_Home_Final"],
-    )
+    try:
+        target_series = None
+        for col in ("Target_Result", "RESULT", "FT_Result", "Result"):
+            if col in hist_df.columns:
+                target_series = hist_df[col]
+                break
+        if target_series is None and all(
+                c in hist_df.columns for c in ("HomeWin", "Draw", "AwayWin")):
+            target_series = np.select(
+                [
+                    hist_df["HomeWin"].astype(bool),
+                    hist_df["Draw"].astype(bool),
+                    hist_df["AwayWin"].astype(bool),
+                ],
+                [2, 1, 0],
+                default=np.nan,
+            )
+        if target_series is None:
+            missing_cols.append("Target_Result")
+            st.session_state["_market_quality_missing_cols"] = missing_cols
+            return quality
 
-    quality["MS X"] = get_score(
-        (hist_df["Target_Result"] == 1).astype(int),
-        hist_df["P_Draw_Final"],
-    )
+        if "P_Home_Final" in hist_df.columns:
+            quality["MS 1"] = get_score(
+                (pd.to_numeric(target_series, errors="coerce") == 2).astype(int),
+                hist_df["P_Home_Final"],
+            )
+        else:
+            missing_cols.append("P_Home_Final")
 
-    quality["MS 2"] = get_score(
-        (hist_df["Target_Result"] == 0).astype(int),
-        hist_df["P_Away_Final"],
-    )
+        if "P_Draw_Final" in hist_df.columns:
+            quality["MS X"] = get_score(
+                (pd.to_numeric(target_series, errors="coerce") == 1).astype(int),
+                hist_df["P_Draw_Final"],
+            )
+        else:
+            missing_cols.append("P_Draw_Final")
+
+        if "P_Away_Final" in hist_df.columns:
+            quality["MS 2"] = get_score(
+                (pd.to_numeric(target_series, errors="coerce") == 0).astype(int),
+                hist_df["P_Away_Final"],
+            )
+        else:
+            missing_cols.append("P_Away_Final")
+    except Exception:
+        st.session_state["_last_market_quality_error"] = traceback.format_exc()
+        st.session_state["_market_quality_missing_cols"] = missing_cols
+        return {}
 
     # 📌 UPDATED: Uses P_Over_Final / P_BTTS_Final
     p_over_col = 'P_Over_Final' if 'P_Over_Final' in hist_df.columns else 'Prob_Over'
@@ -5487,6 +5866,7 @@ def build_market_quality(hist_df: pd.DataFrame) -> Dict[str, float]:
 
     for k, v in quality.items():
         quality[k] = float(np.clip(v, 0.0, 1.0))
+    st.session_state["_market_quality_missing_cols"] = missing_cols
     return quality
 
 
@@ -5641,20 +6021,103 @@ def validate_odds_row(row):
 def compute_ev_scores(bets_df, df, market_quality):
     """Calculates Expected Value (EV) and applies market/league quality adjustments."""
     ev_boost_maps = st.session_state.get('ev_boost_map', {})
+    if isinstance(bets_df, pd.DataFrame):
+        _sel_aliases = ["Seçim", "Secim", "Selection", "Pick", "Market", "BetType", "MarketType"]
+        _sel_src = next((c for c in _sel_aliases if c in bets_df.columns), None)
+        if _sel_src is None:
+            bets_df["Seçim"] = ""
+            st.session_state["_dbg_missing_selection_col"] = True
+        else:
+            bets_df["Seçim"] = bets_df[_sel_src]
+            st.session_state["_dbg_missing_selection_col"] = False
+        bets_df["Seçim"] = bets_df["Seçim"].astype(str)
+    else:
+        st.session_state["_dbg_missing_selection_col"] = True
+    _missing_date_cols = []
+    _date_source = "missing"
+
+    def _ensure_date_col(_df):
+        nonlocal _date_source
+        if not isinstance(_df, pd.DataFrame):
+            return _df
+        if "Date" in _df.columns and "Time" in _df.columns:
+            _df["Date"] = pd.to_datetime(
+                _df["Date"].astype(str) + " " + _df["Time"].astype(str),
+                errors="coerce"
+            ).dt.date
+            _date_source = "Date+Time"
+            return _df
+        if "Date" in _df.columns:
+            _df["Date"] = pd.to_datetime(_df["Date"], errors="coerce").dt.date
+            _date_source = "Date"
+            return _df
+        for c in ("Date Time", "Datetime", "DateTime"):
+            if c in _df.columns:
+                _df["Date"] = pd.to_datetime(_df[c], errors="coerce").dt.date
+                _date_source = "Date Time"
+                return _df
+        _df["Date"] = pd.NaT
+        return _df
+
+    def _ensure_team_cols(_df):
+        if not isinstance(_df, pd.DataFrame):
+            return _df
+        if "HomeTeam" not in _df.columns:
+            for c in ("Home_Team", "Home", "Home Team"):
+                if c in _df.columns:
+                    _df["HomeTeam"] = _df[c]
+                    break
+        if "HomeTeam" not in _df.columns:
+            _df["HomeTeam"] = ""
+        if "AwayTeam" not in _df.columns:
+            for c in ("Away_Team", "Away", "Away Team"):
+                if c in _df.columns:
+                    _df["AwayTeam"] = _df[c]
+                    break
+        if "AwayTeam" not in _df.columns:
+            _df["AwayTeam"] = ""
+        return _df
+
+    df = _ensure_date_col(df)
+    bets_df = _ensure_date_col(bets_df)
+    df = _ensure_team_cols(df)
+    bets_df = _ensure_team_cols(bets_df)
+    if isinstance(df, pd.DataFrame) and df["Date"].isna().all():
+        _missing_date_cols = [c for c in ("Date", "Date Time", "Datetime", "DateTime", "Time")]
+    st.session_state["_dbg_date_source"] = _date_source
+    st.session_state["_dbg_missing_date_cols"] = _missing_date_cols
 
     if 'Smart_EV' not in df.columns:
         df['Smart_EV'] = (df.get('P_Home_Final', 0.5) *
                           df.get('HomeOdd', 2.0) - 1) * 100
 
-    df['MatchID_Unique'] = df['Date'].astype(
-        str) + "_" + df['HomeTeam'] + "_" + df['AwayTeam']
-    bets_df['MatchID_Unique'] = bets_df['Date'].astype(
-        str) + "_" + bets_df['HomeTeam'] + "_" + bets_df['AwayTeam']
+    _id_col = "Match_ID" if "Match_ID" in df.columns else (
+        "MatchID" if "MatchID" in df.columns else None)
+    if _id_col:
+        df['MatchID_Unique'] = df[_id_col].astype(str)
+        bets_df['MatchID_Unique'] = bets_df.get(
+            _id_col, pd.Series("", index=bets_df.index)).astype(str)
+    else:
+        df['MatchID_Unique'] = df['Date'].astype(
+            str) + "_" + df['HomeTeam'] + "_" + df['AwayTeam']
+        bets_df['MatchID_Unique'] = bets_df['Date'].astype(
+            str) + "_" + bets_df['HomeTeam'] + "_" + bets_df['AwayTeam']
     smart_ev_map = df.set_index('MatchID_Unique')['Smart_EV'].to_dict()
     bets_df['Smart_EV_Mapped'] = bets_df['MatchID_Unique'].map(smart_ev_map)
 
+    if isinstance(bets_df, pd.DataFrame):
+        _league_aliases = ["League", "Lig", "League_Name", "LeagueName"]
+        _league_src = next((c for c in _league_aliases if c in bets_df.columns), None)
+        if _league_src is None:
+            bets_df["League"] = ""
+            st.session_state["_dbg_missing_league_col"] = True
+        else:
+            bets_df["League"] = bets_df[_league_src]
+            st.session_state["_dbg_missing_league_col"] = False
+    else:
+        st.session_state["_dbg_missing_league_col"] = True
     league_metrics = st.session_state.get('league_metrics_df', pd.DataFrame())
-    if not league_metrics.empty:
+    if not league_metrics.empty and "League" in bets_df.columns:
         l_score_map = league_metrics.set_index(
             "League")["League_Score"].to_dict()
         bets_df["League_Mult"] = bets_df["League"].map(l_score_map).fillna(1.0)
@@ -5665,58 +6128,168 @@ def compute_ev_scores(bets_df, df, market_quality):
     def resolve_odd(row):
         m = row['Seçim']
         if m == "MS 1":
-            return _get_effective_odd(
+            val = _get_effective_odd(
     row,
     "ClosingHomeOdd",
     "HomeOdd",
     "Odds_Open_Home",
      default=np.nan)
         elif m == "MS X":
-            return _get_effective_odd(
+            val = _get_effective_odd(
     row,
     "ClosingDrawOdd",
     "DrawOdd",
     "Odds_Open_Draw",
      default=np.nan)
         elif m == "MS 2":
-            return _get_effective_odd(
+            val = _get_effective_odd(
     row,
     "ClosingAwayOdd",
     "AwayOdd",
     "Odds_Open_Away",
      default=np.nan)
         elif m == "2.5 Üst":
-            return _get_effective_odd(
+            val = _get_effective_odd(
     row,
     "ClosingO25",
     "O25",
     "Odds_Open_Over25",
      default=np.nan)
         elif m == "2.5 Alt":
-            return _get_effective_odd(
+            val = _get_effective_odd(
     row,
     "ClosingU25",
     "U25",
     "Odds_Open_Under25",
      default=np.nan)
         elif m == "KG Var":
-            return _get_effective_odd(
+            val = _get_effective_odd(
     row,
     "ClosingBTTSY",
     "BTTSY",
     "Odds_Open_BTTS_Yes",
      default=np.nan)
+            if pd.isna(val):
+                val = _get_effective_odd(
+    row,
+    "ClosingBTTS_Y",
+    "BTTS_Y",
+    "Odds_Open_BTTS_Yes",
+     default=np.nan)
         elif m == "KG Yok":
-            return _get_effective_odd(
+            val = _get_effective_odd(
     row,
     "ClosingBTTSN",
     "BTTSN",
     "Odds_Open_BTTS_No",
      default=np.nan)
-        return np.nan
+            if pd.isna(val):
+                val = _get_effective_odd(
+    row,
+    "ClosingBTTS_N",
+    "BTTS_N",
+    "Odds_Open_BTTS_No",
+     default=np.nan)
+        else:
+            val = np.nan
+        if isinstance(val, (pd.Series, pd.DataFrame)):
+            st.session_state["_dbg_resolve_odd_scalar"] = {
+                "selection": m,
+                "type": str(type(val)),
+            }
+            return np.nan
+        return val
 
     # Recalculate Odd column with robust fallback
-    bets_df['Odd'] = bets_df.apply(resolve_odd, axis=1)
+    _odd_res = bets_df.apply(resolve_odd, axis=1)
+    if isinstance(_odd_res, pd.DataFrame):
+        st.session_state["_dbg_resolve_odd_multi"] = list(_odd_res.columns)
+        st.session_state["_dbg_resolve_odd_bad_rows"] = list(_odd_res.index[:5])
+        _sel = bets_df.get("Seçim", pd.Series("", index=bets_df.index)).astype(str)
+        _map = {
+            "MS 1": ["HomeOdd"],
+            "MS X": ["DrawOdd"],
+            "MS 2": ["AwayOdd"],
+            "2.5 Üst": ["O25"],
+            "2.5 Alt": ["U25"],
+            "KG Var": ["BTTSY", "BTTS_Y"],
+            "KG Yok": ["BTTSN", "BTTS_N"],
+        }
+        _odd_series = pd.Series(np.nan, index=_odd_res.index, dtype=float)
+        _fallback_rows = []
+        for _mkt, _cols in _map.items():
+            _mask = _sel.eq(_mkt)
+            if not _mask.any():
+                continue
+            _col = next((c for c in _cols if c in _odd_res.columns), None)
+            if _col is None:
+                _fallback_rows.extend(_odd_res.index[_mask].tolist())
+                continue
+            _odd_series.loc[_mask] = pd.to_numeric(_odd_res.loc[_mask, _col], errors="coerce")
+        _missing_mask = _odd_series.isna()
+        if _missing_mask.any():
+            miss_pos = np.flatnonzero(_missing_mask.to_numpy())
+            _odd_series.iloc[miss_pos] = pd.to_numeric(_odd_res.iloc[miss_pos, 0], errors="coerce")
+            _fallback_rows.extend(_odd_res.index[miss_pos].tolist())
+        if _fallback_rows:
+            st.session_state["_dbg_resolve_odd_fallback_rows"] = _fallback_rows[:5]
+        bets_df["Odd"] = _odd_series
+    else:
+        bets_df["Odd"] = pd.to_numeric(_odd_res, errors="coerce")
+
+    if not isinstance(bets_df, pd.DataFrame):
+        st.session_state["_dbg_prob_source_cols"] = {}
+        st.session_state["_dbg_prob_missing_count"] = 0
+        return bets_df
+
+    def resolve_prob(row):
+        m = row['Seçim']
+        prob_map = {
+            "MS 1": ["P_Home_Final", "P_Home", "Prob_Home", "Poisson_Home_Pct"],
+            "MS X": ["P_Draw_Final", "P_Draw", "Prob_Draw", "Poisson_Draw_Pct"],
+            "MS 2": ["P_Away_Final", "P_Away", "Prob_Away", "Poisson_Away_Pct"],
+            "2.5 Üst": ["P_O25_Final", "P_Over25_Final", "P_Over25", "Prob_O25",
+                        "Poisson_O25_Pct", "Poisson_Over25_Pct"],
+            "2.5 Alt": ["P_U25_Final", "P_Under25_Final", "P_Under25", "Prob_U25",
+                        "Poisson_U25_Pct", "Poisson_Under25_Pct"],
+            "KG Var": ["P_BTTSY_Final", "P_BTTS_Yes_Final", "P_BTTS_Yes",
+                       "Prob_BTTSY", "Poisson_BTTS_Yes_Pct"],
+            "KG Yok": ["P_BTTSN_Final", "P_BTTS_No_Final", "P_BTTS_No",
+                       "Prob_BTTSN", "Poisson_BTTS_No_Pct"],
+        }
+        cols = prob_map.get(m, [])
+        for c in cols:
+            if c in row.index:
+                val = row.get(c)
+                if isinstance(val, str):
+                    val = val.replace("%", "").replace(",", ".").strip()
+                val = pd.to_numeric(val, errors="coerce")
+                if pd.notna(val):
+                    return val
+        return np.nan
+
+    _prob_src = {}
+    for _m, _cols in {
+        "MS 1": ["P_Home_Final", "P_Home", "Prob_Home", "Poisson_Home_Pct"],
+        "MS X": ["P_Draw_Final", "P_Draw", "Prob_Draw", "Poisson_Draw_Pct"],
+        "MS 2": ["P_Away_Final", "P_Away", "Prob_Away", "Poisson_Away_Pct"],
+        "2.5 Üst": ["P_O25_Final", "P_Over25_Final", "P_Over25", "Prob_O25",
+                    "Poisson_O25_Pct", "Poisson_Over25_Pct"],
+        "2.5 Alt": ["P_U25_Final", "P_Under25_Final", "P_Under25", "Prob_U25",
+                    "Poisson_U25_Pct", "Poisson_Under25_Pct"],
+        "KG Var": ["P_BTTSY_Final", "P_BTTS_Yes_Final", "P_BTTS_Yes",
+                   "Prob_BTTSY", "Poisson_BTTS_Yes_Pct"],
+        "KG Yok": ["P_BTTSN_Final", "P_BTTS_No_Final", "P_BTTS_No",
+                   "Prob_BTTSN", "Poisson_BTTS_No_Pct"],
+    }.items():
+        _src = next((c for c in _cols if c in bets_df.columns), None)
+        _prob_src[_m] = f"first_available:{_src}" if _src else "missing"
+    st.session_state["_dbg_prob_source_cols"] = _prob_src
+
+    bets_df["Prob"] = bets_df.apply(resolve_prob, axis=1)
+    bets_df["Prob"] = pd.to_numeric(bets_df["Prob"], errors="coerce")
+    st.session_state["_dbg_prob_missing_count"] = int(bets_df["Prob"].isna().sum())
+    bets_df["Prob_dec"] = np.where(bets_df["Prob"] > 1.0, bets_df["Prob"] / 100.0, bets_df["Prob"])
 
     def raw_ev_row(row):
         m = row['Seçim']
@@ -5724,9 +6297,9 @@ def compute_ev_scores(bets_df, df, market_quality):
             return -10.0
 
         # --- Standardize Prob to decimal (0-1)
-        prob_dec = row['Prob']
-        if pd.notna(prob_dec) and prob_dec > 1:
-            prob_dec = prob_dec / 100.0
+        prob_dec = row.get("Prob_dec", row.get("Prob", np.nan))
+        if pd.isna(prob_dec):
+            return -10.0
         # Pure EV (percent) computed from standardized prob
         base_val = (prob_dec * row['Odd'] - 1) * 100
 
@@ -5770,9 +6343,23 @@ def compute_ev_scores(bets_df, df, market_quality):
         final_val = base_val + (boost * 5.0)
         # 📌 3️⃣ Removed 'final_val *= 1.12' for OU/KG
 
+        if isinstance(final_val, (pd.Series, pd.DataFrame)):
+            st.session_state["_dbg_raw_ev_scalar"] = {
+                "selection": m,
+                "type": str(type(final_val)),
+            }
+            return np.nan
         return final_val
 
-    bets_df['EV_raw'] = bets_df.apply(raw_ev_row, axis=1)
+    _ev_res = bets_df.apply(raw_ev_row, axis=1)
+    if isinstance(_ev_res, pd.DataFrame):
+        st.session_state["_dbg_raw_ev_multi_cols"] = list(_ev_res.columns)
+        st.session_state["_dbg_raw_ev_bad_rows"] = list(_ev_res.index[:5])
+        st.session_state["_dbg_raw_ev_fallback"] = True
+        bets_df["EV_raw"] = pd.to_numeric(_ev_res.iloc[:, 0], errors="coerce")
+    else:
+        st.session_state["_dbg_raw_ev_fallback"] = False
+        bets_df["EV_raw"] = pd.to_numeric(_ev_res, errors="coerce")
 
     EV_SCALE = {
         "MS 1": 1.00, "MS 2": 1.00, "MS X": 0.95,
@@ -5818,37 +6405,43 @@ def compute_ev_scores(bets_df, df, market_quality):
         q_mult = ev_quality_mult.get(m, 0.9)
         # League mult already applied in raw_ev_row, removed from here
         ev_val = row['EV_raw'] * scale * q_mult
-        return np.clip(ev_val, low, high)
+        val = np.clip(ev_val, low, high)
+        if isinstance(val, (pd.Series, pd.DataFrame)):
+            st.session_state["_dbg_adjust_ev_scalar"] = {
+                "selection": m,
+                "type": str(type(val)),
+            }
+            return np.nan
+        return val
 
-    bets_df['EV'] = bets_df.apply(adjust_ev, axis=1)
+    _ev_adj_res = bets_df.apply(adjust_ev, axis=1)
+    if isinstance(_ev_adj_res, pd.DataFrame):
+        st.session_state["_dbg_adjust_ev_multi_cols"] = list(_ev_adj_res.columns)
+        st.session_state["_dbg_adjust_ev_bad_rows"] = list(_ev_adj_res.index[:5])
+        st.session_state["_dbg_adjust_ev_fallback"] = True
+        bets_df["EV"] = pd.to_numeric(_ev_adj_res.iloc[:, 0], errors="coerce")
+    else:
+        st.session_state["_dbg_adjust_ev_fallback"] = False
+        bets_df["EV"] = pd.to_numeric(_ev_adj_res, errors="coerce")
 
     # ---------------------------------------------------------------------
     # EV / Market sanity columns (used for Trap detection & debugging)
     # ---------------------------------------------------------------------
-    # Robust numeric parsing for Prob and Odd (handles '60.44%', '60,44', etc.)
+    # Robust numeric parsing for Odd (handles '2,10', etc.)
     # ---------------------------------------------------------------------
-    prob_raw = bets_df.get("Prob", np.nan)
-    prob_num = pd.to_numeric(
-        prob_raw.astype(str)
-        .str.replace("%", "", regex=False)
-               .str.replace(",", ".", regex=False)
-               .str.strip(),
-        errors="coerce"
-    )
-    # If Prob is 0-100, convert to 0-1
-    bets_df["Prob_dec"] = np.where(prob_num > 1.0, prob_num / 100.0, prob_num)
-
     odd_raw = bets_df.get("Odd", np.nan)
+    if isinstance(odd_raw, pd.Series):
+        odd_str = odd_raw.astype(str)
+    else:
+        odd_str = pd.Series(str(odd_raw), index=bets_df.index)
     odd_num = pd.to_numeric(
-        odd_raw.astype(str)
+        odd_str
         .str.replace(",", ".", regex=False)
               .str.strip(),
         errors="coerce"
     )
     bets_df["Odd_num"] = odd_num
     bets_df["Implied_Prob"] = np.where(odd_num > 0, 1.0 / odd_num, np.nan)
-
-    bets_df["Implied_Prob"] = np.nan
 
     lmult = bets_df["League_Mult"] if "League_Mult" in bets_df.columns else 1.0
 
@@ -5879,14 +6472,16 @@ def compute_ev_scores(bets_df, df, market_quality):
         _imp >= 0.62) & (_mvm <= -0.05)
 
     # Extra guardrail: only surface when we are otherwise "confident"
-    conf_hi = bets_df.get("CONF_Status", "").astype(
-        str).str.upper().isin(["HIGH", "GREEN"])
-    am_hi = bets_df.get("AutoMod_Status", "").astype(
-        str).str.upper().isin(["HIGH", "GREEN"])
+    conf_hi = bets_df.get(
+        "CONF_Status", pd.Series("", index=bets_df.index)).astype(
+            str).str.upper().isin(["HIGH", "GREEN"])
+    am_hi = bets_df.get(
+        "AutoMod_Status", pd.Series("", index=bets_df.index)).astype(
+            str).str.upper().isin(["HIGH", "GREEN"])
     stars_hi = pd.to_numeric(
 bets_df.get(
     "Star_Rating",
-    0),
+    pd.Series(0, index=bets_df.index)),
      errors="coerce").fillna(0) >= 3
 
     bets_df["Trap_Flag"] = (
@@ -6058,7 +6653,9 @@ def _apply_style_profile_pack(
     - scope="bestof": stricter, list should be tighter and cleaner.
     - scope="pool": looser, radar view; still removes obvious noise for some modes.
     """
-    if df is None or getattr(df, "empty", True):
+    if df is None:
+        return pd.DataFrame()
+    if getattr(df, "empty", True):
         return df
 
     _style = (style_mode or "").upper()
@@ -6191,7 +6788,7 @@ def _apply_style_profile_pack(
     out["GoldenScore"], errors="coerce").fillna(0.0) + _bonus
         out["STYLE_BONUS"] = _bonus
 
-    return out
+    return out if isinstance(out, pd.DataFrame) else pd.DataFrame()
 
 
 # (C) BestOfRank Logic
@@ -6439,15 +7036,25 @@ def build_best_of_list(
 
     # Mode strength (if available); default 1.0
     mode_mult = 1.0
+    current_mode = "FULL" if globals().get("FULL_MODE", False) else "FAST"
+    # NOTE: MODE_MARKET_STRENGTH is expected to be a dict/map (per-market multipliers)
+    mode_strength_map = globals().get("MODE_MARKET_STRENGTH", {}).get(current_mode, {}) or {}
+    # FIX: encoding/merge corruption can break "Seçim" column name
+    if "Seçim" in df.columns:
+        sel_col = "Seçim"
+    elif "Secim" in df.columns:
+        sel_col = "Secim"
+    else:
+        sel_col = None
 #     try:  # AUTO-COMMENTED (illegal global try)
 #         current_mode = "FULL" if globals().get("FULL_MODE", False) else "FAST"
 #         mode_strength = globals().get(
 #     "MODE_MARKET_STRENGTH", {}).get(
 #         current_mode, {})
-    if isinstance(mode_strength, dict) and "Seçim" in df.columns:
-        mode_mult = df["Seçim"].map(
+    if isinstance(mode_strength_map, dict) and sel_col in df.columns:
+        mode_mult = df[sel_col].map(
 lambda m: float(
-    mode_strength.get(
+    mode_strength_map.get(
         m, 1.0))).astype(float)
     else:
         mode_mult = 1.0
@@ -6485,8 +7092,10 @@ lambda m: float(
 #     balance = np.clip(balance_pct / 100.0, 0.0, 1.0)  # 1 => follow pool
     # 1 => trust BestOfRank more (less tilt)
 #     quality = np.clip(quality_pct / 100.0, 0.0, 1.0)
+    balance = np.clip(balance_pct / 100.0, 0.0, 1.0)  # 1 => follow pool
+    quality = np.clip(quality_pct / 100.0, 0.0, 1.0)
 
-    counts = df["Seçim"].value_counts(dropna=True)
+    counts = df[sel_col].value_counts(dropna=True) if sel_col else pd.Series(dtype=int)
     total = float(counts.sum()) if counts is not None else 0.0
     if total <= 0:
         return pd.DataFrame()
@@ -7046,23 +7655,29 @@ def prepare_base_data(
         # Even if the target column exists (but is empty/None), we still refill
         # it.
         for target, close_col, open_col in odd_cols_map:
-            s_main = df[target] if target in df.columns else pd.Series(
-                np.nan, index=df.index)
             s_close = df[close_col] if close_col in df.columns else pd.Series(
                 np.nan, index=df.index)
             s_open = df[open_col] if open_col in df.columns else pd.Series(
                 np.nan, index=df.index)
-            # If target already has values, keep them; otherwise fallback close
-            # then open.
-            df[target] = pd.to_numeric(
-    s_main,
-    errors='coerce').fillna(
-        pd.to_numeric(
-            s_close,
-            errors='coerce')).fillna(
-                pd.to_numeric(
-                    s_open,
-                     errors='coerce'))
+            if target in ("HomeOdd", "DrawOdd", "AwayOdd"):
+                df[target] = pd.to_numeric(
+                    s_close,
+                    errors='coerce').fillna(
+                    pd.to_numeric(
+                        s_open,
+                        errors='coerce'))
+            else:
+                s_main = df[target] if target in df.columns else pd.Series(
+                    np.nan, index=df.index)
+                df[target] = pd.to_numeric(
+                    s_main,
+                    errors='coerce').fillna(
+                    pd.to_numeric(
+                        s_close,
+                        errors='coerce')).fillna(
+                        pd.to_numeric(
+                            s_open,
+                            errors='coerce'))
 
         num_cols = ['HomeFullTimeScore', 'AwayFullTimeScore', 'xGHome', 'xGAway', 'HomeOdd', 'DrawOdd', 'AwayOdd', 'O25', 'U25', 'BTTSY', 'BTTSN',
                     'Odds_Open_Home', 'Odds_Open_Draw', 'Odds_Open_Away', 'Odds_Open_Over25', 'Odds_Open_Under25', 'Odds_Open_BTTS_Yes', 'Odds_Open_BTTS_No',
@@ -8455,17 +9070,27 @@ def run_walkforward_eval(train_core):
     return pd.DataFrame(results)
 
 
-def process_and_train(past_df, future_df, fast_mode: bool = False):
-    status = st.empty()
+def process_and_train(past_df, future_df, fast_mode: bool = False, show_status: bool = True):
+    class _NullStatus:
+        def info(self, *a, **k): pass
+        def success(self, *a, **k): pass
+        def warning(self, *a, **k): pass
+        def error(self, *a, **k): pass
+        def write(self, *a, **k): pass
+    status = st.empty() if show_status else _NullStatus()
+    st.session_state["_dbg_runtime_marker"] = "PTJ_FIX_APPLIED_2025_12_23_A"
+    def _status_info(msg: str) -> None:
+        if status is not None:
+            status.info(msg)
     if fast_mode:
-        status.info(
+        _status_info(
             "⚡ FAST MODE: Hızlı eğitim başlatılıyor (hafifletilmiş modeller, kısıtlı geçmiş)...")
     else:
-        status.info("🚀 V43.00 Motoru Başlatılıyor (Draw Spec + OU/KG Split)...")
+        _status_info("🚀 V43.00 Motoru Başlatılıyor (Draw Spec + OU/KG Split)...")
 
     all_data = prepare_base_data(past_df, future_df)
 
-    status.info("🧬 Özellikler işleniyor (Expanding Window Anti-Leakage)...")
+    _status_info("🧬 Özellikler işleniyor (Expanding Window Anti-Leakage)...")
     all_data = engineer_features(all_data)
 
     all_data['Target_Result'] = np.select(
@@ -8498,10 +9123,10 @@ def process_and_train(past_df, future_df, fast_mode: bool = False):
     train_core['Target_Result'] == 2, train_core['ClosingHomeOdd'] - 1, -1.0)
 
     if fast_mode:
-        status.info(
+        _status_info(
             "🛡️ FAST MODE: Geçmiş veriler 80/20 oranında 'Kör Test' için ayrılıyor...")
     else:
-        status.info(
+        _status_info(
             "🛡️ Güvenlik Protokolü: Geçmiş veriler 80/20 oranında 'Kör Test' için ayrılıyor...")
 
     split_ratio = 0.80
@@ -8511,7 +9136,7 @@ def process_and_train(past_df, future_df, fast_mode: bool = False):
     train_subset = train_core.iloc[:split_idx].copy()
     validation_subset = train_core.iloc[split_idx:].copy()
 
-    status.info("📉 Validasyon modelleri eğitiliyor (Geçmiş performans)...")
+    _status_info("📉 Validasyon modelleri eğitiliyor (Geçmiş performans)...")
     hist_df_results = run_training_pipeline(
     train_subset, validation_subset, fast_mode=fast_mode)
 
@@ -8519,7 +9144,7 @@ def process_and_train(past_df, future_df, fast_mode: bool = False):
         hist_df_results)
 
     if not fast_mode:
-        status.info("🔍 Feature Importance hesaplanıyor (sample ile)...")
+        _status_info("🔍 Feature Importance hesaplanıyor (sample ile)...")
         # ✅ Büyük datalarda hız için sample
         fi_data = train_subset
         if len(fi_data) > 25000:
@@ -8548,10 +9173,10 @@ def process_and_train(past_df, future_df, fast_mode: bool = False):
             hist_df_results[col] = validation_subset[col].values
 
     if fast_mode:
-        status.info(
+        _status_info(
             "🔮 FAST MODE: Üretim modelleri (gelecek tahminleri) hızlı pipeline ile eğitiliyor...")
     else:
-        status.info(
+        _status_info(
             "🔮 Production modelleri eğitiliyor (Gelecek tahmini - %100 veri)...")
 
     final_predictions = run_training_pipeline(
@@ -8591,14 +9216,32 @@ def process_and_train(past_df, future_df, fast_mode: bool = False):
         st.session_state.global_penalty = 0.9
         st.session_state.ev_boost_map = {}
 
+    def _status_success(msg: str) -> None:
+        if status is not None:
+            status.success(msg)
     if fast_mode:
-        status.success(
+        _status_success(
             "✅ FAST MODE tamamlandı: Metrikler hızlı kör test setinden üretildi.")
     else:
-        status.success(
+        _status_success(
             "✅ Analiz tamamlandı. Metrikler %100 bağımsız test verisinden üretildi.")
 
     return final_predictions, hist_df_results, train_core
+
+
+@st.cache_data(show_spinner=False)
+def process_and_train_cached(past_bytes: bytes, future_bytes: bytes, fast_mode: bool = False):
+    try:
+        past_df = read_csv_bytes(past_bytes)
+        future_df = read_csv_bytes(future_bytes)
+        preds, hist, _train_core = process_and_train(
+            past_df, future_df, fast_mode=fast_mode, show_status=False)
+        return preds, hist, _train_core
+    except Exception:
+        err = traceback.format_exc()
+        st.session_state["_last_train_error"] = err
+        st.session_state["_train_error"] = err
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 # -----------------------------------------------------------------------------#
 # 5.X  SIMILARITY (kNN / Case-based)  -- LAZY (on-demand) to avoid startup stalls
 # -----------------------------------------------------------------------------#
@@ -8742,12 +9385,7 @@ def _safe_quality_from_dist(dist_arr, top_n: int = 30) -> float:
     We convert distance -> similarity via 1/(1+dist) and average the strongest neighbors.
     Designed to be robust to NaN/inf/empty inputs.
     """
-#     try:  # AUTO-COMMENTED (illegal global try)
-#         d = np.asarray(dist_arr, dtype="float64").reshape(-1)
-#     except Exception:
-#         return 0.0
-    if d.size == 0:
-        return 0.0
+    d = np.asarray(dist_arr if dist_arr is not None else [], dtype=float)
     d = d[np.isfinite(d)]
     if d.size == 0:
         return 0.0
@@ -9127,8 +9765,13 @@ np.isfinite(age_days), np.maximum(
 
     if ("HomeFullTimeScore" in neigh.columns) and (
         "AwayFullTimeScore" in neigh.columns):
-        score_s = neigh["HomeFullTimeScore"].astype(int).astype(
-            str) + "-" + neigh["AwayFullTimeScore"].astype(int).astype(str)
+        hs_s = pd.to_numeric(
+            neigh.get("HomeFullTimeScore", np.nan), errors="coerce"
+        ).replace([np.inf, -np.inf], np.nan).fillna(0).astype(int).astype(str)
+        as_s = pd.to_numeric(
+            neigh.get("AwayFullTimeScore", np.nan), errors="coerce"
+        ).replace([np.inf, -np.inf], np.nan).fillna(0).astype(int).astype(str)
+        score_s = hs_s + "-" + as_s
         out["TOP_SCORES"] = score_s.value_counts().head(8).to_dict()
 
     neigh2 = neigh.sort_values("_dist").head(min(50, len(neigh)))
@@ -9382,6 +10025,16 @@ def apply_similarity_anchor_to_predictions(
     Keeps originals in *_Model columns and overwrites the *_Final columns (so the rest of the app
     automatically benefits without further refactors).
     """
+    sim_df = None
+    def _num0(x):
+        if isinstance(x, pd.Series):
+            return pd.to_numeric(x, errors="coerce").fillna(0.0)
+        try:
+            v = pd.to_numeric(x, errors="coerce")
+        except Exception:
+            return 0.0
+        return 0.0 if pd.isna(v) else float(v)
+
     if pred_df is None or getattr(pred_df, "empty", True):
         return pred_df
 
@@ -9501,8 +10154,14 @@ def apply_similarity_anchor_to_predictions(
             "EFFECTIVE_N", 0))
 
         def _blend_col(col, a, b, wL, wG):
-            aa = pd.to_numeric(a.get(col, 0), errors="coerce").fillna(0)
-            bb = pd.to_numeric(b.get(col, 0), errors="coerce").fillna(0)
+            aa = pd.to_numeric(a.get(col, 0), errors="coerce")
+            if not isinstance(aa, pd.Series):
+                aa = pd.Series(aa, index=wL.index)
+            aa = aa.fillna(0)
+            bb = pd.to_numeric(b.get(col, 0), errors="coerce")
+            if not isinstance(bb, pd.Series):
+                bb = pd.Series(bb, index=wL.index)
+            bb = bb.fillna(0)
             return (wL * aa + wG * bb)
 
         # ---------------------------------------------------------------------
@@ -9587,6 +10246,11 @@ def apply_similarity_anchor_to_predictions(
                 return "TIGHT"
             return "NORMAL"
 
+        def _col_series(df, col, default=np.nan):
+            if col in df.columns:
+                return pd.to_numeric(df[col], errors="coerce")
+            return pd.Series([default] * len(df), index=df.index, dtype="float")
+
         # Market-specific risk classes
         d["SIM_RISK_OU"] = [
     _risk_class(
@@ -9597,13 +10261,16 @@ def apply_similarity_anchor_to_predictions(
         n,
         v,
         i in zip(
-            d.get("SIM_QUALITY_OU"),
-            d.get("EFFECTIVE_N_OU"),
-            d.get("SIM_VAR_POver_OU"),
-             d.get("SIM_TG_IQR_OU"))]
+            _col_series(d, "SIM_QUALITY_OU"),
+            _col_series(d, "EFFECTIVE_N_OU"),
+            _col_series(d, "SIM_VAR_POver_OU"),
+             _col_series(d, "SIM_TG_IQR_OU"))]
         d["SIM_RISK_BTTS"] = [
             _risk_class(q, n, v, 1.0)  # BTTS has no TG_IQR; pass neutral
-            for q, n, v in zip(d.get("SIM_QUALITY_BTTS"), d.get("EFFECTIVE_N_BTTS"), d.get("SIM_VAR_PBTTS_BTTS"))
+            for q, n, v in zip(
+                _col_series(d, "SIM_QUALITY_BTTS"),
+                _col_series(d, "EFFECTIVE_N_BTTS"),
+                _col_series(d, "SIM_VAR_PBTTS_BTTS"))
         ]
 
         # Pick SIM_QUALITY by selection market (so BANKO logic makes sense)
@@ -9690,14 +10357,14 @@ def apply_similarity_anchor_to_predictions(
         # Backward-compatible OB weights = OU weights
         d["BLEND_W_LEAGUE_OB"] = wL_ou
         d["BLEND_W_GLOBAL_OB"] = wG_ou
-        d["MS_LEAGUE_SIM_P2"] = pd.to_numeric(
-            ms_league.get("SIM_P2", 0), errors="coerce").fillna(0)
-        d["MS_GLOBAL_SIM_P2"] = pd.to_numeric(
-            ms_global.get("SIM_P2", 0), errors="coerce").fillna(0)
-        d["OB_LEAGUE_SIM_POver"] = pd.to_numeric(
-            ou_league.get("SIM_POver", 0), errors="coerce").fillna(0)
-        d["OB_GLOBAL_SIM_POver"] = pd.to_numeric(
-            ou_global.get("SIM_POver", 0), errors="coerce").fillna(0)
+        val = pd.to_numeric(ms_league.get("SIM_P2", 0), errors="coerce")
+        d["MS_LEAGUE_SIM_P2"] = 0.0 if pd.isna(val) else float(val)
+        val = pd.to_numeric(ms_global.get("SIM_P2", 0), errors="coerce")
+        d["MS_GLOBAL_SIM_P2"] = 0.0 if pd.isna(val) else float(val)
+        val = pd.to_numeric(ou_league.get("SIM_POver", 0), errors="coerce")
+        d["OB_LEAGUE_SIM_POver"] = 0.0 if pd.isna(val) else float(val)
+        val = pd.to_numeric(ou_global.get("SIM_POver", 0), errors="coerce")
+        d["OB_GLOBAL_SIM_POver"] = 0.0 if pd.isna(val) else float(val)
 
         # Continue with model-prior blending below using the now-correct SIM_*
         # priors.
@@ -9794,18 +10461,9 @@ def apply_similarity_anchor_to_predictions(
 #         d["SIM_ANCHOR_STRENGTH_RAW"] = 0.0
 
 # Determine anchor strength per row
-    q = pd.to_numeric(
-    d.get(
-        "SIM_QUALITY",
-        np.nan),
-         errors="coerce").fillna(0.0)
-    n = pd.to_numeric(
-    d.get(
-        "EFFECTIVE_N",
-        d.get(
-            "SIM_N",
-            0)),
-             errors="coerce").fillna(0.0)
+    q = _num0(d.get("SIM_QUALITY", pd.Series(0.0, index=d.index)))
+    n = _num0(d.get("EFFECTIVE_N", d.get(
+        "SIM_N", pd.Series(0.0, index=d.index))))
     s = (q.clip(0, 1) * (np.log1p(n.clip(lower=0)) /
          np.log1p(max(1.0, float(k_ref))))).clip(0, 1)
 
@@ -9897,6 +10555,141 @@ uploaded_past = st.sidebar.file_uploader(
 uploaded_future = st.sidebar.file_uploader(
     "XGfuture.csv", type=["csv"], key="future")
 
+def _safe_uploader_bytes(upl, key: str):
+    """
+    upl: st.file_uploader return (UploadedFile or None)
+    key: session_state bytes key (e.g., "_past_bytes", "_future_bytes")
+    """
+    prev = st.session_state.get(key, None)
+    if upl is None:
+        # IMPORTANT: do NOT overwrite with b""
+        return prev
+    try:
+        data = upl.getvalue()
+    except Exception:
+        # fallback: keep previous if read fails
+        return prev
+    if data is None or len(data) == 0:
+        # IMPORTANT: do NOT overwrite with empty
+        return prev
+    # accept new non-empty bytes
+    st.session_state[key] = data
+    return data
+
+for _k in ["_dbg_missing_cols_pool", "_dbg_missing_cols_bestof"]:
+    st.session_state[_k] = []
+if "_dbg_missing_cols" in st.session_state:
+    del st.session_state["_dbg_missing_cols"]
+with st.sidebar.expander("🧯 View Build Errors", expanded=False):
+    err = st.session_state.get("_last_view_error")
+    where = st.session_state.get("_last_view_error_where")
+    if err:
+        st.code(f"{where}\n\n{err}" if where else err)
+with st.sidebar.expander("🧪 View Debug", expanded=False):
+    st.checkbox(
+        "Enable column audit + lineage (slow)",
+        value=bool(st.session_state.get(DBG_COL_AUDIT_KEY, False)),
+        key=DBG_COL_AUDIT_KEY,
+    )
+    st.write({
+        "pool_bets_rows": st.session_state.get("_dbg_pool_bets_rows", 0),
+        "pool_view_rows_pre_style": st.session_state.get("_dbg_pool_view_rows_pre_style", 0),
+        "pool_view_rows_post_style": st.session_state.get("_dbg_pool_view_rows_post_style", 0),
+        "bestof_rows": st.session_state.get("_dbg_bestof_rows", 0),
+        "bestof_view_rows_pre_style": st.session_state.get("_dbg_best_view_rows_pre_style", 0),
+        "bestof_view_rows_post_style": st.session_state.get("_dbg_best_view_rows_post_style", 0),
+        "uploaded_past_present": st.session_state.get("_dbg_uploaded_past_present", False),
+        "uploaded_future_present": st.session_state.get("_dbg_uploaded_future_present", False),
+        "past_bytes_len": st.session_state.get("_dbg_past_bytes_len", 0),
+        "future_bytes_len": st.session_state.get("_dbg_future_bytes_len", 0),
+        "past_df_rows": st.session_state.get("_dbg_past_df_rows", 0),
+        "future_df_rows": st.session_state.get("_dbg_future_df_rows", 0),
+        "pred_df_rows": st.session_state.get("_dbg_pred_df_rows", 0),
+        "future_df_rows_ss": st.session_state.get("_dbg_future_df_rows_ss", 0),
+        "bets_df_rows": st.session_state.get("_dbg_bets_df_rows", 0),
+        "runtime_marker": st.session_state.get("_dbg_runtime_marker"),
+    })
+    st.write({
+        "pool_view_cols_pre_style": st.session_state.get("_dbg_pool_view_cols_pre_style", []),
+        "bestof_view_cols_pre_style": st.session_state.get("_dbg_best_view_cols_pre_style", []),
+        "missing_cols_pool": st.session_state.get("_dbg_missing_cols_pool", []),
+        "missing_cols_bestof": st.session_state.get("_dbg_missing_cols_bestof", []),
+        "required_cols": REQUIRED_VIEW_COLS,
+    })
+    st.subheader("🧪 Column Audit Report")
+    _audit = st.session_state.get("_dbg_col_audits", {})
+    if _audit:
+        st.json(_audit)
+    else:
+        st.caption("Column audit is empty. Enable it and rerun the pipeline.")
+    st.subheader("🧪 Column Lineage (delta only)")
+    _lineage = st.session_state.get("_dbg_col_lineage", [])
+    if _lineage:
+        _lineage_summary = []
+        for _e in _lineage:
+            _lineage_summary.append({
+                "object": _e.get("object"),
+                "stage": _e.get("stage"),
+                "rows": _e.get("rows"),
+                "cols": _e.get("cols_total"),
+                "added": len(_e.get("added", [])),
+                "removed": len(_e.get("removed", [])),
+                "all_nan": _e.get("all_nan_tracked", []),
+                "became_all_nan": _e.get("became_all_nan", []),
+                "disappeared": _e.get("disappeared", []),
+            })
+        st.dataframe(pd.DataFrame(_lineage_summary))
+        st.json(_lineage)
+        _col_stage = {c: {"first_seen": None, "first_all_nan": None, "first_disappeared": None} for c in ADV_COLS_TRACKED}
+        for _e in _lineage:
+            _obj_stage = f"{_e.get('object')}::{_e.get('stage')}"
+            for _c in _e.get("added", []):
+                if _c in _col_stage and _col_stage[_c]["first_seen"] is None:
+                    _col_stage[_c]["first_seen"] = _obj_stage
+            for _c in _e.get("all_nan_tracked", []):
+                if _c in _col_stage and _col_stage[_c]["first_all_nan"] is None:
+                    _col_stage[_c]["first_all_nan"] = _obj_stage
+            for _c in _e.get("disappeared", []):
+                if _c in _col_stage and _col_stage[_c]["first_disappeared"] is None:
+                    _col_stage[_c]["first_disappeared"] = _obj_stage
+        st.subheader("🧪 Column Lineage Summary")
+        st.dataframe(pd.DataFrame([
+            {"column": k, **v} for k, v in _col_stage.items()
+        ]))
+    else:
+        st.caption("Lineage is empty. Enable audit and rerun the pipeline.")
+    st.subheader("🧪 Necessity Buckets (heuristic)")
+    _bucket_rows = []
+    for _bucket, _items in NECESSITY_BUCKETS.items():
+        for _col, _why in _items.items():
+            _bucket_rows.append({"bucket": _bucket, "column": _col, "reason": _why})
+    if _bucket_rows:
+        st.dataframe(pd.DataFrame(_bucket_rows))
+    st.subheader("🧪 Pool Stage Debug")
+    st.json(st.session_state.get("_dbg_pool_stages", {}))
+    st.subheader("🧪 Pool Thresholds")
+    st.json(st.session_state.get("_dbg_pool_thresholds", {}))
+    st.subheader("🧪 Stage 11 Debug")
+    st.json(st.session_state.get("_dbg_stage11", {}))
+    st.json(st.session_state.get("_dbg_stage11_drop_counts", {}))
+    st.json(st.session_state.get("_dbg_stage11_drop_sample", []))
+with st.sidebar.expander("🧊 Cache Health", expanded=False):
+    st.write({
+        "cwd": os.getcwd(),
+        "__file__": __file__ if "__file__" in globals() else "NONE",
+    })
+    st.json(st.session_state.get("_dbg_file_hashes", {}))
+    st.json(st.session_state.get("_timings", {}))
+    st.json(st.session_state.get("_cache_hit_flags", {}))
+    _last_train_err = st.session_state.get("_last_train_error")
+    if _last_train_err:
+        st.code(_last_train_err)
+    else:
+        st.write("None / No error recorded")
+    _train_err = st.session_state.get("_train_error")
+    if _train_err:
+        st.code(_train_err)
+
 if uploaded_past and uploaded_future:
     use_disk_cache = st.sidebar.checkbox(
     "💾 Disk cache kullan (Full Mode açılışını ciddi hızlandırır)", value=True)
@@ -9914,209 +10707,322 @@ if uploaded_past and uploaded_future:
     'market_threshold_stats',
     'feature_importance_df',
     'opt_params',
-     'ev_boost_map']:
+     'ev_boost_map',
+     '_last_train_error',
+     '_train_error',
+     '_last_view_error']:
             if key in st.session_state:
                 del st.session_state[key]
+        if _dbg_col_audit_enabled():
+            st.session_state["_dbg_col_lineage"] = []
+            st.session_state["_dbg_col_lineage_state"] = {}
+            st.session_state["_dbg_col_audits"] = {}
 
-        past_bytes = uploaded_past.getvalue()
-        future_bytes = uploaded_future.getvalue()
-        past_md5 = _md5_bytes(past_bytes)
-        future_md5 = _md5_bytes(future_bytes)
+        past_bytes = _safe_uploader_bytes(uploaded_past, "_past_bytes")
+        future_bytes = _safe_uploader_bytes(uploaded_future, "_future_bytes")
 
-        # Stable disk-cache key: depends on DATA + a small set of
-        # model-critical flags (not code version)
-        critical_flags = {
-    "league_norm": bool(
-        st.session_state.get(
-            "LEAGUE_NORM", False)), "time_decay": bool(
-                st.session_state.get(
-                    "TIME_DECAY", False)), "use_calibration": bool(
-                        st.session_state.get(
-                            "USE_CALIBRATION", True)), "use_archetype": bool(
-                                st.session_state.get(
-                                    "USE_ARCHETYPE", True)), }
+        st.session_state["_dbg_uploaded_past_present"] = bool(past_bytes) and len(past_bytes) > 0
+        st.session_state["_dbg_uploaded_future_present"] = bool(future_bytes) and len(future_bytes) > 0
+        st.session_state["_dbg_past_bytes_len"] = int(len(past_bytes)) if past_bytes else 0
+        st.session_state["_dbg_future_bytes_len"] = int(len(future_bytes)) if future_bytes else 0
+        if not past_bytes or len(past_bytes) == 0 or not future_bytes or len(future_bytes) == 0:
+            st.session_state["_last_view_error"] = "Upload bytes empty: skipping train/predict."
+            st.sidebar.error("Upload bytes empty: skipping train/predict.")
+            st.stop()
+        _startup_status = st.status("Initializing pipeline...", expanded=True) if hasattr(st, "status") else None
+        if _startup_status:
+            _startup_status.write("?? Files received")
+        else:
+            st.info("? Initializing? please wait")
 
-        mode_str = "FAST" if st.session_state["FAST_MODE"] else "FULL"
-        cache_key = build_stable_cache_key(
-    past_md5, future_md5, mode_str, critical_flags)
-        cache_key_fast = build_stable_cache_key(
-    past_md5, future_md5, "FAST", critical_flags)
-        cache_key_full = build_stable_cache_key(
-    past_md5, future_md5, "FULL", critical_flags)
+        def _startup_mark(msg: str) -> None:
+            if _startup_status:
+                _startup_status.write(msg)
 
-        # -------------------------------
-        # Disk cache kontrolü (UI)
-        # -------------------------------
-        if "use_disk" not in st.session_state:
-            st.session_state["use_disk"] = True
-        use_disk = st.sidebar.checkbox(
-    "💾 Disk cache kullan",
-     value=st.session_state["use_disk"])
-        st.session_state["use_disk"] = use_disk
+        def _startup_done() -> None:
+            if _startup_status:
+                _startup_status.write("??? Building views")
+                _startup_status.update(label="? Ready", state="complete")
+            else:
+                st.success("Ready")
 
-        cached = load_disk_cache(cache_key) if use_disk else None
-        cached_fast = load_disk_cache(cache_key_fast) if use_disk else None
-        cached_full = load_disk_cache(cache_key_full) if use_disk else None
-        if st.session_state.get("AUTO_MODE", False):
-            # AUTO: load both FAST & FULL if available, otherwise compute both
-            # once
-            if cached_full is not None and cached_fast is not None:
+        try:
+            past_md5 = _md5_bytes(past_bytes)
+            future_md5 = _md5_bytes(future_bytes)
+            st.session_state["_dbg_file_hashes"] = {
+                "past_sha1": _sha1_bytes(past_bytes),
+                "future_sha1": _sha1_bytes(future_bytes),
+                "past_len": len(past_bytes or b""),
+                "future_len": len(future_bytes or b""),
+                "fast_mode": bool(st.session_state.get("FAST_MODE", False)),
+            }
+            st.session_state.setdefault("_timings", {})
+            st.session_state.setdefault("_cache_hit_flags", {})
+
+            # Stable disk-cache key: depends on DATA + a small set of
+            # model-critical flags (not code version)
+            critical_flags = {
+        "league_norm": bool(
+            st.session_state.get(
+                "LEAGUE_NORM", False)), "time_decay": bool(
+                    st.session_state.get(
+                        "TIME_DECAY", False)), "use_calibration": bool(
+                            st.session_state.get(
+                                "USE_CALIBRATION", True)), "use_archetype": bool(
+                                    st.session_state.get(
+                                        "USE_ARCHETYPE", True)), }
+
+            mode_str = "FAST" if st.session_state["FAST_MODE"] else "FULL"
+            cache_key = build_stable_cache_key(
+        past_md5, future_md5, mode_str, critical_flags)
+            cache_key_fast = build_stable_cache_key(
+        past_md5, future_md5, "FAST", critical_flags)
+            cache_key_full = build_stable_cache_key(
+        past_md5, future_md5, "FULL", critical_flags)
+
+            # -------------------------------
+            # Disk cache kontrolü (UI)
+            # -------------------------------
+            if "use_disk" not in st.session_state:
+                st.session_state["use_disk"] = True
+            use_disk = st.sidebar.checkbox(
+        "💾 Disk cache kullan",
+         value=st.session_state["use_disk"])
+            st.session_state["use_disk"] = use_disk
+
+            cached = load_disk_cache(cache_key) if use_disk else None
+            cached_fast = load_disk_cache(cache_key_fast) if use_disk else None
+            cached_full = load_disk_cache(cache_key_full) if use_disk else None
+            if st.session_state.get("AUTO_MODE", False):
+                # AUTO: load both FAST & FULL if available, otherwise compute both
+                # once
+                if cached_full is not None and cached_fast is not None:
+                    st.success(
+                        "✅ AUTO: FAST + FULL disk cache yüklendi (eğitim çalıştırılmadan).")
+                    full_final = cached_full.get("final_df")
+                    fast_final = cached_fast.get("final_df")
+
+                    st.session_state.final_df = combine_fast_full_predictions(
+                        full_final, fast_final)
+                    st.session_state.hist_df = cached_full.get(
+                        "hist_df")  # baseline: FULL
+                    st.session_state.train_core = cached_full.get("train_core")
+                    st.session_state.processed = True
+                    if _dbg_col_audit_enabled() and isinstance(st.session_state.train_core, pd.DataFrame):
+                        st.session_state.setdefault("_dbg_pool_stages", {})
+                        st.session_state["_dbg_pool_stages"]["train_core_rows"] = int(
+                            len(st.session_state.train_core))
+                        st.session_state["_dbg_pool_stages"]["train_core_cols"] = int(
+                            len(st.session_state.train_core.columns))
+
+                    st.session_state.market_threshold_stats = cached_full.get(
+                        "market_threshold_stats", pd.DataFrame())
+                    st.session_state.feature_importance_df = cached_full.get(
+                        "feature_importance_df", pd.DataFrame())
+                    st.session_state.opt_params = cached_full.get("opt_params", {})
+                    st.session_state.ev_boost_map = cached_full.get(
+                        "ev_boost_map", {})
+                    st.session_state.league_metrics_df = cached_full.get(
+                        "league_metrics_df", pd.DataFrame())
+                    st.session_state.league_confidence = cached_full.get(
+                        "league_confidence", {})
+                else:
+                    _startup_mark("📊 Reading CSV files")
+                    df_past = read_csv_bytes(past_bytes)
+                    df_future = read_csv_bytes(future_bytes)
+                    df_past = ensure_match_id(df_past)
+                    df_future = ensure_match_id(df_future)
+                    st.session_state["_dbg_past_df_rows"] = int(len(df_past)) if df_past is not None else 0
+                    st.session_state["_dbg_future_df_rows"] = int(len(df_future)) if df_future is not None else 0
+
+                    # FULL first
+                    _startup_mark("🧠 Training model (FULL)")
+                    _t0 = time.perf_counter()
+                    full_final_df, full_hist_df, full_train_core_df = process_and_train_cached(
+                        past_bytes, future_bytes, fast_mode=False)
+                    full_final_df = ensure_match_id(full_final_df)
+                    _dt = time.perf_counter() - _t0
+                    st.session_state["_timings"]["train_call_sec_full"] = _dt
+                    st.session_state["_cache_hit_flags"]["train_cached_hit_full"] = (_dt < 3.0)
+                    full_train_core_df = full_train_core_df if isinstance(
+                        full_train_core_df, pd.DataFrame) else pd.DataFrame()
+                    # FAST second
+                    _startup_mark("⚡ Training model (FAST)")
+                    _t0 = time.perf_counter()
+                    fast_final_df, fast_hist_df, fast_train_core_df = process_and_train_cached(
+                        past_bytes, future_bytes, fast_mode=True)
+                    fast_final_df = ensure_match_id(fast_final_df)
+                    _dt = time.perf_counter() - _t0
+                    st.session_state["_timings"]["train_call_sec_fast"] = _dt
+                    st.session_state["_cache_hit_flags"]["train_cached_hit_fast"] = (_dt < 3.0)
+                    fast_train_core_df = fast_train_core_df if isinstance(
+                        fast_train_core_df, pd.DataFrame) else pd.DataFrame()
+                    _startup_mark("🧮 Post-processing results")
+
+                    st.session_state.final_df = combine_fast_full_predictions(
+                        full_final_df, fast_final_df)
+                    st.session_state.hist_df = full_hist_df
+                    st.session_state.train_core = full_train_core_df
+                    if _dbg_col_audit_enabled():
+                        st.session_state.setdefault("_dbg_pool_stages", {})
+                        st.session_state["_dbg_pool_stages"]["train_core_rows"] = int(
+                            len(st.session_state.train_core))
+                        st.session_state["_dbg_pool_stages"]["train_core_cols"] = int(
+                            len(st.session_state.train_core.columns))
+                    st.session_state.processed = True
+                    st.session_state["pred_df"] = st.session_state.final_df.copy()
+                    st.session_state["future_df"] = df_future.copy()
+                    st.session_state["_dbg_pred_df_rows"] = int(len(st.session_state["pred_df"]))
+                    st.session_state["_dbg_future_df_rows_ss"] = int(len(st.session_state["future_df"]))
+
+                    # Save caches
+                    if use_disk:
+                        payload_full = {
+        "final_df": full_final_df,
+        "hist_df": full_hist_df,
+        "train_core": full_train_core_df,
+        "market_threshold_stats": st.session_state.get(
+            "market_threshold_stats",
+            pd.DataFrame()),
+            "feature_importance_df": st.session_state.get(
+                "feature_importance_df",
+                pd.DataFrame()),
+                "opt_params": st.session_state.get(
+                    "opt_params",
+                    {}),
+                    "ev_boost_map": st.session_state.get(
+                        "ev_boost_map",
+                        {}),
+                        "league_metrics_df": st.session_state.get(
+                            "league_metrics_df",
+                            pd.DataFrame()),
+                            "league_confidence": st.session_state.get(
+                                "league_confidence",
+                                {}),
+                                 }
+                        payload_fast = {
+        "final_df": fast_final_df,
+        "hist_df": fast_hist_df,
+        "train_core": fast_train_core_df,
+        "market_threshold_stats": st.session_state.get(
+            "market_threshold_stats",
+            pd.DataFrame()),
+            "feature_importance_df": st.session_state.get(
+                "feature_importance_df",
+                pd.DataFrame()),
+                "opt_params": st.session_state.get(
+                    "opt_params",
+                    {}),
+                    "ev_boost_map": st.session_state.get(
+                        "ev_boost_map",
+                        {}),
+                        "league_metrics_df": st.session_state.get(
+                            "league_metrics_df",
+                            pd.DataFrame()),
+                            "league_confidence": st.session_state.get(
+                                "league_confidence",
+                                {}),
+                                 }
+                        save_disk_cache(cache_key_full, payload_full)
+                        save_disk_cache(cache_key_fast, payload_fast)
+                        st.info("💾 AUTO: FAST + FULL disk cache kaydedildi.")
+            elif cached is not None:
                 st.success(
-                    "✅ AUTO: FAST + FULL disk cache yüklendi (eğitim çalıştırılmadan).")
-                full_final = cached_full.get("final_df")
-                fast_final = cached_fast.get("final_df")
-
-                st.session_state.final_df = combine_fast_full_predictions(
-                    full_final, fast_final)
-                st.session_state.hist_df = cached_full.get(
-                    "hist_df")  # baseline: FULL
-                st.session_state.train_core = cached_full.get("train_core")
+                    "✅ Disk cache bulundu: eğitim tekrar çalıştırılmadan yüklendi.")
+                st.session_state.final_df = cached.get("final_df")
+                st.session_state.hist_df = cached.get("hist_df")
+                st.session_state.train_core = cached.get("train_core")
                 st.session_state.processed = True
+                if _dbg_col_audit_enabled() and isinstance(st.session_state.train_core, pd.DataFrame):
+                    st.session_state.setdefault("_dbg_pool_stages", {})
+                    st.session_state["_dbg_pool_stages"]["train_core_rows"] = int(
+                        len(st.session_state.train_core))
+                    st.session_state["_dbg_pool_stages"]["train_core_cols"] = int(
+                        len(st.session_state.train_core.columns))
 
-                st.session_state.market_threshold_stats = cached_full.get(
+                st.session_state.market_threshold_stats = cached.get(
                     "market_threshold_stats", pd.DataFrame())
-                st.session_state.feature_importance_df = cached_full.get(
+                st.session_state.feature_importance_df = cached.get(
                     "feature_importance_df", pd.DataFrame())
-                st.session_state.opt_params = cached_full.get("opt_params", {})
-                st.session_state.ev_boost_map = cached_full.get(
-                    "ev_boost_map", {})
-                st.session_state.league_metrics_df = cached_full.get(
+                st.session_state.opt_params = cached.get("opt_params", {})
+                st.session_state.ev_boost_map = cached.get("ev_boost_map", {})
+                st.session_state.league_metrics_df = cached.get(
                     "league_metrics_df", pd.DataFrame())
-                st.session_state.league_confidence = cached_full.get(
+                st.session_state.league_confidence = cached.get(
                     "league_confidence", {})
             else:
+                # Parse CSV (cached) and run full pipeline
+                _startup_mark("📊 Reading CSV files")
                 df_past = read_csv_bytes(past_bytes)
                 df_future = read_csv_bytes(future_bytes)
+                df_past = ensure_match_id(df_past)
+                df_future = ensure_match_id(df_future)
+                st.session_state["_dbg_past_df_rows"] = int(len(df_past)) if df_past is not None else 0
+                st.session_state["_dbg_future_df_rows"] = int(len(df_future)) if df_future is not None else 0
 
-                # FULL first
-                full_final_df, full_hist_df, full_train_core_df = process_and_train(
-                    df_past, df_future, fast_mode=False)
-                # FAST second
-                fast_final_df, fast_hist_df, fast_train_core_df = process_and_train(
-                    df_past, df_future, fast_mode=True)
+                _startup_mark("🧠 Training model (FULL / FAST)")
+                _t0 = time.perf_counter()
+                final_df, hist_df, train_core_df = process_and_train_cached(
+                    past_bytes,
+                    future_bytes,
+                    fast_mode=st.session_state["FAST_MODE"]
+                )
+                final_df = ensure_match_id(final_df)
+                _dt = time.perf_counter() - _t0
+                st.session_state["_timings"]["train_call_sec_main"] = _dt
+                st.session_state["_cache_hit_flags"]["train_cached_hit_main"] = (_dt < 3.0)
+                train_core_df = train_core_df if isinstance(
+                    train_core_df, pd.DataFrame) else pd.DataFrame()
+                _startup_mark("🧮 Post-processing results")
 
-                st.session_state.final_df = combine_fast_full_predictions(
-                    full_final_df, fast_final_df)
-                st.session_state.hist_df = full_hist_df
-                st.session_state.train_core = full_train_core_df
+                st.session_state.final_df = final_df
+                st.session_state.hist_df = hist_df
+                st.session_state.train_core = train_core_df
+                if _dbg_col_audit_enabled():
+                    st.session_state.setdefault("_dbg_pool_stages", {})
+                    st.session_state["_dbg_pool_stages"]["train_core_rows"] = int(
+                        len(st.session_state.train_core))
+                    st.session_state["_dbg_pool_stages"]["train_core_cols"] = int(
+                        len(st.session_state.train_core.columns))
                 st.session_state.processed = True
+                st.session_state["pred_df"] = st.session_state.final_df.copy()
+                st.session_state["future_df"] = df_future.copy()
+                st.session_state["_dbg_pred_df_rows"] = int(len(st.session_state["pred_df"]))
+                st.session_state["_dbg_future_df_rows_ss"] = int(len(st.session_state["future_df"]))
 
-                # Save caches
-                if use_disk:
-                    payload_full = {
-    "final_df": full_final_df,
-    "hist_df": full_hist_df,
-    "train_core": full_train_core_df,
-    "market_threshold_stats": st.session_state.get(
-        "market_threshold_stats",
-        pd.DataFrame()),
-        "feature_importance_df": st.session_state.get(
-            "feature_importance_df",
-            pd.DataFrame()),
-            "opt_params": st.session_state.get(
-                "opt_params",
-                {}),
-                "ev_boost_map": st.session_state.get(
-                    "ev_boost_map",
-                    {}),
-                    "league_metrics_df": st.session_state.get(
-                        "league_metrics_df",
-                        pd.DataFrame()),
-                        "league_confidence": st.session_state.get(
-                            "league_confidence",
+                # These are used across tabs – compute once and keep
+                st.session_state.league_metrics_df = build_league_metrics(hist_df)
+                st.session_state.league_confidence = calculate_league_confidence(
+                    hist_df)
+
+                # Persist to disk cache for next run
+                if use_disk_cache:
+                    payload = {
+                        "final_df": st.session_state.final_df,
+                        "hist_df": st.session_state.hist_df,
+                        "train_core": st.session_state.train_core,
+                        "market_threshold_stats": st.session_state.get(
+                            "market_threshold_stats",
+                            pd.DataFrame()),
+                        "feature_importance_df": st.session_state.get(
+                            "feature_importance_df",
+                            pd.DataFrame()),
+                        "opt_params": st.session_state.get(
+                            "opt_params",
                             {}),
-                             }
-                    payload_fast = {
-    "final_df": fast_final_df,
-    "hist_df": fast_hist_df,
-    "train_core": fast_train_core_df,
-    "market_threshold_stats": st.session_state.get(
-        "market_threshold_stats",
-        pd.DataFrame()),
-        "feature_importance_df": st.session_state.get(
-            "feature_importance_df",
-            pd.DataFrame()),
-            "opt_params": st.session_state.get(
-                "opt_params",
-                {}),
-                "ev_boost_map": st.session_state.get(
-                    "ev_boost_map",
-                    {}),
-                    "league_metrics_df": st.session_state.get(
-                        "league_metrics_df",
-                        pd.DataFrame()),
-                        "league_confidence": st.session_state.get(
-                            "league_confidence",
+                        "ev_boost_map": st.session_state.get(
+                            "ev_boost_map",
                             {}),
-                             }
-                    save_disk_cache(cache_key_full, payload_full)
-                    save_disk_cache(cache_key_fast, payload_fast)
-                    st.info("💾 AUTO: FAST + FULL disk cache kaydedildi.")
-        elif cached is not None:
-            st.success(
-                "✅ Disk cache bulundu: eğitim tekrar çalıştırılmadan yüklendi.")
-            st.session_state.final_df = cached.get("final_df")
-            st.session_state.hist_df = cached.get("hist_df")
-            st.session_state.train_core = cached.get("train_core")
-            st.session_state.processed = True
-
-            st.session_state.market_threshold_stats = cached.get(
-                "market_threshold_stats", pd.DataFrame())
-            st.session_state.feature_importance_df = cached.get(
-                "feature_importance_df", pd.DataFrame())
-            st.session_state.opt_params = cached.get("opt_params", {})
-            st.session_state.ev_boost_map = cached.get("ev_boost_map", {})
-            st.session_state.league_metrics_df = cached.get(
-                "league_metrics_df", pd.DataFrame())
-            st.session_state.league_confidence = cached.get(
-                "league_confidence", {})
-        else:
-            # Parse CSV (cached) and run full pipeline
-            df_past = read_csv_bytes(past_bytes)
-            df_future = read_csv_bytes(future_bytes)
-
-            final_df, hist_df, train_core_df = process_and_train(
-                df_past,
-                df_future,
-                fast_mode=st.session_state["FAST_MODE"]
-            )
-
-            st.session_state.final_df = final_df
-            st.session_state.hist_df = hist_df
-            st.session_state.train_core = train_core_df
-            st.session_state.processed = True
-
-            # These are used across tabs – compute once and keep
-            st.session_state.league_metrics_df = build_league_metrics(hist_df)
-            st.session_state.league_confidence = calculate_league_confidence(
-                hist_df)
-
-            # Persist to disk cache for next run
-            if use_disk_cache:
-                payload = {
-    "final_df": st.session_state.final_df,
-    "hist_df": st.session_state.hist_df,
-    "train_core": st.session_state.train_core,
-    "market_threshold_stats": st.session_state.get(
-        "market_threshold_stats",
-        pd.DataFrame()),
-        "feature_importance_df": st.session_state.get(
-            "feature_importance_df",
-            pd.DataFrame()),
-            "opt_params": st.session_state.get(
-                "opt_params",
-                {}),
-                "ev_boost_map": st.session_state.get(
-                    "ev_boost_map",
-                    {}),
-                    "league_metrics_df": st.session_state.league_metrics_df,
-                    "league_confidence": st.session_state.league_confidence,
-                     }
-                save_disk_cache(cache_key, payload)
-                st.info(
-                    "💾 Disk cache kaydedildi (bir sonraki açılış çok daha hızlı olacak).")
+                        "league_metrics_df": st.session_state.league_metrics_df,
+                        "league_confidence": st.session_state.league_confidence,
+                    }
+                    save_disk_cache(cache_key, payload)
+                    st.info(
+                        "💾 Disk cache kaydedildi (bir sonraki açılış çok daha hızlı olacak).")
 
 
+        finally:
+            _startup_done()
 if 'processed' in st.session_state and st.session_state.get(
     'final_df') is not None:
     df = st.session_state.final_df
@@ -10194,8 +11100,218 @@ st.session_state.get(
     '2.5 Alt',
     'KG Var',
      'KG Yok']
-    bets_df = df.loc[df.index.repeat(len(all_market_types))].copy()
-    bets_df['Seçim'] = all_market_types * len(df)
+    # ------------------------------
+    # SOURCE SELECTION FOR bets_df
+    # ------------------------------
+    # We want bets_df to be built from FUTURE matches (future_df / pred_df),
+    # not from historical/processed dataframes.
+    # If df is already future-like and non-empty, keep it.
+    # Otherwise pick the best future candidate from session_state.
+    def _is_future_like(_d: pd.DataFrame) -> bool:
+        if not isinstance(_d, pd.DataFrame) or len(_d) == 0:
+            return False
+        # future df usually has missing results/close odds
+        future_signals = [
+            # results (often missing for future)
+            "FT_Score_Home", "FT_Score_Away", "Total_Goals",
+            "HomeFullTimeScore", "AwayFullTimeScore", "FTHG", "FTAG",
+            "HomeGoals", "AwayGoals", "FT_Home", "FT_Away",
+            # close odds (often missing for future)
+            "Odds_Close_Home", "Odds_Close_Draw", "Odds_Close_Away",
+            "Odds_Close_Over25", "Odds_Close_Under25",
+            "Odds_Close_BTTS_Yes", "Odds_Close_BTTS_No",
+            "ClosingHomeOdd", "ClosingDrawOdd", "ClosingAwayOdd",
+            "ClosingO25", "ClosingU25", "ClosingBTTSY", "ClosingBTTSN",
+            "ClosingBTTS_Y", "ClosingBTTS_N",
+        ]
+        present = [c for c in future_signals if c in _d.columns]
+        if not present:
+            return False
+        # if any of these exist and are mostly NaN -> likely future
+        return any(
+            pd.to_numeric(_d[c], errors="coerce").isna().mean() > 0.80
+            for c in present
+        )
+    def _pick_best_future_df():
+        # priority order: the objects that should represent upcoming matches
+        priorities = [
+            "future_df",
+            "pred_df",
+            "preds_df",
+            "future_preds_df",
+            "upcoming_df",
+            "df_future",
+        ]
+        for name in priorities:
+            cand = st.session_state.get(name, None)
+            if isinstance(cand, pd.DataFrame) and len(cand) > 0:
+                return name, cand
+        # last resort: final_df if it looks future-like
+        cand = st.session_state.get("final_df", None)
+        if isinstance(cand, pd.DataFrame) and _is_future_like(cand):
+            return "final_df", cand
+        return None, None
+    # --- hard fallback: choose df_for_bets ---
+    df_for_bets = df if isinstance(df, pd.DataFrame) else None
+    bets_source = st.session_state.get("_dbg_df_source_name", "df")
+    def _get_df_candidate(name: str):
+        if name in locals():
+            cand = locals()[name]
+            if isinstance(cand, pd.DataFrame) and len(cand) > 0:
+                return cand, name
+        cand = st.session_state.get(name, None)
+        if isinstance(cand, pd.DataFrame) and len(cand) > 0:
+            return cand, name
+        return None, None
+    if (not isinstance(df_for_bets, pd.DataFrame)) or (len(df_for_bets) == 0):
+        cand, n = _get_df_candidate("pred_df")
+        if cand is None:
+            cand, n = _get_df_candidate("future_df")
+        if isinstance(cand, pd.DataFrame) and len(cand) > 0:
+            df_for_bets = cand.copy()
+            bets_source = n
+            st.session_state["_dbg_df_fallback_forced"] = {"from": "df", "to": n, "rows": int(len(df_for_bets))}
+    st.session_state["_dbg_bets_source"] = bets_source
+    # census for all sources (compare side-by-side)
+    def _shape(x):
+        return (int(len(x)), int(x.shape[1])) if isinstance(x, pd.DataFrame) else (-1, -1)
+    st.session_state["_dbg_df_for_bets_census"] = {
+        "df": _shape(df if "df" in locals() else None),
+        "pred_df": _shape(locals().get("pred_df", st.session_state.get("pred_df", None))),
+        "future_df": _shape(locals().get("future_df", st.session_state.get("future_df", None))),
+        "df_for_bets": _shape(df_for_bets),
+    }
+    # IMPORTANT: build bets_df from df_for_bets, not df
+    st.session_state["_dbg_all_market_types_len"] = int(len(all_market_types)) if isinstance(all_market_types, (list, tuple)) else -1
+    st.session_state["_dbg_all_market_types_head"] = list(all_market_types)[:20] if isinstance(all_market_types, (list, tuple)) else []
+    st.session_state["_dbg_df_for_bets_type"] = str(type(df_for_bets))
+    st.session_state["_dbg_df_for_bets_rows"] = int(len(df_for_bets)) if isinstance(df_for_bets, pd.DataFrame) else -1
+    st.session_state["_dbg_df_for_bets_cols"] = int(df_for_bets.shape[1]) if isinstance(df_for_bets, pd.DataFrame) else -1
+    st.session_state["_dbg_df_for_bets_cols_head"] = list(df_for_bets.columns)[:50] if isinstance(df_for_bets, pd.DataFrame) else []
+    if not isinstance(df_for_bets, pd.DataFrame) or len(df_for_bets) == 0:
+        st.session_state["_dbg_blocked_bets_df_reason"] = "df_for_bets_empty_before_repeat"
+        st.stop()
+    if not isinstance(all_market_types, (list, tuple)) or len(all_market_types) == 0:
+        st.session_state["_dbg_blocked_bets_df_reason"] = "all_market_types_empty"
+        st.stop()
+    # Ensure advanced diagnostics exist before expanding to bets_df
+    _train_core = st.session_state.get("train_core", None)
+    _adv_allowed = [
+        "SIM_ANCHOR_STRENGTH", "SIM_QUALITY", "EFFECTIVE_N",
+        "SIM_ANCHOR_GROUP", "SIM_ALPHA",
+        "SIM_POver", "SIM_PBTTS", "SIM_MS_STRENGTH", "SIM_OU_STRENGTH",
+        "SIM_BTTS_STRENGTH",
+        "P_Home_Model", "P_Draw_Model", "P_Away_Model",
+        "P_Over_Model", "P_BTTS_Model",
+        "BLEND_MODE_MS", "LEAGUE_OK_MS", "BLEND_W_LEAGUE_MS",
+        "BLEND_MODE_OB", "LEAGUE_OK_OB", "BLEND_W_LEAGUE_OB",
+    ]
+    if isinstance(df_for_bets, pd.DataFrame) and len(df_for_bets) > 0:
+        _need_diag = any(c not in df_for_bets.columns for c in _adv_allowed)
+        if _need_diag and isinstance(_train_core, pd.DataFrame) and not _train_core.empty:
+            try:
+                _diag = apply_similarity_anchor_to_predictions(
+                    df_for_bets.copy(),
+                    _train_core,
+                    alpha_max=float(st.session_state.get("SIM_ALPHA_MAX", 0.60)),
+                    k=int(st.session_state.get("SIM_K", 60)),
+                    use_cutoff=bool(st.session_state.get("SIM_USE_CUTOFF", True)),
+                    min_similarity=float(st.session_state.get("SIM_MIN_SIM", 0.55)),
+                    min_neighbors=int(st.session_state.get("SIM_MIN_NEIGHBORS", 12)),
+                    same_league=bool(st.session_state.get("SIM_SAME_LEAGUE", True)),
+                    max_pool=int(st.session_state.get("SIM_MAX_POOL", 120000)),
+                    years_back=int(st.session_state.get("SIM_YEARS_BACK", 4)),
+                    preset="Dual (Lig+Global, MS/OB)",
+                    k_ref=float(st.session_state.get("SIM_K_REF", 30.0)),
+                )
+                _cols = [c for c in _adv_allowed if c in _diag.columns]
+                if "Match_ID" in df_for_bets.columns and "Match_ID" in _diag.columns:
+                    _diag = _diag.drop_duplicates(subset=["Match_ID"], keep="last")
+                    df_for_bets = df_for_bets.merge(
+                        _diag[["Match_ID"] + _cols],
+                        on="Match_ID",
+                        how="left",
+                    )
+                else:
+                    _diag = _diag.reindex(df_for_bets.index)
+                    for _c in _cols:
+                        df_for_bets[_c] = _diag[_c]
+            except Exception:
+                if _dbg_col_audit_enabled():
+                    st.session_state.setdefault("_dbg_pool_stages", {})
+                    st.session_state["_dbg_pool_stages"]["sim_diag_error"] = traceback.format_exc()
+                    st.warning("Similarity diagnostics could not be computed.")
+        _need_tg = any(c not in df_for_bets.columns for c in ["TG_Q75", "TG_Q90"])
+        if _need_tg:
+            try:
+                df_for_bets = add_mdl_features(df_for_bets)
+            except Exception:
+                if _dbg_col_audit_enabled():
+                    st.session_state.setdefault("_dbg_pool_stages", {})
+                    st.session_state["_dbg_pool_stages"]["tg_diag_error"] = traceback.format_exc()
+                    st.warning("TG_Q75/TG_Q90 could not be computed.")
+    # create bets_df
+    bets_df = df_for_bets.loc[df_for_bets.index.repeat(len(all_market_types))].copy()
+    bets_df["Seçim"] = all_market_types * len(df_for_bets)
+    if _dbg_col_audit_enabled():
+        st.session_state.setdefault("_dbg_pool_stages", {})
+        st.session_state["_dbg_pool_stages"]["bets_df_has_sim"] = all(
+            c in bets_df.columns for c in ["SIM_ANCHOR_STRENGTH", "SIM_QUALITY", "EFFECTIVE_N"]
+        )
+    st.session_state["_dbg_bets_df_rows"] = int(len(bets_df))
+    st.session_state["_dbg_bets_df_cols_count"] = int(bets_df.shape[1]) if isinstance(bets_df, pd.DataFrame) else -1
+    st.session_state["_dbg_bets_df_cols_head"] = list(bets_df.columns)[:200] if isinstance(bets_df, pd.DataFrame) else []
+    st.session_state["_bets_cols"] = list(bets_df.columns)[:200] if isinstance(bets_df, pd.DataFrame) else []
+    if isinstance(bets_df, pd.DataFrame):
+        _missing_odds = []
+        _canon_map = {
+            "HomeOdd": "Odds_Open_Home",
+            "DrawOdd": "Odds_Open_Draw",
+            "AwayOdd": "Odds_Open_Away",
+            "O25": "Odds_Open_Over25",
+            "U25": "Odds_Open_Under25",
+            "BTTSY": "Odds_Open_BTTS_Yes",
+            "BTTS_Y": "Odds_Open_BTTS_Yes",
+            "BTTSN": "Odds_Open_BTTS_No",
+            "BTTS_N": "Odds_Open_BTTS_No",
+            "ClosingHomeOdd": "Odds_Close_Home",
+            "ClosingDrawOdd": "Odds_Close_Draw",
+            "ClosingAwayOdd": "Odds_Close_Away",
+            "ClosingO25": "Odds_Close_Over25",
+            "ClosingU25": "Odds_Close_Under25",
+            "ClosingBTTSY": "Odds_Close_BTTS_Yes",
+            "ClosingBTTS_Y": "Odds_Close_BTTS_Yes",
+            "ClosingBTTSN": "Odds_Close_BTTS_No",
+            "ClosingBTTS_N": "Odds_Close_BTTS_No",
+        }
+        for _dst, _src in _canon_map.items():
+            if _dst in bets_df.columns:
+                bets_df[_dst] = pd.to_numeric(bets_df[_dst], errors="coerce")
+            elif _src in bets_df.columns:
+                bets_df[_dst] = pd.to_numeric(bets_df[_src], errors="coerce")
+            else:
+                bets_df[_dst] = np.nan
+            if bets_df[_dst].isna().all():
+                _missing_odds.append(_dst)
+        st.session_state["_dbg_missing_odds_cols"] = _missing_odds
+    else:
+        st.session_state["_dbg_missing_odds_cols"] = ["bets_df_not_dataframe"]
+    _close_cols = ["ClosingHomeOdd", "ClosingDrawOdd", "ClosingAwayOdd", "Odds_Close_Home", "Odds_Close_Draw", "Odds_Close_Away"]
+    _open_cols = ["Odds_Open_Home", "Odds_Open_Draw", "Odds_Open_Away"]
+    _close_has = False
+    _open_has = False
+    for _c in _close_cols:
+        if _c in bets_df.columns:
+            _close_has = bool(pd.to_numeric(bets_df[_c], errors="coerce").notna().any())
+            if _close_has:
+                break
+    if not _close_has:
+        for _c in _open_cols:
+            if _c in bets_df.columns:
+                _open_has = bool(pd.to_numeric(bets_df[_c], errors="coerce").notna().any())
+                if _open_has:
+                    break
+    st.session_state["_odds_source"] = "close" if _close_has else ("open" if _open_has else "nan")
 
     conditions = [
     bets_df['Seçim'] == 'MS 1',
@@ -10242,7 +11358,7 @@ st.session_state.get(
     bets_df['Odd'] = np.select(conditions, odds, default=np.nan)
     bets_df = bets_df[bets_df.apply(validate_odds_row, axis=1)].copy()
 
-    bets_df = compute_ev_scores(bets_df, df, market_quality)
+    bets_df = compute_ev_scores(bets_df, df_for_bets, market_quality)
 
     # De-dup: sometimes upcoming feeds contain repeated rows for the same
     # match/market.
@@ -10361,104 +11477,112 @@ def _compute_alpha(row):
     return float(max(0.10, min(0.45, alpha)))
 
 
-bets_df['SIM_PRIOR'] = bets_df.apply(_compute_sim_prior, axis=1)
+if "bets_df" in locals():
+    bets_df['SIM_PRIOR'] = bets_df.apply(_compute_sim_prior, axis=1)
 
-bets_df['Prob_HYBRID'] = bets_df['Prob']
-_mask = bets_df['SIM_PRIOR'].notna()
-_alphas = bets_df.loc[_mask].apply(_compute_alpha, axis=1)
-bets_df.loc[_mask, 'Prob_HYBRID'] = (
-    (1.0 - _alphas) * bets_df.loc[_mask, 'Prob']
-    + _alphas * bets_df.loc[_mask, 'SIM_PRIOR']
-)
+    bets_df['Prob_HYBRID'] = bets_df['Prob']
+    _mask = bets_df['SIM_PRIOR'].notna()
+    _mask = _align_mask(_mask, bets_df)
+    _alphas = bets_df.loc[_mask].apply(_compute_alpha, axis=1)
+    bets_df.loc[_mask, 'Prob_HYBRID'] = (
+        (1.0 - _alphas) * bets_df.loc[_mask, 'Prob']
+        + _alphas * bets_df.loc[_mask, 'SIM_PRIOR']
+    )
 
-bets_df['EV_HYBRID'] = (bets_df['Prob_HYBRID'] * bets_df['Odd']) - 1.0
+    bets_df['EV_HYBRID'] = (bets_df['Prob_HYBRID'] * bets_df['Odd']) - 1.0
 
-# ===========================
-# MDL INJECTION (WIDE POOL)
-# ===========================
-for _c in ['GoldenScore_MDL', 'MDL_BOOST']:
-    if _c in bets_df.columns:
-        bets_df[_c] = bets_df[_c].astype(float).fillna(0.0)
+    # ===========================
+    # MDL INJECTION (WIDE POOL)
+    # ===========================
+    for _c in ['GoldenScore_MDL', 'MDL_BOOST']:
+        if _c in bets_df.columns:
+            bets_df[_c] = bets_df[_c].astype(float).fillna(0.0)
 
-# ===========================
-# SCORE OVERRIDE -> HYBRID
-# ===========================
-
-
-def _final_score(row):
-    base = float(row.get('Score', 0.0) or 0.0)
-    evh = float(row.get('EV_HYBRID', 0.0) or 0.0)
-    mdl = float(row.get('MDL_BOOST', 0.0) or 0.0)
-    return base * 0.4 + evh * 0.6 + mdl
+    # ===========================
+    # SCORE OVERRIDE -> HYBRID
+    # ===========================
 
 
-bets_df['Score'] = bets_df.apply(_final_score, axis=1)
+    def _final_score(row):
+        base = float(row.get('Score', 0.0) or 0.0)
+        evh = float(row.get('EV_HYBRID', 0.0) or 0.0)
+        mdl = float(row.get('MDL_BOOST', 0.0) or 0.0)
+        return base * 0.4 + evh * 0.6 + mdl
 
-# -----------------------------------------------------------
-# KNN / Similarity FOUNDATION: inject historical-neighbor stats into candidate pool
-# (This makes EFFECTIVE_N and SIM_* available for ADD / rule engine.)
-# -----------------------------------------------------------
 
-if "Match_ID" not in bets_df.columns:
-    bets_df["Match_ID"] = bets_df.apply(_make_match_id, axis=1)
+    bets_df['Score'] = bets_df.apply(_final_score, axis=1)
 
-    # Pick similarity features that exist in BOTH upcoming (bets_df) and
-    # past (train_core)
-    _sim_feats = _pick_similarity_features(
-    bets_df, train_core, preset="Auto (mevcut kolonlar)")
-    if _sim_feats and (
-        "train_core" in locals()) and (
-        train_core is not None) and (
-        not getattr(
-            train_core,
-            "empty",
-            True)):
-        _sim_payload = []
-        for _mid, _g in bets_df.groupby("Match_ID", sort=False):
-            _sel = _g.iloc[0]  # representative row for the match
-            _neigh_df, _sim_out = _similarity_neighbors_for_match(
-                    train_core=train_core,
-                    upcoming_row=_sel,
-                    feats=_sim_feats,
-                k=50,
-                same_league=True,
-                use_cutoff=False,         # allow low-sim results; we'll let gates handle reliability
-                min_similarity=0.30,
-                min_neighbors=1,
-                year_window=0,
-                use_time_decay=False,
-                half_life_days=540,
-                gate_min_simq=0.0,
-                gate_min_en=0,
-            )
-            if isinstance(_sim_out, dict) and (not _sim_out.get("error")):
-                _sim_payload.append({
-                        "Match_ID": _mid,
-                        "SIM_QUALITY": float(_sim_out.get("SIM_QUALITY", np.nan)),
-                        "EFFECTIVE_N": int(_sim_out.get("EFFECTIVE_N", _sim_out.get("SIM_N", 0)) or 0),
-                        "SIM_DIST_MED": float(_sim_out.get("SIM_DIST_MED", np.nan)),
-                        "SIM_P1": float(_sim_out.get("SIM_P1", np.nan)),
-                        "SIM_PX": float(_sim_out.get("SIM_PX", np.nan)),
-                        "SIM_P2": float(_sim_out.get("SIM_P2", np.nan)),
-                        "SIM_POver": float(_sim_out.get("SIM_POver", np.nan)),
-                        "SIM_PBTTS": float(_sim_out.get("SIM_PBTTS", np.nan)),
-                        "SIM_ANCHOR_STRENGTH": float(_sim_out.get("SIM_ANCHOR_STRENGTH", np.nan)),
-                        "POOL_USED_N": int(_sim_out.get("POOL_USED_N", 0) or 0),
-                    })
-        if _sim_payload:
-            _sim_df = pd.DataFrame(_sim_payload)
-            # ensure columns exist even if merge yields NaN
-            bets_df = bets_df.merge(_sim_df, on="Match_ID", how="left")
+    # -----------------------------------------------------------
+    # KNN / Similarity FOUNDATION: inject historical-neighbor stats into candidate pool
+    # (This makes EFFECTIVE_N and SIM_* available for ADD / rule engine.)
+    # -----------------------------------------------------------
 
-    # Apply Anchor Decision Discipline (ADD) to candidate pool
-    # (post-similarity)
-#     try:  # AUTO-COMMENTED (illegal global try)
-#         bets_df = apply_rule_engine_to_candidates(bets_df)
-#     except Exception as _e_add:
-#         # Fail-safe: never break the app due to ADD
-#         pass
+    if "Match_ID" not in bets_df.columns:
+        bets_df["Match_ID"] = bets_df.apply(_make_match_id, axis=1)
 
-    pool_bets = bets_df.copy()
+        # Pick similarity features that exist in BOTH upcoming (bets_df) and
+        # past (train_core)
+        _sim_feats = _pick_similarity_features(
+        bets_df, _train_core, preset="Auto (mevcut kolonlar)")
+        if _sim_feats and (
+            _train_core is not None) and (
+            not getattr(
+                _train_core,
+                "empty",
+                True)):
+            _sim_payload = []
+            for _mid, _g in bets_df.groupby("Match_ID", sort=False):
+                _sel = _g.iloc[0]  # representative row for the match
+                _neigh_df, _sim_out = _similarity_neighbors_for_match(
+                        train_core=_train_core,
+                        upcoming_row=_sel,
+                        feats=_sim_feats,
+                    k=50,
+                    same_league=True,
+                    use_cutoff=False,         # allow low-sim results; we'll let gates handle reliability
+                    min_similarity=0.30,
+                    min_neighbors=1,
+                    year_window=0,
+                    use_time_decay=False,
+                    half_life_days=540,
+                    gate_min_simq=0.0,
+                    gate_min_en=0,
+                )
+                if isinstance(_sim_out, dict) and (not _sim_out.get("error")):
+                    _sim_payload.append({
+                            "Match_ID": _mid,
+                            "SIM_QUALITY": float(_sim_out.get("SIM_QUALITY", np.nan)),
+                            "EFFECTIVE_N": int(_sim_out.get("EFFECTIVE_N", _sim_out.get("SIM_N", 0)) or 0),
+                            "SIM_DIST_MED": float(_sim_out.get("SIM_DIST_MED", np.nan)),
+                            "SIM_P1": float(_sim_out.get("SIM_P1", np.nan)),
+                            "SIM_PX": float(_sim_out.get("SIM_PX", np.nan)),
+                            "SIM_P2": float(_sim_out.get("SIM_P2", np.nan)),
+                            "SIM_POver": float(_sim_out.get("SIM_POver", np.nan)),
+                            "SIM_PBTTS": float(_sim_out.get("SIM_PBTTS", np.nan)),
+                            "SIM_ANCHOR_STRENGTH": float(_sim_out.get("SIM_ANCHOR_STRENGTH", np.nan)),
+                            "POOL_USED_N": int(_sim_out.get("POOL_USED_N", 0) or 0),
+                        })
+            if _sim_payload:
+                _sim_df = pd.DataFrame(_sim_payload)
+                # ensure columns exist even if merge yields NaN
+                bets_df = bets_df.merge(_sim_df, on="Match_ID", how="left")
+
+        # Apply Anchor Decision Discipline (ADD) to candidate pool
+        # (post-similarity)
+    #     try:  # AUTO-COMMENTED (illegal global try)
+    #         bets_df = apply_rule_engine_to_candidates(bets_df)
+    #     except Exception as _e_add:
+    #         # Fail-safe: never break the app due to ADD
+    #         pass
+
+    if "_dbg_pool_stages" not in st.session_state:
+        st.session_state["_dbg_pool_stages"] = {}
+    st.session_state["_dbg_pool_stages"]["00_start_bets_df"] = (
+        0 if bets_df is None else int(len(bets_df)))
+    pool_bets = _ensure_unique_index(bets_df.copy())
+    st.session_state["_dbg_pool_stages"]["01_pool_copy"] = int(len(pool_bets))
+    _maybe_record_col_lineage(pool_bets, "pool: start", "pool_bets")
+    _store_col_audit(pool_bets, "pool_bets")
 
     # --- Similarity Anchor Diagnostics (quick sanity) ---
 #     try:  # AUTO-COMMENTED (illegal global try)
@@ -10982,6 +12106,10 @@ if "Match_ID" not in bets_df.columns:
         pool_bets = ensure_amqs_columns(pool_bets)
         pool_bets = ensure_conf_percentile_columns(
             pool_bets, by_market=True)
+        st.session_state["_dbg_pool_stages"]["02_after_numeric_cast"] = int(
+            len(pool_bets))
+        _maybe_record_col_lineage(
+            pool_bets, "pool: after_numeric_cast", "pool_bets")
 
 # --- Extra slider filters (AutoMod percentile + CONF/AutoMod levels) ---
         # NOTE: We apply these on pool_bets so both "Best Of" and "Havuz"
@@ -11029,6 +12157,25 @@ pool_bets["CONF_percentile"],
         # daha gevşet (-1.0)
         pool_min_ev = (0.0 if float(min_ev_val) >
                        0 else float(min_ev_val) - 1.0)
+        st.session_state["_dbg_pool_thresholds"] = {
+            "min_prob_val": float(min_prob_val),
+            "min_score_val": float(min_score_val),
+            "min_ev_val": float(min_ev_val),
+            "pool_min_prob": float(pool_min_prob),
+            "pool_min_score": float(pool_min_score),
+            "pool_min_ev": float(pool_min_ev),
+            "min_league_conf": float(min_league_conf),
+            "min_market_conf": float(min_market_conf),
+            "min_anchor_strength": float(
+                st.session_state.get("gr_min_anchor_strength", 0.0)),
+            "min_effective_n": int(
+                st.session_state.get("gr_min_effective_n", 0)),
+            "min_sim_quality": st.session_state.get(
+                "knn_gate_pool_min_simq", None),
+            "odds_min": st.session_state.get("odd_min", None),
+            "odds_max": st.session_state.get("odd_max", None),
+            "market_selection": None,
+        }
 
         # Dynamic offsets (mevcut koddan aynen korundu)
         prob_offset = np.where(
@@ -11046,25 +12193,261 @@ pool_bets["CONF_percentile"],
         # EV Threshold series (gevşetilmiş pool_min_ev kullanılıyor)
         ev_threshold_series = pool_min_ev + ev_offset_series
 
+        # Ensure clean index to avoid duplicate index issues in filtering stages
+        pool_bets = _ensure_unique_index(pool_bets)
+
         q_factor = pool_bets["Seçim"].map(
             market_quality).fillna(0.5).clip(0.0, 1.0)
         prob_adj_dynamic = 0.03 * (q_factor - 0.5)
         score_adj_dynamic = 0.04 * (q_factor - 0.5)
         ev_adj_dynamic = 0.50 * (q_factor - 0.5)
 
-        if pool_min_ev <= -4.0:
-            ev_cond = pool_bets['EV'] >= -20.0
-        else:
-            ev_cond = pool_bets['EV'] >= (ev_threshold_series - ev_adj_dynamic)
-
-        # GÜNCELLENMİŞ MASK (Gevşetilmiş değerler ile)
-        pool_mask = (
-            (pool_bets['Prob'] >= (pool_min_prob  + prob_offset - prob_adj_dynamic)) &
-            (pool_bets['Score'] >= (pool_min_score + score_offset - score_adj_dynamic)) &
-            ev_cond &
-            (pool_bets['League_Conf'] >= max(0.10, float(min_league_conf) - 0.10)) &
-            (pool_bets['Market_Conf_Score'] >= max(0.10, float(min_market_conf) - 0.10))
+        _prob_raw = pool_bets.get("Prob", np.nan)
+        _prob_num = pd.to_numeric(
+            _prob_raw.astype(str).str.replace("%", "", regex=False).str.replace(
+                ",", ".", regex=False).str.strip(),
+            errors="coerce",
         )
+        _prob_dec = pd.to_numeric(pool_bets.get("Prob_dec", np.nan), errors="coerce")
+        _p = _prob_dec.where(_prob_dec.notna(), _prob_num)
+        _s = pd.to_numeric(pool_bets.get("Score", np.nan), errors="coerce")
+        _ev = pd.to_numeric(pool_bets.get("EV", np.nan), errors="coerce")
+
+        if pool_min_ev <= -4.0:
+            ev_cond = _ev >= -20.0
+        else:
+            ev_cond = _ev >= (ev_threshold_series - ev_adj_dynamic)
+
+
+        # GAoNCELLENM???z MASK (Gev?Yetilmi?Y de?Yerler ile)
+        mask_min_prob = (_p >= (pool_min_prob + prob_offset - prob_adj_dynamic))
+        mask_min_prob = _align_mask(mask_min_prob, pool_bets)
+
+        # Auto-relax min_prob if 0 rows
+        relaxed_min_prob = pool_min_prob
+        prob_relax_applied = False
+        if mask_min_prob.sum() == 0:
+            prob_relax_steps = [pool_min_prob, 0.48, 0.45, 0.42, 0.40, 0.38]
+            for p in prob_relax_steps:
+                mask_min_prob = (_p >= (p + prob_offset - prob_adj_dynamic))
+                if mask_min_prob.sum() >= 10:
+                    relaxed_min_prob = p
+                    prob_relax_applied = p < pool_min_prob
+                    break
+        if _dbg_col_audit_enabled():
+            _mp = _align_mask(mask_min_prob, pool_bets)
+            _maybe_record_col_lineage(
+                pool_bets[_mp].copy(), "pool: after_min_prob", "pool_bets")
+
+        mask_min_score = (_s >= (pool_min_score + score_offset - score_adj_dynamic))
+        mask_min_ev = pd.Series(True, index=pool_bets.index, dtype=bool)
+        mask_league_conf = (
+            pool_bets['League_Conf'] >= max(0.10, float(min_league_conf) - 0.10))
+        mask_market_conf = (
+            pool_bets['Market_Conf_Score'] >= max(0.10, float(min_market_conf) - 0.10))
+        _pass_prob = int(mask_min_prob.sum())
+        _pass_score = int(mask_min_score.sum())
+        _pass_ev = int(ev_cond.sum()) if isinstance(ev_cond, pd.Series) else 0
+        _pass_prob_score = int((mask_min_prob & mask_min_score).sum())
+        st.session_state["_dbg_gate_stats"] = {
+            "p": {
+                "count_nonnull": int(_p.notna().sum()),
+                "min": float(_p.min()) if _p.notna().any() else None,
+                "p05": float(_p.quantile(0.05)) if _p.notna().any() else None,
+                "p50": float(_p.quantile(0.50)) if _p.notna().any() else None,
+                "p95": float(_p.quantile(0.95)) if _p.notna().any() else None,
+                "max": float(_p.max()) if _p.notna().any() else None,
+            },
+            "s": {
+                "count_nonnull": int(_s.notna().sum()),
+                "min": float(_s.min()) if _s.notna().any() else None,
+                "p05": float(_s.quantile(0.05)) if _s.notna().any() else None,
+                "p50": float(_s.quantile(0.50)) if _s.notna().any() else None,
+                "p95": float(_s.quantile(0.95)) if _s.notna().any() else None,
+                "max": float(_s.max()) if _s.notna().any() else None,
+            },
+            "ev": {
+                "count_nonnull": int(_ev.notna().sum()),
+                "min": float(_ev.min()) if _ev.notna().any() else None,
+                "p05": float(_ev.quantile(0.05)) if _ev.notna().any() else None,
+                "p50": float(_ev.quantile(0.50)) if _ev.notna().any() else None,
+                "p95": float(_ev.quantile(0.95)) if _ev.notna().any() else None,
+                "max": float(_ev.max()) if _ev.notna().any() else None,
+            },
+            "pass_prob": _pass_prob,
+            "pass_score": _pass_score,
+            "pass_ev": _pass_ev,
+            "pass_prob_and_score": _pass_prob_score,
+        }
+        _th_prob = pool_min_prob + prob_offset - prob_adj_dynamic
+        _th_score = pool_min_score + score_offset - score_adj_dynamic
+        _min_margin = np.minimum(_p - _th_prob, _s - _th_score)
+        _sample_cols = [c for c in [
+            "Match_ID", "Seçim", "Prob", "Prob_dec", "Score", "EV"
+        ] if c in pool_bets.columns]
+        _sample_df = _ensure_unique_index(pool_bets.copy())
+
+
+        _n_dbg = len(_sample_df)
+        _sample_df["_min_margin"] = _dbg_to_array(_min_margin, _n_dbg)
+        _sample_df["_p"] = _dbg_to_array(_p, _n_dbg)
+        _sample_df["_s"] = _dbg_to_array(_s, _n_dbg)
+        _sample_df["_ev"] = _dbg_to_array(_ev, _n_dbg)
+        st.session_state["_dbg_gate_sample"] = _sample_df.sort_values(
+            "_min_margin", ascending=False
+        ).head(10)[_sample_cols + ["_min_margin"]].to_dict(orient="records")
+
+        # EV FILTER MODE SWITCH (immediately after min_prob, before score)
+        rows_after_prob = int(mask_min_prob.sum())
+        original_pass_min_prob = rows_after_prob  # Store original count before dataframe replacement
+        ev_mode = "hard_filter"
+        ev_topk_k = None
+        if rows_after_prob < 80:
+            ev_mode = "topk_rank"
+            ev_topk_k = 25
+            # Safe EV topK: use numpy array to avoid index reindexing issues
+            # Debug assertion: ensure mask aligns with pool_bets
+            assert isinstance(mask_min_prob, pd.Series) and mask_min_prob.index.equals(pool_bets.index), \
+                f"mask_min_prob misaligned: mask_idx={mask_min_prob.index[:5]} df_idx={pool_bets.index[:5]}"
+            mask_min_prob = _align_mask(mask_min_prob, pool_bets)
+            df_ev_in = pool_bets.loc[mask_min_prob].copy()
+            rows_before_ev = len(df_ev_in)
+            ev = pd.to_numeric(df_ev_in.get("EV", np.nan), errors="coerce").fillna(-9999.0).to_numpy()
+            k = min(ev_topk_k, len(df_ev_in))
+            top_pos = np.argsort(-ev)[:k]  # positions of top k
+            df_ev_out = df_ev_in.iloc[top_pos].copy()
+            rows_after_ev = len(df_ev_out)
+            # Replace working df directly - no merge back
+            pool_bets = df_ev_out
+            if _dbg_col_audit_enabled():
+                _maybe_record_col_lineage(
+                    pool_bets, "pool: after_ev_pass1", "pool_bets")
+            # Recompute masks on new pool_bets
+            mask_min_prob = pd.Series(True, index=pool_bets.index, dtype=bool)  # already passed
+            mask_ev = pd.Series(True, index=pool_bets.index, dtype=bool)  # all passed EV topK
+        else:
+            mask_ev = _ev >= (ev_threshold_series - ev_adj_dynamic)
+            rows_before_ev = rows_after_prob
+            rows_after_ev = int(mask_ev.sum())
+
+        # Invariants: ensure EV stage doesn't expand the dataframe
+        assert rows_after_ev <= rows_before_ev, f"EV stage expanded df: {rows_before_ev} -> {rows_after_ev}"
+        if ev_mode == "topk_rank":
+            assert rows_after_ev <= ev_topk_k, f"EV topK returned {rows_after_ev} > {ev_topk_k}"
+
+        # Dynamic score relaxation for small pools
+        relaxed_score_threshold = pool_min_score
+        if ev_mode == "topk_rank" or rows_after_ev < 20:  # MIN_POOL_TARGET * 2
+            relaxed_score_threshold = max(0.25, pool_min_score - 0.10)
+
+        mask_min_score = (_s >= (relaxed_score_threshold + score_offset - score_adj_dynamic))
+
+        # Combine based on EV mode
+        if ev_mode == "topk_rank":
+            _mask_prob_score = mask_ev & mask_min_score
+        else:
+            _mask_prob_score = mask_min_prob & mask_min_score
+
+        st.session_state["_dbg_auto_relax_applied"] = False
+        if _pass_prob_score == 0:
+            _mask_prob_score = (mask_min_prob | mask_min_score)
+            st.session_state["_dbg_auto_relax_applied"] = True
+        if _dbg_col_audit_enabled():
+            _mps = _align_mask(_mask_prob_score, pool_bets)
+            _maybe_record_col_lineage(
+                pool_bets[_mps].copy(), "pool: after_min_score", "pool_bets")
+
+        # EV FILTER MODE SWITCH (min_prob sonrası, min_ev uygulanmadan önce)
+        rows_after_prob_score = int(_mask_prob_score.sum())
+        ev_mode = "hard_filter"
+        ev_topk_k = None
+        if rows_after_prob_score < 80:
+            ev_mode = "topk_rank"
+            ev_topk_k = 25
+            # Safe EV topK: use numpy array to avoid index reindexing issues
+            _mask_prob_score = _align_mask(_mask_prob_score, pool_bets)
+
+            df_ev_in = pool_bets.loc[_mask_prob_score].copy()
+            rows_before_ev_second = len(df_ev_in)
+            ev = pd.to_numeric(df_ev_in.get("EV", np.nan), errors="coerce").fillna(-9999.0).to_numpy()
+            k = min(ev_topk_k, len(df_ev_in))
+            top_pos = np.argsort(-ev)[:k]  # positions of top k
+            df_ev_out = df_ev_in.iloc[top_pos].copy()
+            rows_after_ev_second = len(df_ev_out)
+            # Replace working df directly - no merge back
+            pool_bets = df_ev_out
+            if _dbg_col_audit_enabled():
+                _maybe_record_col_lineage(
+                    pool_bets, "pool: after_ev_pass2", "pool_bets")
+            # Recompute masks on new pool_bets
+            _mask_prob_score = pd.Series(True, index=pool_bets.index, dtype=bool)  # already passed
+            mask_ev = pd.Series(True, index=pool_bets.index, dtype=bool)  # all passed EV topK
+            # Invariants
+            assert rows_after_ev_second <= rows_before_ev_second, f"EV stage 2 expanded df: {rows_before_ev_second} -> {rows_after_ev_second}"
+            assert rows_after_ev_second <= ev_topk_k, f"EV topK 2 returned {rows_after_ev_second} > {ev_topk_k}"
+        else:
+            mask_ev = _ev >= (ev_threshold_series - ev_adj_dynamic)
+
+        mask_quality = (
+            _mask_prob_score & mask_ev & mask_league_conf & mask_market_conf)
+
+        # Small-pool auto relax score
+        rows_after_ev = int(mask_quality.sum())
+        if ev_mode == "topk_rank" and rows_after_ev < 10:  # MIN_POOL_TARGET approx
+            # reduce pool_min_score to 0.25 for this branch
+            pool_min_score_relaxed = 0.25
+            # recalculate mask_min_score with relaxed threshold
+            _th_score_relaxed = pool_min_score_relaxed + score_offset - score_adj_dynamic
+            mask_min_score_relaxed = (_s >= _th_score_relaxed)
+            if ev_mode == "topk_rank":
+                _mask_prob_score_relaxed = mask_ev & mask_min_score_relaxed
+            else:
+                _mask_prob_score_relaxed = mask_min_prob & mask_min_score_relaxed
+            if _pass_prob_score == 0:
+                _mask_prob_score_relaxed = (mask_min_prob | mask_min_score_relaxed)
+            mask_quality = (
+                _mask_prob_score_relaxed & mask_ev & mask_league_conf & mask_market_conf)
+            rows_after_ev = int(mask_quality.sum())
+        if _dbg_col_audit_enabled():
+            _mq = _align_mask(mask_quality, pool_bets)
+            _maybe_record_col_lineage(
+                pool_bets[_mq].copy(), "pool: after_quality_gate", "pool_bets")
+
+        st.session_state["_dbg_gate_stats"]["pass_prob_and_score"] = int(_mask_prob_score.sum())
+        st.session_state["_dbg_gate_stats"]["pass_all"] = int(mask_quality.sum())
+        st.session_state["_dbg_pool_stages"]["04a_pass_min_prob"] = original_pass_min_prob
+        st.session_state["_dbg_pool_stages"]["04b_pass_min_score"] = int(
+            mask_min_score.sum())
+        st.session_state["_dbg_pool_stages"]["04c_pass_min_ev"] = int(
+            mask_ev.sum())
+        st.session_state["_dbg_pool_stages"]["04d_pass_league_conf"] = int(
+            mask_league_conf.sum())
+        st.session_state["_dbg_pool_stages"]["04e_pass_market_conf"] = int(
+            mask_market_conf.sum())
+        st.session_state["_dbg_pool_stages"]["05_pass_prob_and_score"] = int(
+            _mask_prob_score.sum())
+        st.session_state["_dbg_pool_stages"]["06_pass_prob_score_league"] = int(
+            (_mask_prob_score & mask_league_conf).sum())
+        st.session_state["_dbg_pool_stages"]["07_pass_quality_all"] = int(
+            mask_quality.sum())
+        st.session_state["_dbg_pool_stages"]["__PATCH_MARKER__"] = "STAGES_SPLIT_V1"
+        st.session_state["_dbg_pool_stages"]["04_after_min_prob"] = rows_after_prob
+        st.session_state["_dbg_pool_stages"]["05_after_ev"] = int(mask_ev.sum())
+        st.session_state["_dbg_pool_stages"]["06_after_min_score"] = int(_mask_prob_score.sum())
+        st.session_state["_dbg_pool_stages"]["10_after_quality_gate"] = int(
+            mask_quality.sum())
+        # Add new debug
+        st.session_state["_dbg_pool_stages"]["ev_mode"] = ev_mode
+        st.session_state["_dbg_pool_stages"]["ev_topk_k"] = ev_topk_k
+        st.session_state["_dbg_pool_stages"]["rows_before_ev"] = rows_before_ev
+        st.session_state["_dbg_pool_stages"]["rows_after_ev"] = rows_after_ev
+        st.session_state["_dbg_pool_stages"]["relaxed_score_threshold"] = relaxed_score_threshold
+        st.session_state["_dbg_pool_stages"]["rows_before_min_score"] = int(mask_ev.sum())
+        st.session_state["_dbg_pool_stages"]["rows_after_min_score"] = int(_mask_prob_score.sum())
+        st.session_state["_dbg_pool_stages"]["prob_relax_applied"] = prob_relax_applied
+        st.session_state["_dbg_pool_stages"]["final_min_prob_used"] = relaxed_min_prob
+        st.session_state["_dbg_pool_stages"]["rows_after_prob_relax"] = rows_after_prob
+        pool_mask = mask_quality
 
         # --- DÜZELTME BİTİŞİ ---
 
@@ -11076,9 +12459,14 @@ pool_bets["CONF_percentile"],
         )
 
         if coupon_mode.startswith("🎯"):
-            pool_mask = pool_mask & (
-                pool_bets['Seçim'].isin(["MS 1", "MS X", "MS 2"]))
+            mask_market = pool_bets['Seçim'].isin(["MS 1", "MS X", "MS 2"])
+        else:
+            mask_market = pd.Series(True, index=pool_bets.index)
+        st.session_state["_dbg_pool_stages"]["03_after_market_filter"] = int(
+            (pool_mask & mask_market).sum())
+        pool_mask = pool_mask & mask_market
 
+        pool_mask = _align_mask(pool_mask, pool_bets)
         pool_bets = pool_bets[pool_mask].copy()
 
         # -----------------------------------------------------------
@@ -11243,20 +12631,253 @@ pool_bets["CONF_percentile"],
 
             return True
 
+        MIN_POOL_TARGET = 10
+        _pre_stage11_rows = int(len(pool_bets)) if pool_bets is not None else 0
+        _min_ev_for_gate = float(min_ev_val)
+        if _pre_stage11_rows < 25 or _pre_stage11_rows < MIN_POOL_TARGET:
+            _min_ev_for_gate = min(_min_ev_for_gate, -10.0)
+
+        def _safe_series(df, col, default):
+            if col in df.columns:
+                return pd.to_numeric(df[col], errors="coerce").fillna(default)
+            return pd.Series(default, index=df.index)
+
         if not pool_bets.empty:
             pool_bets_base = pool_bets.copy()
-            pool_bets = pool_bets[ pool_bets.apply(lambda r: is_good_draw(
-                r, min_prob_slider=min_prob_val, min_ev_slider=min_ev_val), axis=1) ]
-            pool_bets = pool_bets[ pool_bets.apply(lambda r: is_good_kg(
-                r, min_prob_slider=min_prob_val, min_ev_slider=min_ev_val), axis=1) ]
+
+            sel_col = "Seçim" if "Seçim" in pool_bets.columns else None
+            if sel_col is None:
+                pass
+            else:
+                st.session_state["_dbg_stage11"] = {
+                    "pre_rows": int(len(pool_bets)),
+                    "sel_counts_pre": pool_bets[sel_col].value_counts().to_dict(),
+                    "match_ids_pre": (
+                        pool_bets["Match_ID"].astype(str).head(10).tolist()
+                        if "Match_ID" in pool_bets.columns else []
+                    ),
+                }
+                _sel = pool_bets[sel_col].astype(str).fillna("")
+                mask_keep = pd.Series(True, index=pool_bets.index, dtype=bool)
+
+                is_draw_market = _sel.isin(["MS X", "X", "Draw", "Berabere"])
+                mask_draw = None
+                if is_draw_market.any():
+                    mask_draw = pool_bets[is_draw_market].apply(
+                        lambda r: is_good_draw(
+                            r,
+                            min_prob_slider=min_prob_val,
+                            min_ev_slider=_min_ev_for_gate),
+                        axis=1)
+                    mask_draw_aligned = mask_draw.reindex(pool_bets.index).fillna(True)
+                    _draw_fail = is_draw_market & (~mask_draw_aligned)
+                    # Get DRAW_PRESSURE with NaN for missing values (not default 1.0)
+                    _draw_pressure = pd.to_numeric(pool_bets.get("DRAW_PRESSURE", pd.Series(np.nan, index=pool_bets.index)), errors="coerce")
+                    _eff_n = _safe_series(pool_bets, "EFFECTIVE_N", 999.0)
+                    _simq = _safe_series(pool_bets, "SIM_QUALITY", 999.0)
+                    # Only apply extreme conditions when we have real draw evidence
+                    has_draw_info = _draw_pressure.notna() & (("EFFECTIVE_N" in pool_bets.columns) | ("SIM_QUALITY" in pool_bets.columns))
+                    # Only apply extreme conditions when quality metrics are present
+                    has_quality = ("EFFECTIVE_N" in pool_bets.columns) and ("SIM_QUALITY" in pool_bets.columns)
+                    if has_quality and has_draw_info:
+                        _extreme_fail = _draw_fail & (
+                            (_draw_pressure < 0.10) | (_eff_n < 5) | (_simq < 0.20)
+                        )
+                    else:
+                        # No quality metrics or draw info available, treat as unknown - no extreme fails
+                        _extreme_fail = pd.Series(False, index=pool_bets.index)
+                    _soft_fail = _draw_fail & ~_extreme_fail
+                    if _soft_fail.any():
+                        if "_GATE_PENALTY" not in pool_bets.columns:
+                            pool_bets["_GATE_PENALTY"] = 0.0
+                        pool_bets.loc[_soft_fail, "_GATE_PENALTY"] = (
+                            pool_bets.loc[_soft_fail, "_GATE_PENALTY"] + 0.15
+                        )
+                        for _sc in ["Score", "GoldenScore"]:
+                            if _sc in pool_bets.columns:
+                                pool_bets.loc[_soft_fail, _sc] = (
+                                    pd.to_numeric(
+                                        pool_bets.loc[_soft_fail, _sc], errors="coerce"
+                                    ).fillna(0.0) * (1.0 - 0.15)
+                                )
+                        if "_GATE_FLAGS" not in pool_bets.columns:
+                            pool_bets["_GATE_FLAGS"] = [[] for _ in range(len(pool_bets))]
+                        pool_bets.loc[_soft_fail, "_GATE_FLAGS"] = pool_bets.loc[_soft_fail, "_GATE_FLAGS"].apply(
+                            lambda r: r + ["draw_gate_soft"]
+                        )
+                    mask_keep.loc[is_draw_market] = ~_extreme_fail.loc[is_draw_market]
+
+                is_kg_market = _sel.isin(
+                    ["KG Var", "KG Yok", "BTTS Yes", "BTTS No"])
+                mask_kg = None
+                if is_kg_market.any():
+                    mask_kg = pool_bets[is_kg_market].apply(
+                        lambda r: is_good_kg(
+                            r,
+                            min_prob_slider=min_prob_val,
+                             min_ev_slider=_min_ev_for_gate),
+                        axis=1)
+                    mask_keep.loc[is_kg_market] = mask_kg
+
+                # MUST-HAVE gates: missing or all-NaN => FAIL (no silent pass)
+                _must_gate_issues = {}
+                for _col in ["SIM_ANCHOR_STRENGTH", "EFFECTIVE_N", "SIM_QUALITY"]:
+                    if _col not in pool_bets.columns or pool_bets[_col].isna().all():
+                        _must_gate_issues[_col] = "missing_or_all_nan"
+                        mask_keep.loc[:] = False
+                if _must_gate_issues:
+                    st.session_state.setdefault("_dbg_pool_stages", {})
+                    st.session_state["_dbg_pool_stages"]["must_have_gate_fail"] = _must_gate_issues
+                    st.warning(
+                        f"Required columns missing/all-NaN -> gate FAIL: {_must_gate_issues}"
+                    )
+
+                drop_mask = ~mask_keep
+                drop_counts = {}
+                drop_reasons = []
+                if drop_mask.any():
+                    reasons = pd.Series([[] for _ in range(len(pool_bets))], index=pool_bets.index)
+                    if mask_draw is not None:
+                        _fail = is_draw_market & ~mask_draw.reindex(pool_bets.index, fill_value=True)
+                        # Only extreme fails are actually dropped - count them
+                        _extreme_dropped = _fail & drop_mask
+                        drop_counts["draw_gate_extreme"] = int(_extreme_dropped.sum())
+                        reasons[_extreme_dropped] = reasons[_extreme_dropped].apply(lambda r: r + ["draw_gate_extreme"])
+                    if mask_kg is not None:
+                        _fail = is_kg_market & ~mask_kg.reindex(pool_bets.index, fill_value=True)
+                        _kg_dropped = _fail & drop_mask
+                        drop_counts["kg_gate_fail"] = int(_kg_dropped.sum())
+                        reasons[_kg_dropped] = reasons[_kg_dropped].apply(lambda r: r + ["kg_gate_fail"])
+                    if "SIM_ANCHOR_STRENGTH" in pool_bets.columns and not pool_bets["SIM_ANCHOR_STRENGTH"].isna().all():
+                        _min_anchor = float(st.session_state.get("gr_min_anchor_strength", 0.0))
+                        _fail = pd.to_numeric(pool_bets["SIM_ANCHOR_STRENGTH"], errors="coerce").fillna(0.0) < _min_anchor
+                        drop_counts["anchor_strength_fail"] = int((_fail & drop_mask).sum())
+                        reasons[_fail & drop_mask] = reasons[_fail & drop_mask].apply(lambda r: r + ["anchor_strength_fail"])
+                    if "EFFECTIVE_N" in pool_bets.columns and not pool_bets["EFFECTIVE_N"].isna().all():
+                        _min_en = float(st.session_state.get("gr_min_effective_n", 0))
+                        _fail = pd.to_numeric(pool_bets["EFFECTIVE_N"], errors="coerce").fillna(0.0) < _min_en
+                        drop_counts["effective_n_fail"] = int((_fail & drop_mask).sum())
+                        reasons[_fail & drop_mask] = reasons[_fail & drop_mask].apply(lambda r: r + ["effective_n_fail"])
+                    if "SIM_QUALITY" in pool_bets.columns and not pool_bets["SIM_QUALITY"].isna().all():
+                        _min_simq = st.session_state.get("knn_gate_pool_min_simq", None)
+                        if _min_simq is not None:
+                            _fail = pd.to_numeric(pool_bets["SIM_QUALITY"], errors="coerce").fillna(0.0) < float(_min_simq)
+                            drop_counts["sim_quality_fail"] = int((_fail & drop_mask).sum())
+                            reasons[_fail & drop_mask] = reasons[_fail & drop_mask].apply(lambda r: r + ["sim_quality_fail"])
+                    if "Odd" in pool_bets.columns:
+                        _odd_min = st.session_state.get("odd_min", None)
+                        _odd_max = st.session_state.get("odd_max", None)
+                        _odd = pd.to_numeric(pool_bets["Odd"], errors="coerce")
+                        _fail = pd.Series(False, index=pool_bets.index)
+                        if _odd_min is not None:
+                            _fail = _fail | (_odd < float(_odd_min))
+                        if _odd_max is not None:
+                            _fail = _fail | (_odd > float(_odd_max))
+                        drop_counts["odds_fail"] = int((_fail & drop_mask).sum())
+                        reasons[_fail & drop_mask] = reasons[_fail & drop_mask].apply(lambda r: r + ["odds_fail"])
+                    if "Trap_Flag" in pool_bets.columns:
+                        _fail = pd.to_numeric(pool_bets["Trap_Flag"], errors="coerce").fillna(0).astype(bool)
+                        drop_counts["trap_flag"] = int((_fail & drop_mask).sum())
+                        reasons[_fail & drop_mask] = reasons[_fail & drop_mask].apply(lambda r: r + ["trap_flag"])
+                    if "Danger_Flag" in pool_bets.columns:
+                        _fail = pd.to_numeric(pool_bets["Danger_Flag"], errors="coerce").fillna(0).astype(bool)
+                        drop_counts["danger_flag"] = int((_fail & drop_mask).sum())
+                        reasons[_fail & drop_mask] = reasons[_fail & drop_mask].apply(lambda r: r + ["danger_flag"])
+                    if "Market_Conf_Score" in pool_bets.columns:
+                        _min_market_conf = float(st.session_state.get("gr_min_market_conf", 0.0))
+                        _fail = pd.to_numeric(pool_bets["Market_Conf_Score"], errors="coerce").fillna(0.0) < _min_market_conf
+                        drop_counts["market_conf_fail"] = int((_fail & drop_mask).sum())
+                        reasons[_fail & drop_mask] = reasons[_fail & drop_mask].apply(lambda r: r + ["market_conf_fail"])
+                    drop_reasons = [
+                        {
+                            "Match_ID": pool_bets.loc[i].get("Match_ID", None),
+                            "Seçim": pool_bets.loc[i].get(sel_col, None),
+                            "reasons": reasons.loc[i],
+                            "DRAW_PRESSURE": pool_bets.loc[i].get("DRAW_PRESSURE", None),
+                            "PROFILE_CONF": pool_bets.loc[i].get("PROFILE_CONF", None),
+                            "Odd": pool_bets.loc[i].get("Odd", None),
+                            "Prob": pool_bets.loc[i].get("Prob", None),
+                            "EV": pool_bets.loc[i].get("EV", None),
+                            "Score": pool_bets.loc[i].get("Score", None),
+                            "SIM_QUALITY": pool_bets.loc[i].get("SIM_QUALITY", None),
+                            "EFFECTIVE_N": pool_bets.loc[i].get("EFFECTIVE_N", None),
+                        }
+                        for i in pool_bets.index[drop_mask][:5]
+                    ]
+                # Create debug sample from reset index dataframe to avoid duplicate index issues
+                _debug_df = pool_bets.reset_index(drop=True)
+                _debug_drop_mask = drop_mask.reindex(_debug_df.index).fillna(False) if isinstance(drop_mask, pd.Series) else pd.Series(drop_mask, index=_debug_df.index)
+                _debug_keep_mask = mask_keep.reindex(_debug_df.index).fillna(False) if isinstance(mask_keep, pd.Series) else pd.Series(mask_keep, index=_debug_df.index)
+
+                st.session_state["_dbg_stage11_drop_sample"] = [
+                    {
+                        "Match_ID": row.get("Match_ID", None),
+                        "Seçim": row.get(sel_col, None),
+                        "reasons": [],  # reasons not available in this context
+                        "DRAW_PRESSURE": row.get("DRAW_PRESSURE", None),
+                        "PROFILE_CONF": row.get("PROFILE_CONF", None),
+                        "Odd": row.get("Odd", None),
+                        "Prob": row.get("Prob", None),
+                        "EV": row.get("EV", None),
+                        "Score": row.get("Score", None),
+                        "SIM_QUALITY": row.get("SIM_QUALITY", None),
+                        "EFFECTIVE_N": row.get("EFFECTIVE_N", None),
+                    }
+                    for _, row in _debug_df[_debug_drop_mask].drop_duplicates(['Match_ID', sel_col]).head(5).iterrows()
+                ]
+                st.session_state["_dbg_stage11_pass_sample"] = [
+                    {
+                        "Match_ID": row.get("Match_ID", None),
+                        "Seçim": row.get(sel_col, None),
+                        "DRAW_PRESSURE": row.get("DRAW_PRESSURE", None),
+                        "PROFILE_CONF": row.get("PROFILE_CONF", None),
+                        "Odd": row.get("Odd", None),
+                        "Prob": row.get("Prob", None),
+                        "EV": row.get("EV", None),
+                        "Score": row.get("Score", None),
+                        "SIM_QUALITY": row.get("SIM_QUALITY", None),
+                        "EFFECTIVE_N": row.get("EFFECTIVE_N", None),
+                        "gate_flags": row.get("_GATE_FLAGS", []),
+                    }
+                    for _, row in _debug_df[_debug_keep_mask].drop_duplicates(['Match_ID', sel_col]).head(5).iterrows()
+                ]
+
+                pool_bets = pool_bets[mask_keep].copy()
+                st.session_state["_dbg_stage11"].update({
+                    "post_rows": int(len(pool_bets)),
+                    "sel_counts_post": pool_bets[sel_col].value_counts().to_dict() if not pool_bets.empty else {},
+                    "match_ids_post": (
+                        pool_bets["Match_ID"].astype(str).head(10).tolist()
+                        if "Match_ID" in pool_bets.columns else []
+                    ),
+                })
+        st.session_state["_dbg_pool_stages"]["11_after_market_specific_gate"] = int(
+            len(pool_bets))
+        if not pool_bets.empty:
+            _r = pool_bets.iloc[0]
+            st.session_state["_dbg_pool_last_row_pre_small_pool"] = {
+                "Match_ID": _r.get("Match_ID", None),
+                "Seçim": _r.get("Seçim", None),
+                "Prob": _r.get("Prob", None),
+                "Score": _r.get("Score", None),
+                "EV": _r.get("EV", None),
+            }
+        else:
+            st.session_state["_dbg_pool_last_row_pre_small_pool"] = {}
         # OPTION A/B: Small-pool handling
         auto_relax_small_pool = bool(
     st.session_state.get(
         "gr_auto_relax_small_pool", True))
 
-        if len(pool_bets) < 5:
+        if len(pool_bets) < MIN_POOL_TARGET:
+            pre_small_pool = pool_bets.copy()
+            st.session_state["_dbg_small_pool_pre_rows"] = int(len(pre_small_pool)) if pre_small_pool is not None else 0
+            st.session_state["_dbg_pool_stages"]["12a_small_pool_branch"] = (
+                "auto_relax" if auto_relax_small_pool else "warn_only")
             if auto_relax_small_pool and 'pool_bets_base' in locals(
             ) and pool_bets_base is not None and not pool_bets_base.empty:
+                _pre_relax = pool_bets.copy()
+                _pre_relax_len = int(len(pool_bets))
                 # Try controlled relaxation steps (keeps style intent, avoids
                 # empty outputs)
                 relax_steps = [
@@ -11353,6 +12974,40 @@ pool_bets["CONF_percentile"],
                     applied = stp
 
                 pool_bets = _picked
+                st.session_state["_dbg_small_pool_relaxed_rows"] = int(len(pool_bets)) if pool_bets is not None else 0
+                if pool_bets is None or getattr(pool_bets, "empty", True):
+                    st.session_state["_dbg_small_pool_fallback"] = True
+                    pool_bets = pre_small_pool if isinstance(pre_small_pool, pd.DataFrame) else pool_bets
+                else:
+                    st.session_state["_dbg_small_pool_fallback"] = False
+                st.session_state["_dbg_small_pool_handling"] = {
+                    "len_before_relax": _pre_relax_len,
+                    "len_after_relax": int(len(pool_bets)) if pool_bets is not None else 0,
+                    "applied_step": applied,
+                    "mask_cols": ["Prob", "EV", "Odd"],
+                    "relax_steps": relax_steps,
+                    "min_prob_val": float(min_prob_val),
+                    "min_score_val": float(min_score_val),
+                    "min_ev_val": float(min_ev_val),
+                }
+                if pool_bets is None or pool_bets.empty:
+                    st.session_state["_dbg_pool_stages"]["12c_fallback_prev_nonempty"] = int(len(pre_small_pool))
+                    pool_bets = pre_small_pool
+                if pool_bets is not None and not pool_bets.empty:
+                    _sort_cols = [c for c in ["GoldenScore", "Score", "EV", "Prob_dec"] if c in pool_bets.columns]
+                    st.session_state["_dbg_small_pool_sort_cols"] = _sort_cols
+                    K = 25
+                    if _sort_cols:
+                        pool_bets = pool_bets.sort_values(
+                            _sort_cols, ascending=[False] * len(_sort_cols)
+                        ).head(K).copy()
+                _src = st.session_state.get("pool_bets_raw", None)
+                if (pool_bets is None or pool_bets.empty) and isinstance(_src, pd.DataFrame) and len(_src) > 0:
+                    sort_cols = [c for c in ["GoldenScore", "Score", "EV", "Prob_dec", "Prob"] if c in _src.columns]
+                    if sort_cols:
+                        pool_bets = _src.sort_values(
+                            sort_cols, ascending=[False] * len(sort_cols)
+                        ).head(25).copy()
                 st.info(
     f"Havuz küçük kaldığı için otomatik gevşettim: Prob -{
         applied['dprob']:.2f}, EV floor={
@@ -11362,9 +13017,27 @@ pool_bets["CONF_percentile"],
                 st.warning(
     "Havuz çok küçük kaldı ({} maç). Daha fazla maç için Stil presetini sağa kaydır veya Gelişmiş filtrelerde eşikleri düşür.".format(
         len(pool_bets)))
+        else:
+            st.session_state["_dbg_pool_stages"]["12a_small_pool_branch"] = "skip"
+        st.session_state["_dbg_pool_stages"]["12_after_small_pool_handling"] = int(
+            len(pool_bets))
+        if len(pool_bets) == 0:
+            st.session_state["_dbg_pool_stages"]["12b_emptied_after_small_pool"] = True
+            st.session_state["_dbg_pool_last_row_before_empty"] = st.session_state.get(
+                "_dbg_pool_last_row_pre_small_pool", {})
+        else:
+            st.session_state["_dbg_pool_stages"]["12b_emptied_after_small_pool"] = False
 
         # ✅ PATCH 2: Pool seviyesinde pazar başı üst limit
         if not pool_bets.empty:
+            _r = pool_bets.iloc[0]
+            st.session_state["_dbg_pool_last_row_pre_market_cap"] = {
+                "Match_ID": _r.get("Match_ID", None),
+                "Seçim": _r.get("Seçim", None),
+                "Prob": _r.get("Prob", None),
+                "Score": _r.get("Score", None),
+                "EV": _r.get("EV", None),
+            }
             capped_parts = []
             # Robust: selection column name may vary; default to 'Seçim' when
             # present
@@ -11388,6 +13061,21 @@ pool_bets["CONF_percentile"],
                     by=["Score", "EV"], ascending=[False, False])
                 capped_parts.append(g_sorted.head(limit))
             pool_bets = pd.concat(capped_parts, ignore_index=True)
+        st.session_state["_dbg_pool_stages"]["13a_market_cap_applied"] = bool(
+            not getattr(pool_bets, "empty", True))
+        st.session_state["_dbg_pool_stages"]["13_after_market_cap"] = int(
+            len(pool_bets))
+        if len(pool_bets) == 0:
+            st.session_state["_dbg_pool_stages"]["13b_emptied_after_market_cap"] = True
+            _pre = st.session_state.get("_dbg_pool_last_row_pre_market_cap", {})
+            if _pre:
+                st.session_state["_dbg_pool_last_row_before_empty"] = _pre
+        else:
+            st.session_state["_dbg_pool_stages"]["13b_emptied_after_market_cap"] = False
+        if _dbg_col_audit_enabled():
+            _maybe_record_col_lineage(
+                pool_bets, "pool: final", "pool_bets")
+            _store_col_audit(pool_bets, "pool_bets_final")
 
         if not bets_df.empty:
             c_d1, c_d2 = st.columns(2)
@@ -11475,7 +13163,11 @@ use_container_width=True,
                 else:
                     st.caption('Seçim kolonu bulunamadı (debug).')
         else:
-            c_d2.warning("Havuz boş! Filtreleri gevşetmeyi deneyin.")
+            _w = getattr(locals().get("c_d2", None), "warning", None)
+            if callable(_w):
+                c_d2.warning("Havuz boş! Filtreleri gevşetmeyi deneyin.")
+            else:
+                st.warning("Havuz boş! Filtreleri gevşetmeyi deneyin.")
 
         quota_map = BESTOF_QUOTA_MAP.copy()
         market_min_conf_ev = BESTOF_MARKET_MIN_CONF_EV.copy()
@@ -11483,6 +13175,7 @@ use_container_width=True,
         # NEW: Similarity Anchor eligibility gates for BestOf (do NOT affect
         # Pool view)
         pool_bets_bestof = pool_bets.copy() if pool_bets is not None else pd.DataFrame()
+        pool_bets_bestof = _ensure_unique_index(pool_bets_bestof)
         # --- Best practice: keep Pool vs BestOf distinct, but make BestOf gate *relative* to preset
         # Pool uses base slider/preset values; BestOf applies small strict
         # offsets to reduce "two independent systems" drift.
@@ -11499,26 +13192,47 @@ use_container_width=True,
         bestof_anchor_min = max(
             0.0, min(1.0, _base_anchor + BESTOF_ANCHOR_OFFSET))
         bestof_simq_min = max(0.0, min(1.0, _base_simq + BESTOF_SIMQ_OFFSET))
+        simq_col = "SIM_QUALITY" if "SIM_QUALITY" in pool_bets_bestof.columns else None
+        min_sim_quality_val = st.session_state.get("gr_min_sim_quality", None)
+
+        # guard: only apply SIM_QUALITY gate when both column and threshold exist
+        apply_simq_gate = (simq_col is not None) and (min_sim_quality_val is not None)
+        # (use apply_simq_gate below wherever SIM_QUALITY filtering happens)
         try:
             if not getattr(pool_bets_bestof, 'empty', True):
                 # Anchor strength gate
-                if 'SIM_ANCHOR_STRENGTH' in pool_bets_bestof.columns:
+                if 'SIM_ANCHOR_STRENGTH' in pool_bets_bestof.columns and not pool_bets_bestof['SIM_ANCHOR_STRENGTH'].isna().all():
                     pool_bets_bestof['SIM_ANCHOR_STRENGTH'] = pd.to_numeric(
                         pool_bets_bestof['SIM_ANCHOR_STRENGTH'], errors='coerce')
                     pool_bets_bestof = pool_bets_bestof[pool_bets_bestof['SIM_ANCHOR_STRENGTH'].fillna(
                         0.0) >= float(bestof_anchor_min)].copy()
+                else:
+                    st.session_state.setdefault("_dbg_pool_stages", {})
+                    st.session_state["_dbg_pool_stages"]["bestof_missing_sim_anchor_strength"] = True
+                    st.warning("SIM_ANCHOR_STRENGTH missing/all-NaN -> BestOf gate FAIL")
+                    pool_bets_bestof = pool_bets_bestof.iloc[0:0].copy()
                 # Effective_N gate (fallback: SIM_N)
                 eff_col = 'EFFECTIVE_N' if 'EFFECTIVE_N' in pool_bets_bestof.columns else (
                     'SIM_N' if 'SIM_N' in pool_bets_bestof.columns else None)
-                if eff_col is not None:
+                if eff_col is not None and not pool_bets_bestof[eff_col].isna().all():
                     pool_bets_bestof[eff_col] = pd.to_numeric(
                         pool_bets_bestof[eff_col], errors='coerce')
                     pool_bets_bestof = pool_bets_bestof[pool_bets_bestof[eff_col].fillna(
                         0.0) >= float(min_effective_n_val)].copy()
+                else:
+                    st.session_state.setdefault("_dbg_pool_stages", {})
+                    st.session_state["_dbg_pool_stages"]["bestof_missing_effective_n"] = True
+                    st.warning("EFFECTIVE_N missing/all-NaN -> BestOf gate FAIL")
+                    pool_bets_bestof = pool_bets_bestof.iloc[0:0].copy()
                 # SIM_QUALITY gate (BestOf) + transparent KNN_OK flag
                 try:
-                    if 'use_knn_gate_bestof' in locals() and bool(
-                        use_knn_gate_bestof) and 'SIM_QUALITY' in pool_bets_bestof.columns:
+                    if (
+                        'use_knn_gate_bestof' in locals()
+                        and bool(use_knn_gate_bestof)
+                        and apply_simq_gate
+                        and 'SIM_QUALITY' in pool_bets_bestof.columns
+                        and not pool_bets_bestof['SIM_QUALITY'].isna().all()
+                    ):
                         pool_bets_bestof['SIM_QUALITY'] = pd.to_numeric(
                             pool_bets_bestof['SIM_QUALITY'], errors='coerce')
                         # Build KNN_OK using SIM_QUALITY + Effective_N (if
@@ -11531,10 +13245,15 @@ use_container_width=True,
                         pool_bets_bestof['KNN_OK'] = knn_ok
                         pool_bets_bestof = pool_bets_bestof[pool_bets_bestof['KNN_OK']].copy(
                         )
+                    elif apply_simq_gate:
+                        st.session_state.setdefault("_dbg_pool_stages", {})
+                        st.session_state["_dbg_pool_stages"]["bestof_missing_sim_quality"] = True
+                        st.warning("SIM_QUALITY missing/all-NaN -> BestOf gate FAIL")
+                        pool_bets_bestof = pool_bets_bestof.iloc[0:0].copy()
                     else:
                         # If gate disabled or SIM_QUALITY missing, keep all
                         # (but still expose KNN_OK if possible)
-                        if eff_col is not None and eff_col in pool_bets_bestof.columns and 'SIM_QUALITY' in pool_bets_bestof.columns:
+                        if apply_simq_gate and eff_col is not None and eff_col in pool_bets_bestof.columns and 'SIM_QUALITY' in pool_bets_bestof.columns:
                             pool_bets_bestof['SIM_QUALITY'] = pd.to_numeric(
                                 pool_bets_bestof['SIM_QUALITY'], errors='coerce')
                             pool_bets_bestof[eff_col] = pd.to_numeric(
@@ -11543,11 +13262,12 @@ use_container_width=True,
     (pool_bets_bestof['SIM_QUALITY'].fillna(0.0) >= float(min_simq_bestof_val)) & (
         pool_bets_bestof[eff_col].fillna(0.0) >= float(min_effective_n_val)) )
                 except Exception:
-                    pass
+                    _track_view_error("bestof: knn_gate_bestof")
 
         except Exception:
             # fail-safe: never crash BestOf due to gating
             pool_bets_bestof = pool_bets.copy() if pool_bets is not None else pd.DataFrame()
+            pool_bets_bestof = _ensure_unique_index(pool_bets_bestof)
 
         # -----------------------------------------------------------
         # Auto-relax for BestOf KNN gate (prevents Pool>0 but BestOf=0)
@@ -11580,7 +13300,7 @@ use_container_width=True,
                         _simq = max(0.15, _simq0 - _ds)
                         _en = max(5.0, _en0 - float(_dn))
                         _cand = pool_bets.copy()
-                        if simq_col in _cand.columns:
+                        if apply_simq_gate and simq_col in _cand.columns:
                             _cand = _cand[pd.to_numeric(
                                 _cand[simq_col], errors="coerce").fillna(0.0) >= _simq]
                         if eff_col in _cand.columns:
@@ -11601,10 +13321,11 @@ use_container_width=True,
                         # Last resort: disable KNN gate for BestOf (keep Pool
                         # logic intact)
                         pool_bets_bestof = pool_bets.copy()
+                        pool_bets_bestof = _ensure_unique_index(pool_bets_bestof)
                         st.session_state["gr_use_knn_gate_bestof"] = False
                         st.session_state["__GR_AUTO_RELAX_BESTOF_APPLIED__"] = True
         except Exception:
-            pass
+            _track_view_error("bestof: auto_relax_knn_gate")
 
         # --- Style profile pack (hard gates + soft bonuses) ---
         try:
@@ -11615,9 +13336,9 @@ use_container_width=True,
             pool_bets_bestof = _apply_style_profile_pack(
     pool_bets_bestof, _style_mode_now, scope="bestof")
         except Exception:
-            pass
+            _track_view_error("bestof: style_profile_pack")
 
-        best_of = build_best_of_list(
+        best_of = _ensure_unique_index(build_best_of_list(
             pool_bets_bestof,
             min_prob=min_prob_val,
             min_score=min_score_val,
@@ -11627,12 +13348,18 @@ use_container_width=True,
             max_per_market_map=quota_map,
             market_quality=market_quality,
             market_min_conf_ev=market_min_conf_ev
-        )
+        ))
+        st.session_state["_dbg_bestof_rows"] = int(len(best_of)) if best_of is not None else 0
 
         # Apply BestOfRank slider filter (optional)
         if "BestOfRank" in best_of.columns:
-            best_of = best_of[best_of["BestOfRank"].astype(
-                float) >= float(min_bestofrank_val)].copy()
+            _mask = best_of["BestOfRank"].astype(float) >= float(min_bestofrank_val)
+            _mask = _align_mask(_mask, best_of)
+            best_of = best_of[_mask].copy()
+        if _dbg_col_audit_enabled():
+            _maybe_record_col_lineage(
+                best_of, "bestof: selected", "bestof_df")
+            _store_col_audit(best_of, "bestof_df")
 
         st.markdown("""
         <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
@@ -11769,7 +13496,7 @@ use_container_width=True,
                 best_of = add_strength_cols(
     best_of, strength_col=_strength_src)
             except Exception:
-                pass
+                _track_view_error("bestof: add_strength_cols")
 
             st.write("Best Of Pazar Dağılımı:")
             if "AutoMod_Status" in best_of.columns:
@@ -11918,12 +13645,56 @@ use_container_width=True,
                     pool_bets["Karakter"] = pool_bets.apply(
                         get_match_character_badge, axis=1)
                 except Exception:
-                    pass
+                    _track_view_error("pool_bets: karakter")
 
 
 # Golden Ratio / global filtre sonrası görünüm
 
-            best_view = best_of[best_of["Star_Rating"] >= min_star_bo].copy()
+            best_view_src = best_of.copy()
+            _alias_map = {
+                "Date": ["DATE", "date", "MatchDate", "match_date"],
+                "League": ["LEAGUE", "league", "Lig", "LIG"],
+                "HomeTeam": ["Home_Team", "HOME", "Home", "HomeTeamName", "home_team"],
+                "AwayTeam": ["Away_Team", "AWAY", "Away", "AwayTeamName", "away_team"],
+                "Seçim": ["Secim", "Selection", "SELECTION", "Pick", "Market", "Choice"],
+                "Odd": ["Odds", "ODD", "odd", "Price"],
+                "Prob": ["Probability", "PROB", "prob", "Model_Prob", "ModelProb"],
+                "EV": ["Ev", "EV_Calc", "EV_calc", "ExpectedValue", "expected_value"],
+            }
+            for _dst, _aliases in _alias_map.items():
+                if _dst not in best_view_src.columns:
+                    for _a in _aliases:
+                        if _a in best_view_src.columns:
+                            best_view_src[_dst] = best_view_src[_a]
+                            break
+            _bestof_view_cols = list(dict.fromkeys(REQUIRED_VIEW_COLS + [
+                "Star_Rating", "BestOfRank", "StrengthCategory",
+                "AnchorStrengthCategory", "AutoMod_Status", "AMQS_percentile",
+                "Trap_Flag", "Danger_Flag", "Archetype", "AutoMod",
+                "CONF_percentile", "CONF_Status", "P_1X", "P_2X", "P_O25",
+                "P_O35", "Score", "GoldenScore", "League_Conf",
+                "Market_Conf_Score", "Final_Confidence", "AMQS", "EV_pure_pct",
+                "Implied_Prob", "Model_vs_Market", "Trap_Type",
+                "SIM_ANCHOR_GROUP", "SIM_ALPHA", "SIM_QUALITY", "SIM_POver",
+                "SIM_PBTTS", "SIM_MS_STRENGTH", "SIM_OU_STRENGTH",
+                "SIM_BTTS_STRENGTH", "P_Over_Model", "P_Over_Final",
+                "P_BTTS_Model", "P_BTTS_Final", "P_Home_Model",
+                "P_Home_Final", "P_Draw_Model", "P_Draw_Final",
+                "P_Away_Model", "P_Away_Final", "BLEND_MODE_MS",
+                "LEAGUE_OK_MS", "BLEND_W_LEAGUE_MS", "MS_LEAGUE_SIM_P2",
+                "MS_GLOBAL_SIM_P2", "BLEND_MODE_OB", "LEAGUE_OK_OB",
+                "BLEND_W_LEAGUE_OB", "OB_LEAGUE_SIM_POver",
+                "OB_GLOBAL_SIM_POver", "MDL_rank", "MDL_quantile",
+                "MDL_BOOST", "GoldenScore_MDL",
+            ]))
+            best_view = _ensure_view_cols(best_view_src, _bestof_view_cols)
+
+            st.session_state["_dbg_best_view_rows_pre_style"] = int(len(best_view))
+            st.session_state["_dbg_best_view_cols_pre_style"] = list(best_view.columns)
+            if _dbg_col_audit_enabled():
+                _maybe_record_col_lineage(
+                    best_view, "bestof: view_pre_style", "bestof_view_pre_style")
+                _store_col_audit(best_view, "bestof_view_pre_style")
 
             # Stil rozetini (tek slider modu) BestOf görünümüne ekle (istersen
             # karakteri bununla kilitle)
@@ -11995,21 +13766,6 @@ use_container_width=True,
         "bo_inc_danger", True))
             show_arch_icon = bool(st.session_state.get("bo_inc_profile", True))
 
-            # Optional: FILTER OUT rows when user disables a label
-            if not show_trap_icon and "Trap_Flag" in best_view.columns:
-                best_view = best_view[~pd.to_numeric(
-                    best_view["Trap_Flag"], errors="coerce").fillna(0).astype(bool)].copy()
-            if not show_danger_icon and "Danger_Flag" in best_view.columns:
-                best_view = best_view[~pd.to_numeric(
-                    best_view["Danger_Flag"], errors="coerce").fillna(0).astype(bool)].copy()
-            if not show_arch_icon and "Archetype" in best_view.columns:
-                _arch = best_view["Archetype"].astype(
-                    str).fillna("NONE").str.upper()
-                # "Profil" filtresi: sadece riskli profilleri (TRAP / NO_EDGE vb.) dışarıda bırak.
-                # *_NONE ve NONE nötr kabul edilir.
-                _is_neutral = _arch.eq("NONE") | _arch.str.endswith("_NONE")
-                best_view = best_view[_is_neutral].copy()
-
                        # ---- Phase-2 UI: lean default columns & clear naming ----
             if "AnchorStrengthCategory" not in best_view.columns and "StrengthCategory" in best_view.columns:
                 best_view["AnchorStrengthCategory"] = best_view["StrengthCategory"]
@@ -12029,9 +13785,9 @@ use_container_width=True,
                     _src_en, errors="coerce")
 
             base_cols = [
+                "Match_ID",
                 "Date",
                 "League",
-                "Match_ID",
                 "MDL_rank",
                 "MDL_quantile",
                 "CONF_ICON",
@@ -12061,6 +13817,7 @@ use_container_width=True,
             ]
 
             cols_advanced_exact = [
+                "Match_ID",
                 "Date",
                 "League",
                 "CONF_ICON",
@@ -12161,13 +13918,17 @@ use_container_width=True,
                     cols = [c for c in cols if c != "ARCH_ICON"]
 
             # Keep only existing columns and dedupe (preserve order)
-            cols = [c for c in cols if c in best_view.columns]
+            cols = _safe_view_cols(best_view, cols, tag="bestof")
             cols = list(dict.fromkeys(cols))
-            _df_show = (
-                best_view[cols]
-                .sort_values(['Star_Rating', 'BestOfRank'], ascending=[False, False])
-                .reset_index(drop=True)
-            )
+            _df_show = best_view[cols] if cols else best_view
+            _safe_view_cols(_df_show, REQUIRED_VIEW_COLS, tag="bestof")
+            st.session_state["_dbg_best_view_rows_post_style"] = int(len(_df_show))
+            st.session_state["_dbg_bestof_source_var"] = "_df_show"
+            _sort_cols = [c for c in ["Star_Rating", "BestOfRank"] if c in _df_show.columns]
+            if _sort_cols:
+                _df_show = _df_show.sort_values(
+                    _sort_cols, ascending=[False] * len(_sort_cols))
+            _df_show = _df_show.reset_index(drop=True)
             _df_show = _df_show.loc[:, ~_df_show.columns.duplicated()].copy()
 
             _styler = _df_show.style.format({
@@ -12197,17 +13958,29 @@ use_container_width=True,
 
             # --- Export (clean CSV) ---
             try:
-                _export_best = _df_show.copy()
-                if "Match_ID" not in _export_best.columns:
-                    _export_best["Match_ID"] = _export_best.apply(
-                        lambda r: _make_match_id(r), axis=1)
-                # ensure MDL rank/quantile are present if GoldenScore_MDL
-                # exists
+                # Use the underlying best_of dataframe (not the display view) to ensure Match_ID
+                _export_best = ensure_match_id(best_of.copy())
+                # ensure MDL rank/quantile are present if GoldenScore_MDL exists
                 if "MDL_rank" not in _export_best.columns or "MDL_quantile" not in _export_best.columns:
                     _tmp2 = ensure_bestofrank(_export_best.copy())
                     for c in ["MDL_rank", "MDL_quantile"]:
                         if c in _tmp2.columns:
                             _export_best[c] = _tmp2[c]
+                if "Match_ID" not in _export_best.columns:
+                    raise RuntimeError("Match_ID missing in export after ensure_match_id")
+                if "AUTOMOD_ICON" not in _export_best.columns:
+                    _auto_src = _export_best.get("AutoMod_Status", "")
+                    _export_best["AUTOMOD_ICON"] = _auto_src.map(
+                        lambda x: "??" if str(x).lower().startswith("g") else "??"
+                    )
+                export_cols = _safe_view_cols(
+                    _export_best, REQUIRED_VIEW_COLS + ["Match_ID"], tag="bestof_export")
+                if export_cols:
+                    _export_best = _export_best[export_cols]
+                if _dbg_col_audit_enabled():
+                    _maybe_record_col_lineage(
+                        _export_best, "bestof: export_df", "export_df")
+                    _store_col_audit(_export_best, "bestof_export_df")
                 csv_bytes = _export_best.to_csv(
     index=False, encoding="utf-8-sig").encode("utf-8-sig")
                 st.download_button(
@@ -12216,7 +13989,7 @@ use_container_width=True,
     file_name="bestof_export.csv",
      mime="text/csv")
             except Exception:
-                pass
+                _track_view_error("bestof: export_csv")
 
             # -----------------------------------------------------------------
             # 🧲 Benzer Maçlar (kNN) - LAZY / Explainable
@@ -12631,6 +14404,8 @@ use_container_width=True,
             # -----------------------------
                        # (Removed legacy Prediction Log UI block)
 
+            st.session_state["_dbg_pool_bets_rows"] = int(len(pool_bets)) if pool_bets is not None else 0
+
             with st.expander("🧭 KNN Güvenilirlik Filtresi (Geniş Liste)", expanded=False):
                 use_knn_gate_pool = st.checkbox(
     "KNN Gate'i uygula (Geniş Liste)",
@@ -12660,6 +14435,9 @@ use_container_width=True,
                 )
 
             if use_knn_gate_pool and pool_view is not None and not pool_view.empty:
+                st.session_state["_dbg_pool_view_rows_before_simq_gate"] = 0 if pool_view is None else int(len(pool_view))
+                st.session_state["_dbg_min_simq_pool"] = float(min_simq_pool)
+                st.session_state["_dbg_min_en_pool"] = float(min_en_pool)
                 _simq = pd.to_numeric(
     pool_view.get(
         "SIM_QUALITY",
@@ -12677,17 +14455,47 @@ use_container_width=True,
                     (_simq.fillna(-1) >= float(min_simq_pool)) &
                     (_en.fillna(-1) >= float(min_en_pool))
                 ].copy()
+                pool_view = pool_view if pool_view is not None else pd.DataFrame()
+                st.session_state["_dbg_pool_view_rows_after_simq_gate"] = 0 if pool_view is None else int(len(pool_view))
+            else:
+                st.session_state["_dbg_pool_view_rows_before_simq_gate"] = (
+                    0 if pool_view is None else int(len(pool_view)))
+                st.session_state["_dbg_pool_view_rows_after_simq_gate"] = (
+                    0 if pool_view is None else int(len(pool_view)))
 
             # Safety: pool_view must be defined (some branches may skip its
             # creation)
             if 'pool_view' not in locals() or pool_view is None:
                 try:
-                    pool_view = pool_bets.copy() if (
+                    pool_view = _ensure_unique_index(pool_bets.copy()) if (
     'pool_bets' in locals() and pool_bets is not None) else pd.DataFrame()
                 except Exception:
                     pool_view = pd.DataFrame()
+            pool_view = pool_view if pool_view is not None else pd.DataFrame()
+
+            st.session_state["_dbg_pool_view_rows_pre_style"] = (
+                0 if pool_view is None else int(len(pool_view)))
+            if pool_view is None:
+                pool_view = pd.DataFrame()
+            st.session_state["_dbg_pool_view_cols_pre_style"] = list(pool_view.columns)
+            if _dbg_col_audit_enabled():
+                _maybe_record_col_lineage(
+                    pool_view, "pool: view_pre_style", "pool_view_pre_style")
+                _store_col_audit(pool_view, "pool_view_pre_style")
+            if pool_view is not None and not pool_view.empty:
+                for _c in ["TG_Q75", "TG_Q90", "EFFECTIVE_N", "SIM_ANCHOR_STRENGTH", "_EN_PEN"]:
+                    if _c in pool_view.columns:
+                        pool_view[_c] = pd.to_numeric(pool_view[_c], errors="coerce").fillna(0.0)
+                    else:
+                        pool_view[_c] = 0.0
+                for _c in ["CORE_ICON", "AUTOMOD_ICON"]:
+                    if _c in pool_view.columns:
+                        pool_view[_c] = pool_view[_c].fillna("—")
+                    else:
+                        pool_view[_c] = "—"
 
             # --- Style profile pack for Pool view (looser than BestOf; keeps radar behavior) ---
+            st.session_state["_dbg_pool_view_rows_before_profile_pack"] = 0 if pool_view is None else int(len(pool_view))
             try:
                 _style_mode_now = str(
     st.session_state.get(
@@ -12695,22 +14503,49 @@ use_container_width=True,
                 pool_view = _apply_style_profile_pack(
                     pool_view, _style_mode_now, scope="pool")
             except Exception:
-                pass
+                _track_view_error("pool_view: style_profile_pack")
+            pool_view = pool_view if pool_view is not None else pd.DataFrame()
+            st.session_state["_dbg_pool_view_rows_after_profile_pack"] = 0 if pool_view is None else int(len(pool_view))
 
+            if pool_view is None:
+                pool_view = pd.DataFrame()
+            st.session_state["_dbg_pool_view_rows_before_trap_cols"] = 0 if pool_view is None else int(len(pool_view))
             try:
                 pool_view = _ensure_trap_cols(pool_view)
             except Exception:
-                pass
+                _track_view_error("pool_view: ensure_trap_cols")
+            pool_view = pool_view if pool_view is not None else pd.DataFrame()
+            st.session_state["_dbg_pool_view_rows_after_trap_cols"] = 0 if pool_view is None else int(len(pool_view))
+            if pool_view is None:
+                pool_view = pd.DataFrame()
+            pool_view = pool_view if pool_view is not None else pd.DataFrame()
+
+            st.session_state["_dbg_pool_view_rows_post_style"] = (
+                0 if pool_view is None else int(len(pool_view)))
+            _safe_view_cols(pool_view, REQUIRED_VIEW_COLS, tag="pool")
 
             # Karakter (Advanced Badge) — geniş liste ile BestOf senkron olsun
+            pool_view = pool_view if isinstance(pool_view, pd.DataFrame) else pd.DataFrame()
+            if pool_view is None:
+                pool_view = pd.DataFrame()
             try:
+                if pool_view is None:
+                    pool_view = pd.DataFrame()
+                if pool_view is None:
+                    pool_view = pd.DataFrame()
                 if "Karakter" not in pool_view.columns:
                     pool_view["Karakter"] = pool_view.apply(
                         get_match_character_badge, axis=1)
             except Exception:
+                if pool_view is None:
+                    pool_view = pd.DataFrame()
+                _track_view_error("pool_view: karakter")
                 pool_view["Karakter"] = ""
 
             # Archetype include/exclude toggles (fast UI control)
+            pool_view = pool_view if isinstance(pool_view, pd.DataFrame) else pd.DataFrame()
+            if pool_view is None:
+                pool_view = pd.DataFrame()
             if "Archetype" in pool_view.columns:
                 _arch = pool_view["Archetype"].astype(str).fillna("NONE")
                 _arch_vals = sorted(
@@ -12748,22 +14583,33 @@ use_container_width=True,
                     _mask = _arch.isin(list(_allowed))
                     if not _hide_none:
                         _mask = _mask | (_arch == "NONE")
+                    _mask = _align_mask(_mask, pool_view)
                     pool_view = pool_view[_mask].copy()
+                    pool_view = pool_view if pool_view is not None else pd.DataFrame()
 
             # Ensure AutoMod columns + Final Confidence for pool view
 # IMPORTANT: keep CONF_ICON stable; don't overwrite after filters.
             # AutoMod icon for main view (UX)
+            pool_view = pool_view if isinstance(pool_view, pd.DataFrame) else pd.DataFrame()
+            if pool_view is None:
+                pool_view = pd.DataFrame()
             if "AutoMod_Status" in pool_view.columns:
                 pool_view["AUTOMOD_ICON"] = pool_view["AutoMod_Status"].map({"High": "🟢","Medium":"🟡","Low":"🔴"}).fillna("🟡")
-            elif "AMQS_percentile" in pool_view.columns:
-                _p = pd.to_numeric(
-    pool_view["AMQS_percentile"],
-     errors="coerce").fillna(0.50)
-                pool_view["AUTOMOD_ICON"] = np.select([_p >= 0.80, _p >= 0.60], ["🟢", "🟡"], default="🔴")
             else:
-                pool_view["AUTOMOD_ICON"] = "🟡"
+                if pool_view is None:
+                    pool_view = pd.DataFrame()
+                if "AMQS_percentile" in pool_view.columns:
+                    _p = pd.to_numeric(
+        pool_view["AMQS_percentile"],
+         errors="coerce").fillna(0.50)
+                    pool_view["AUTOMOD_ICON"] = np.select([_p >= 0.80, _p >= 0.60], ["🟢", "🟡"], default="🔴")
+                else:
+                    pool_view["AUTOMOD_ICON"] = "🟡"
 
             # Trap visibility (show without advanced columns)
+            pool_view = pool_view if isinstance(pool_view, pd.DataFrame) else pd.DataFrame()
+            if pool_view is None:
+                pool_view = pd.DataFrame()
             if "Trap_Flag" in pool_view.columns:
                 pool_view["TRAP_ICON"] = np.where(
     pd.to_numeric(
@@ -12771,12 +14617,16 @@ use_container_width=True,
         errors="coerce").fillna(0).astype(bool),
         "⚠️",
          "")
-            elif "Archetype" in pool_view.columns:
-                pool_view["TRAP_ICON"] = np.where(
-    pool_view["Archetype"].astype(str).eq("TRAP_FAVORITE"), "⚠️", "")
             else:
-                pool_view["TRAP_ICON"] = ""
+                if pool_view is None:
+                    pool_view = pd.DataFrame()
+                if "Archetype" in pool_view.columns:
+                    pool_view["TRAP_ICON"] = np.where(
+        pool_view["Archetype"].astype(str).eq("TRAP_FAVORITE"), "⚠️", "")
+                else:
+                    pool_view["TRAP_ICON"] = ""
             # Icon inclusion flags (Pool panel)
+            st.session_state["_dbg_pool_view_rows_before_label_filters"] = 0 if pool_view is None else int(len(pool_view))
             show_trap_icon = bool(st.session_state.get("bo_inc_trap", True))
             show_danger_icon = bool(
     st.session_state.get(
@@ -12784,30 +14634,60 @@ use_container_width=True,
             show_arch_icon = bool(st.session_state.get("bo_inc_profile", True))
 
             # FILTER OUT rows when user disables a label
+            if pool_view is None:
+                pool_view = pd.DataFrame()
             if not show_trap_icon and "Trap_Flag" in pool_view.columns:
                 pool_view = pool_view[~pd.to_numeric(
                     pool_view["Trap_Flag"], errors="coerce").fillna(0).astype(bool)].copy()
+                pool_view = pool_view if pool_view is not None else pd.DataFrame()
+            if pool_view is None:
+                pool_view = pd.DataFrame()
             if not show_danger_icon and "Danger_Flag" in pool_view.columns:
                 pool_view = pool_view[~pd.to_numeric(
                     pool_view["Danger_Flag"], errors="coerce").fillna(0).astype(bool)].copy()
+                pool_view = pool_view if pool_view is not None else pd.DataFrame()
+            if pool_view is None:
+                pool_view = pd.DataFrame()
             if not show_arch_icon and "Archetype" in pool_view.columns:
                 _arch = pool_view["Archetype"].astype(
                     str).fillna("NONE").str.upper()
                 _is_neutral = _arch.eq("NONE") | _arch.str.endswith("_NONE")
                 pool_view = pool_view[_is_neutral].copy()
+                pool_view = pool_view if pool_view is not None else pd.DataFrame()
+            st.session_state["_dbg_pool_view_rows_after_label_filters"] = 0 if pool_view is None else int(len(pool_view))
+            st.session_state["_dbg_min_profile_conf"] = st.session_state.get(
+                "gr_min_profile_conf", None)
+            if pool_view is not None and not pool_view.empty:
+                _row0 = pool_view.iloc[0]
+                st.session_state["_dbg_pool_view_row0"] = {
+                    "SIM_QUALITY": _row0.get("SIM_QUALITY", None),
+                    "EFFECTIVE_N": _row0.get("EFFECTIVE_N", None),
+                    "PROFILE_CONF": _row0.get("PROFILE_CONF", None),
+                    "Trap_Flag": _row0.get("Trap_Flag", None),
+                    "Danger_Flag": _row0.get("Danger_Flag", None),
+                    "Archetype": _row0.get("Archetype", None),
+                }
+            else:
+                st.session_state["_dbg_pool_view_row0"] = {}
 
 
                        # ---- Phase-2 UI: lean default columns & clear naming ----
+            if pool_view is None:
+                pool_view = pd.DataFrame()
             if "AnchorStrengthCategory" not in pool_view.columns and "StrengthCategory" in pool_view.columns:
                 pool_view["AnchorStrengthCategory"] = pool_view["StrengthCategory"]
             # Ensure core similarity columns exist (never show as blank if we
             # can derive)
+            if pool_view is None:
+                pool_view = pd.DataFrame()
             if "SIM_ANCHOR_STRENGTH" not in pool_view.columns:
                 _src_strength = pool_view.get(
     "AnchorStrength", pool_view.get(
         "Score", np.nan))
                 pool_view["SIM_ANCHOR_STRENGTH"] = pd.to_numeric(
                     _src_strength, errors="coerce")
+            if pool_view is None:
+                pool_view = pd.DataFrame()
             if "EFFECTIVE_N" not in pool_view.columns:
                 _src_en = pool_view.get(
     "EFFECTIVE_N_REAL", pool_view.get(
@@ -12816,7 +14696,8 @@ use_container_width=True,
                     _src_en, errors="coerce")
 
             base_cols = [
-                "Date", "League","Match_ID","MDL_rank","MDL_quantile",
+                "Match_ID",
+                "Date", "League","MDL_rank","MDL_quantile",
                 "CONF_ICON", "AUTOMOD_ICON","TRAP_ICON","DANGER_ICON","ARCH_ICON",
                 "Karakter",
                 "HomeTeam", "AwayTeam","Seçim","Odd","Prob","EV",
@@ -12840,21 +14721,28 @@ use_container_width=True,
 
             show_adv_cols = bool(st.session_state.get('show_adv_cols', False))
             cols = base_cols + (adv_cols if show_adv_cols else [])
-            cols = [c for c in cols if c in pool_view.columns]
+            pool_view = pool_view if isinstance(pool_view, pd.DataFrame) else pd.DataFrame()
+            cols = _safe_view_cols(pool_view, cols, tag="pool")
             cols = list(dict.fromkeys(cols))  # dedupe columns
 
             # Extra market-debug columns (optional)
             if show_adv_cols:
                 _extra_dbg = ["EV_pure_pct", "Implied_Prob","Model_vs_Market","Trap_Flag","Danger_Flag","Trap_Type","Archetype","SIM_ANCHOR_GROUP","SIM_ANCHOR_STRENGTH","SIM_ALPHA","SIM_QUALITY","EFFECTIVE_N","SIM_POver","SIM_PBTTS","SIM_MS_STRENGTH","SIM_OU_STRENGTH","SIM_BTTS_STRENGTH","P_Over_Model","P_Over_Final","P_BTTS_Model","P_BTTS_Final","P_Home_Model","P_Home_Final","P_Draw_Model","P_Draw_Final","P_Away_Model","P_Away_Final","BLEND_MODE_MS","LEAGUE_OK_MS","BLEND_W_LEAGUE_MS","MS_LEAGUE_SIM_P2","MS_GLOBAL_SIM_P2","BLEND_MODE_OB","LEAGUE_OK_OB","BLEND_W_LEAGUE_OB","OB_LEAGUE_SIM_POver","OB_GLOBAL_SIM_POver"]
+                if pool_view is None:
+                    pool_view = pd.DataFrame()
                 cols += [c for c in _extra_dbg if c in pool_view.columns and c not in cols]
             # AutoMod badge column (UX)
+            if pool_view is None:
+                pool_view = pd.DataFrame()
             if "AutoMod_Status" in pool_view.columns and "AutoMod" not in pool_view.columns:
                 pool_view["AutoMod"] = pool_view["AutoMod_Status"].apply(
                     _automod_badge)
 
             # Deterministic pool sorting (stable) to prevent flickering
             pool_view = _ensure_tie_key(pool_view)
-            _pv = pool_view[cols].copy()
+            pool_view = pool_view if pool_view is not None else pd.DataFrame()
+            pool_view = pool_view if isinstance(pool_view, pd.DataFrame) else pd.DataFrame()
+            _pv = _style_df_for_view(pool_view, cols)
 
             # Effective-N mid-band preference (optional)
             if "EFFECTIVE_N" in _pv.columns:
@@ -12910,15 +14798,19 @@ use_container_width=True,
 
             # --- Export (clean CSV) ---
             try:
-                _export_pool = _df_pool.copy()
-                if "Match_ID" not in _export_pool.columns:
-                    _export_pool["Match_ID"] = _export_pool.apply(
-                        lambda r: _make_match_id(r), axis=1)
+                # Use the underlying pool_view dataframe (not the display view) to ensure Match_ID
+                _export_pool = ensure_match_id(pool_view.copy())
                 if "MDL_rank" not in _export_pool.columns or "MDL_quantile" not in _export_pool.columns:
                     _tmp3 = ensure_bestofrank(_export_pool.copy())
                     for c in ["MDL_rank", "MDL_quantile"]:
                         if c in _tmp3.columns:
                             _export_pool[c] = _tmp3[c]
+                if "Match_ID" not in _export_pool.columns:
+                    raise RuntimeError("Match_ID missing in export after ensure_match_id")
+                export_cols = _safe_view_cols(
+                    _export_pool, REQUIRED_VIEW_COLS + ["Match_ID"], tag="pool_export")
+                if export_cols:
+                    _export_pool = _export_pool[export_cols]
                 csv_bytes = _export_pool.to_csv(
     index=False, encoding="utf-8-sig").encode("utf-8-sig")
                 st.download_button(

@@ -1,0 +1,161 @@
+﻿# Futbol Analist – appfinal1.py Dokumantasyon
+
+Bu dokuman, appfinal1.py icindeki mevcut davranisi ozetler. Anlatim, koddan birebir cikartilan mantikla gunceldir.
+
+## 1) Pick Score Pipeline (adim adim)
+
+1) Base probability kaynaklari (fallback sirasi):
+   - OU: Sim_Over25% -> SIM_IMP_OVER25 -> P_OVER25_ADJ
+   - BTTS: Sim_BTTS_Yes% -> SIM_IMP_BTTS_YES -> P_BTTSY_ADJ
+   - 1X2: Sim_Home% / Sim_Draw% / Sim_Away% -> SIM_IMP_HOME / SIM_IMP_DRAW / SIM_IMP_AWAY
+   - Under/BTTS_No: 1 - p_over_adj / 1 - p_btts_adj
+
+2) Transform:
+   - prob_eff = synth_prob_pct varsa synth_prob_pct/100, yoksa base prob
+   - p_adj = p ** ANCHOR_ALPHA (market-agnostic, default 1.10)
+
+3) Mispricing bonus:
+   - implied_today = 1/odd (odd > 1.01)
+   - mis = prob - implied_today
+   - mis_clip = clip(mis, -0.10, +0.15)
+   - mis_bonus = k_mis * max(0, mis_clip)  (k_mis = 0.75)
+
+4) Similarity gap bonus:
+   - sim_imp = SIM_IMP_* map
+   - sim_gap = sim_imp - implied_today
+   - sim_bonus = clip(sim_gap * 0.4, -0.05, +0.05)
+
+5) Bonus birlesimi:
+   - scaled_bonus = clip(mis_bonus, 0..0.25) + clip(sim_bonus, 0..0.25)
+   - bonus = clip(scaled_bonus + elo_factor + open_factor - draw_penalty, 0..0.25)
+
+6) Market weight (heuristic):
+   - OU: 1 + 0.10*league_factor + 0.15*pos_gap + 0.10*opening_edge, cap 1.15
+   - BTTS: 1 + 0.18*pos_gap + 0.10*opening_edge, cap 1.18
+   - 1X2: 1 + 0.12*sim_q_norm + 0.20*pos_gap, cap 1.15
+
+7) Final score formulu:
+   - score = p_adj * (1.0 + bonus) * market_weight
+
+8) Switch / override:
+   - FAIR_OVERRIDE (market-agnostic) ve 1X2_VALUE_OVERRIDE bloklari, score ve mispricing/esiklere gore devreye girer.
+
+## 2) Knobs / Weights (aktif parametreler)
+
+- ANCHOR_ALPHA_DEFAULT = 1.10
+  Etki: p_adj = p ** alpha (prob transform)
+
+- FAIR_CLOSE_BASE_DEFAULT = 0.95
+  Etki: alt_score / top_score yakinlik bandi
+
+- EVID_TH_DEFAULT = 0.03
+  Etki: evidence gate (opening_edge / market_weight_excess / scaled_bonus / pos_gap)
+
+- MIS_BETTER_SOFT_DEFAULT = 0.01
+  Etki: soft mispricing + evidence ile switch
+
+- MIS_BETTER_HARD_DEFAULT = 0.02
+  Etki: hard mispricing ile direkt switch
+
+- k_mis = 0.75
+  Etki: mispricing bonus buyuklugu
+
+- xG blend (OU/BTTS):
+  beta = clip(XG_WEIGHT_CFG, 0..0.35) -> p_over_adj / p_btts_adj blend
+
+## 3) Hardcoded Numbers Inventory (ana esikler)
+
+- odd guard: odd > 1.01
+- mis_clip: [-0.10, +0.15]
+- sim_bonus clip: [-0.05, +0.05], sim_gap * 0.4
+- bonus cap: 0.25 (mis/sim + elo/open/draw toplaminda)
+- opening_edge: max(0, margin - 0.05), cap 0.10 (market_weight tarafinda)
+- imp_gap clip: [-0.06, +0.06]
+- OU league_factor: (lg10 - 2.45) / 0.60, clip [0,1]
+- market_weight caps: OU 1.15, BTTS 1.18, 1X2 1.15
+- sim_q_norm: (sim_q - 0.15) / (0.30 - 0.15)
+- FAIR override: top4 alternatif taranir, prob guard p>=0.18
+
+## 4) Trend / Regime Etkisi (kanitli)
+
+- SIM_LEAGUE_GOALS_AVG_10 / 50
+  Market_weight (OU) icinde kullanilir; score'a dolayli etki eder.
+
+- SIM_HOME_TREND / SIM_AWAY_TREND
+  Pick score'a dogrudan girmez (UI/diagnostic).
+
+- XG_WEIGHT_CFG
+  OU/BTTS olasiliklarini blend eder; final skora dolayli etki.
+
+- XG_MICRO_BIAS_*
+  Pick score'a dogrudan girmez (debug/export).
+
+- SIM_QUALITY
+  1X2 market_weight ve tie-break'te kullanilir.
+
+- TRUST_PCT
+  close_enough bandini ayarlar.
+
+## 5) Policy Flags (guncel)
+
+- OU_OVER_BTTSSYNC
+  Kosul: OU + Over2.5
+  P_OVER25_ADJ >= 0.54
+  TOP2/3 icinde BTTS_Yes var
+  TOP2/3 icinde Under2.5 veya BTTS_No yok
+
+- OU_UNDER_XG_LEAGUE
+  Kosul: OU + Under2.5
+  xG_Total <= under_xg_p50
+  League under_leagues whitelist icinde (logdan min n=3 ve hit>=0.50)
+
+- BTTS_YES_XGHOME_EXCL
+  Kosul: BTTS + BTTS_Yes
+  xG_Home >= 1.59
+  League NOT IN {Germany - Bundesliga, Australia - A League, Netherlands - Eredivisie}
+
+- BTTS_NO_UNDERSYNC
+  Kosul: BTTS + BTTS_No
+  TOP2/3 icinde Under2.5 var
+  TOP2/3 icinde Over2.5 yok
+
+- 1X2_XG_TOTAL_LE_3_64
+  Kosul: 1X2 + (MS1/MS2/X)
+  xG_Total <= 3.64
+
+## 6) Decision Trace / Audit Alanlari
+
+- build_decision_trace(row, debug_context) fonksiyonu, secilen market icin ara hesaplari ve karar izini uretir.
+- _PICK_SWITCH_AUDIT_ROWS: pick_best_market icinde, her mac icin top-N adaylar ve base/final karar kaydi.
+- SEL_* alanlari: final secilen candidate'tan gelen degerlerdir.
+  - SEL_SCORE / SEL_ALPHA / SEL_SIM / SEL_P_ADJ
+  - SEL_MISPRICING / SEL_MIS_BONUS
+- CANDS_* alanlari: candidate listesi saglamligini gosterir.
+  - HAS_CANDS, CANDS_N, CANDS_REASON, FOUND_FINAL
+
+## 7) Tahmin Sonuclari / Log Akisi
+
+- pred_results_log.csv otomatik senkron edilir:
+  - pred_df (guncel tahminler) loga Match_ID bazli update edilir
+  - Sonuclar (RES_FTHG/RES_FTAG) elle girilir ve kayitla butonu ile loga yazilir
+- Istatistikler sadece oynanmis maclardan hesaplanir:
+  - RES_FTHG, RES_FTAG, RES_RESULT_1X2, RES_RESULT_OU, RES_RESULT_BTTS dolu olmayanlar disarda kalir
+- POLICY_FLAG / POLICY_RULE logda backfill edilir (guncel kural uygulanir)
+
+## 8) Tuning Playbook (kisa)
+
+- OU/BTTS daha baskin olsun:
+  OU/BTTS market_weight katsayilarini artir, 1X2 katsayilarini azalt.
+
+- Mispricing daha baskin olsun:
+  k_mis artir, MIS_BETTER_SOFT/HARD esiklerini dusur.
+
+- Switch daha az olsun:
+  FAIR_CLOSE_BASE ve EVID_TH artir, MIS_BETTER_* artir.
+
+- 1X2 avantaji azalsin:
+  ANCHOR_ALPHA artir, 1X2 market_weight katsayilarini azalt.
+
+---
+
+Not: Bu dokuman, logdaki veya UI'daki gorunumleri degil; kod mantigini esas alir.

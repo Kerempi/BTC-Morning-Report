@@ -1,0 +1,15 @@
+{
+  "k_same": 30,
+  "k_global": 20,
+  "same_league_mode": true,
+  "min_same_found": 12,
+  "null_threshold": 0.8,
+  "weight_config": {
+    "xg": 2.0,
+    "elo": 1.2,
+    "league_pos": 1.1,
+    "default": 1.0
+  },
+  "manual_features": null,
+  "conf_quality_floor": 0.25
+}
