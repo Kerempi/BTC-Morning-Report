@@ -1,0 +1,47 @@
+This repo contains the Laevitas BTC morning report system.
+
+Read these first:
+- `3rd-Version/README_laevitas_quickstart.md`
+- `3rd-Version/README_laevitas_recovery.md`
+
+Current operating model:
+- the report is generated locally
+- local scheduled task updates it every morning at 08:00
+- GitHub publish stays manual
+- the Turkish report remains the main public link
+- the English report remains a separate file and link
+- the stable runtime folder is:
+  - `C:\Users\Kerem\LaevitasMorningReportRuntime`
+
+Restore it without changing behavior:
+1. confirm Python 3.12
+2. install `requirements.txt`
+3. create `.env` from `.env.example`
+4. confirm `.env` expects `LAEVITAS_API_KEY`
+5. make sure the runtime folder contains the report scripts, `.env`, `data`, and `reports`
+6. test:
+   - `powershell.exe -ExecutionPolicy Bypass -File "C:\Users\Kerem\LaevitasMorningReportRuntime\run_laevitas_morning_report.ps1"`
+7. recreate the scheduled task with:
+   - `create_laevitas_morning_report_task.cmd`
+8. keep manual publish available with:
+   - `C:\Users\Kerem\publish_laevitas_report.cmd`
+
+Critical files:
+- `laevitas_morning_report.py`
+- `laevitas_api.py`
+- `run_laevitas_morning_report.ps1`
+- `run_laevitas_morning_report.cmd`
+- `create_laevitas_morning_report_task.cmd`
+- `publish_reports_to_github.ps1`
+- `publish_report.cmd`
+- `.github/workflows/laevitas-pages.yml`
+- `reports/index.html`
+
+Expected links:
+- Turkish main: `https://kerempi.github.io/BTC-Morning-Report/`
+- English separate: `https://kerempi.github.io/BTC-Morning-Report/btc_morning_report_en.html`
+
+Priorities:
+- do not change the operating model
+- do not make GitHub publish automatic
+- do not break the Turkish/English link split
