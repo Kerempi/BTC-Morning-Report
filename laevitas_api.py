@@ -91,3 +91,48 @@ def laevitas_get(endpoint: str, params: Optional[Dict[str, str]] = None, timeout
                     raise
                 time.sleep(1.25 * (attempt + 1))
         raise last_error
+
+
+def laevitas_graphql(query: str, timeout: int = 30, retries: int = 2):
+    url = "https://be.laevitas.ch/graphql"
+    payload = {"query": query}
+    headers = {
+        "content-type": "application/json",
+        "origin": "https://app.laevitas.ch",
+        "referer": "https://app.laevitas.ch/dashApi",
+    }
+
+    try:
+        import requests
+
+        last_error = None
+        for attempt in range(retries + 1):
+            try:
+                session = requests.Session()
+                session.trust_env = False
+                response = session.post(url, headers=headers, json=payload, timeout=timeout)
+                response.raise_for_status()
+                return response.json()
+            except Exception as exc:
+                last_error = exc
+                if attempt >= retries:
+                    raise
+                time.sleep(1.25 * (attempt + 1))
+        raise last_error
+    except ModuleNotFoundError:
+        import urllib.request
+
+        last_error = None
+        body = json.dumps(payload).encode("utf-8")
+        for attempt in range(retries + 1):
+            try:
+                request = urllib.request.Request(url, data=body, headers=headers, method="POST")
+                with urllib.request.urlopen(request, timeout=timeout) as response:
+                    raw = response.read().decode("utf-8")
+                return json.loads(raw)
+            except Exception as exc:
+                last_error = exc
+                if attempt >= retries:
+                    raise
+                time.sleep(1.25 * (attempt + 1))
+        raise last_error
