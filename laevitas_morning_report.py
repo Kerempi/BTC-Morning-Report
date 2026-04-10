@@ -781,6 +781,174 @@ def build_dealer_pressure_section(
     }
 
 
+def build_proxy_hedge_impact_section(summary: Dict[str, object]) -> Dict[str, object]:
+    chain_rows = summary.get("chain_rows", [])
+    spot = float(summary.get("spot", 0.0) or 0.0)
+    if not chain_rows or spot <= 0:
+        return {
+            "grid_spots": [],
+            "grid_scores": [],
+            "current_score": 0.0,
+            "regime": "Veri yok",
+            "regime_class": "delta-neutral",
+            "band_label": "Belirsiz",
+            "support_spot": 0.0,
+            "fragile_spot": 0.0,
+            "headline": "Proxy hedge-impact modeli icin yeterli veri yok.",
+            "summary": "Bu bolum true dealer inventory degil; veri yoksa chart uretilmez.",
+            "badges": [],
+            "notes": [
+                "Bu bolum signed dealer pozisyonu kullanmaz; strike OI, proxy pressure ve GEX'ten turetilen senaryo bazli bir hedge-impact modelidir.",
+            ],
+        }
+
+    grid_spots = [spot - 15000 + 500 * i for i in range(61)]
+    grid_scores: List[float] = []
+    local_gamma_values: List[float] = []
+    scale = 2400.0
+    for grid_spot in grid_spots:
+        net_pressure = 0.0
+        local_gamma = 0.0
+        for row in chain_rows:
+            strike = float(row["strike"])
+            distance = abs(grid_spot - strike)
+            weight = math.exp(-(distance / scale) ** 2)
+            net_pressure += (float(row["upside_pressure"]) - float(row["downside_pressure"])) * weight
+            local_gamma += float(row["net_gex"]) * weight
+        score = local_gamma * 850.0 + net_pressure * 0.12
+        grid_scores.append(score)
+        local_gamma_values.append(local_gamma)
+
+    nearest_idx = min(range(len(grid_spots)), key=lambda idx: abs(grid_spots[idx] - spot))
+    current_score = float(grid_scores[nearest_idx])
+    current_gamma = float(local_gamma_values[nearest_idx])
+    support_idx = max(range(len(grid_scores)), key=lambda idx: grid_scores[idx])
+    fragile_idx = min(range(len(grid_scores)), key=lambda idx: grid_scores[idx])
+
+    left_idx = nearest_idx
+    while left_idx > 0 and grid_scores[left_idx - 1] > 0:
+        left_idx -= 1
+    right_idx = nearest_idx
+    while right_idx < len(grid_scores) - 1 and grid_scores[right_idx + 1] > 0:
+        right_idx += 1
+    if grid_scores[nearest_idx] > 0:
+        band_label = f"{grid_spots[left_idx]:,.0f}-{grid_spots[right_idx]:,.0f}"
+    else:
+        band_label = "Aktif long-gamma pocket disinda"
+
+    if current_score >= 40:
+        regime = "Dengeleyici / long-gamma-benzeri"
+        regime_class = "delta-up"
+        headline = (
+            f"Proxy model, spotun {band_label} civarinda daha dengeleyici bir hedge rejimine yaklastigini soyluyor; "
+            "hareketler emilmeye daha yatkin olabilir."
+        )
+    elif current_score <= -40:
+        regime = "Kirilgan / short-gamma-benzeri"
+        regime_class = "delta-down"
+        headline = (
+            "Proxy model, spotun hala kirilgan bir pocket'ta oldugunu soyluyor; "
+            "hareketler emilmekten cok buyumeye daha yatkin olabilir."
+        )
+    else:
+        regime = "Gecis / karisik"
+        regime_class = "delta-neutral"
+        headline = (
+            "Proxy model, spotun temiz bir long-gamma ya da short-gamma pocket'inda olmadigini; "
+            "rejimin daha gecis karakteri tasidigini soyluyor."
+        )
+
+    if current_gamma > 0:
+        summary_line = (
+            f"Spot cevresindeki yerel gamma tonu pozitif ({current_gamma:+.2f}); bu, idealize edilmis hedge etkisinin "
+            "hareketi bastirma yonune kaydigini ima ediyor."
+        )
+    elif current_gamma < 0:
+        summary_line = (
+            f"Spot cevresindeki yerel gamma tonu negatif ({current_gamma:+.2f}); bu, idealize edilmis hedge etkisinin "
+            "hareketi buyutme yonune kayabildigini ima ediyor."
+        )
+    else:
+        summary_line = "Spot cevresindeki yerel gamma tonu notr; hedge etkisi daha cok akis ve strike yogunluguna bagli."
+
+    badges = [
+        f"Mevcut proxy skor: {current_score:+.0f}",
+        f"Rejim: {regime}",
+        f"Dengeleyici pocket: {grid_spots[support_idx]:,.0f}",
+        f"Kirilgan pocket: {grid_spots[fragile_idx]:,.0f}",
+    ]
+    if band_label != "Aktif long-gamma pocket disinda":
+        badges.insert(2, f"Long-gamma alani: {band_label}")
+
+    notes = [
+        "Bu bolum true dealer position degil; strike OI, proxy pressure ve GEX'ten turetilen senaryo bazli bir hedge-impact egzersizidir.",
+        "Pozitif skor, dealerlarin hareketi emmeye daha yakin oldugu long-gamma-benzeri bir pocket'i; negatif skor ise daha kirilgan short-gamma-benzeri davranisi ima eder.",
+        f"En guclu stabilizing pocket {grid_spots[support_idx]:,.0f} civarinda, en kirilgan pocket ise {grid_spots[fragile_idx]:,.0f} civarinda gorunuyor.",
+        summary_line,
+    ]
+    return {
+        "grid_spots": grid_spots,
+        "grid_scores": grid_scores,
+        "spot": spot,
+        "current_score": current_score,
+        "regime": regime,
+        "regime_class": regime_class,
+        "band_label": band_label,
+        "support_spot": grid_spots[support_idx],
+        "fragile_spot": grid_spots[fragile_idx],
+        "headline": headline,
+        "summary": summary_line,
+        "badges": badges,
+        "notes": notes,
+    }
+
+
+def enrich_proxy_hedge_impact_history(section: Dict[str, object], archive_rows: List[Dict[str, str]]) -> Dict[str, object]:
+    enriched = dict(section)
+    history = [row for row in archive_rows if has_numeric(row.get("proxy_hedge_score", ""))]
+    trend_rows = history[-14:]
+    trend_dates = [row["date"] for row in trend_rows]
+    trend_scores = [to_float(row.get("proxy_hedge_score", "0")) for row in trend_rows]
+    enriched["trend_dates"] = trend_dates
+    enriched["trend_scores"] = trend_scores
+    enriched["history_label"] = ""
+    enriched["history_badges"] = []
+    enriched["history_summary"] = "Yerel arsiv buyudukce proxy hedge-impact rejiminin gunler icindeki kaymasi burada izlenir."
+    enriched["history_notes"] = [
+        "Bu trend true dealer pozisyonu degil; gunluk snapshot'lardan uretilen proxy hedge-impact skorunun zaman serisini gosterir.",
+    ]
+    if len(history) >= 2:
+        prev_row = history[-2]
+        prev_score = to_float(prev_row.get("proxy_hedge_score", "0"))
+        prev_support = to_float(prev_row.get("proxy_support_spot", "0"))
+        prev_fragile = to_float(prev_row.get("proxy_fragile_spot", "0"))
+        score_delta = float(section.get("current_score", 0.0) or 0.0) - prev_score
+        support_delta = float(section.get("support_spot", 0.0) or 0.0) - prev_support
+        fragile_delta = float(section.get("fragile_spot", 0.0) or 0.0) - prev_fragile
+        enriched["history_label"] = f"{prev_row['date']} -> {history[-1]['date']}"
+        enriched["history_badges"] = [
+            f"Skor degisimi: {score_delta:+.0f}",
+            f"Dengeleyici pocket kaymasi: {support_delta:+.0f}",
+            f"Kirilgan pocket kaymasi: {fragile_delta:+.0f}",
+        ]
+        if score_delta >= 75:
+            enriched["history_summary"] = (
+                "Proxy hedge-impact skoru dunden bugune belirgin guclendi; piyasa daha dengeleyici bir pocket'e kayiyor olabilir."
+            )
+        elif score_delta <= -75:
+            enriched["history_summary"] = (
+                "Proxy hedge-impact skoru dunden bugune zayifladi; hedge etkisi daha kirilgan bir rejime kayiyor olabilir."
+            )
+        else:
+            enriched["history_summary"] = (
+                "Proxy hedge-impact skoru dunden bugune sinirli degisti; temel rejim ayni kalsa da pocket seviyeleri hafif yer degistirmis olabilir."
+            )
+        enriched["history_notes"].append(
+            f"Son gunluk kaymada dengeleyici pocket {support_delta:+.0f}, kirilgan pocket ise {fragile_delta:+.0f} puan yer degistirdi."
+        )
+    return enriched
+
+
 def first_valid_iv_row(rows: List[Dict[str, float]], fallback_atm: float, fallback_maturity: str) -> Dict[str, float]:
     for row in rows:
         if to_float(row.get("atm", 0.0)) > 0 and (
@@ -871,6 +1039,9 @@ def archive_fieldnames() -> List[str]:
         "date",
         "generated_utc",
         "spot",
+        "proxy_hedge_score",
+        "proxy_support_spot",
+        "proxy_fragile_spot",
         "pin_low",
         "pin_center",
         "pin_high",
@@ -970,6 +1141,9 @@ def rewrite_archive(rows: List[Dict[str, str]]) -> List[Dict[str, str]]:
 
 def backfill_archive_metrics(rows: List[Dict[str, str]], currency: str, market: str) -> List[Dict[str, str]]:
     changed = False
+    expiry_aggregate_snapshot_name = f"{currency.lower()}_oi_expiry_aggregate"
+    expiry_market_snapshot_name = f"{currency.lower()}_oi_expiry_{market}"
+    gex_snapshot_name = f"{currency.lower()}_gex_all_{market}"
     strike_snapshot_name = f"{currency.lower()}_oi_strike_all_{market}"
     top_instrument_snapshot_name = f"{currency.lower()}_top_instrument_oi_change_{market}_24h"
     strike_change_snapshot_name = f"{currency.lower()}_oi_net_change_all_{market}_24h"
@@ -1006,6 +1180,28 @@ def backfill_archive_metrics(rows: List[Dict[str, str]], currency: str, market: 
                 )
                 if score is not None:
                     row["crowd_chase_score"] = str(int(score))
+                    changed = True
+        needs_proxy_hedge = not has_numeric(row.get("proxy_hedge_score", ""))
+        if needs_proxy_hedge:
+            expiry_payload, _ = load_snapshot_for_date(expiry_aggregate_snapshot_name, row["date"])
+            expiry_rows = parse_expiry_rows(expiry_payload, "aggregate") if expiry_payload else []
+            if not expiry_rows:
+                expiry_payload, _ = load_snapshot_for_date(expiry_market_snapshot_name, row["date"])
+                expiry_rows = parse_expiry_rows(expiry_payload, market) if expiry_payload else []
+            gex_payload, _ = load_snapshot_for_date(gex_snapshot_name, row["date"])
+            strike_payload, _ = load_snapshot_for_date(strike_snapshot_name, row["date"])
+            strike_change_payload, _ = load_snapshot_for_date(strike_change_snapshot_name, row["date"])
+            if expiry_rows and gex_payload and strike_payload and strike_change_payload:
+                gex_rows = aggregate_gex_by_strike(gex_payload)
+                strike_rows = parse_strike_oi_rows(strike_payload)
+                strike_change_rows = parse_oi_net_change_all_rows(strike_change_payload)
+                if gex_rows and strike_rows:
+                    spot = infer_spot(expiry_rows)
+                    chain_rows = build_chain_pressure_rows(strike_rows, gex_rows, strike_change_rows, spot)
+                    proxy_section = build_proxy_hedge_impact_section({"chain_rows": chain_rows, "spot": spot})
+                    row["proxy_hedge_score"] = f"{float(proxy_section.get('current_score', 0.0) or 0.0):.2f}"
+                    row["proxy_support_spot"] = f"{float(proxy_section.get('support_spot', 0.0) or 0.0):.2f}"
+                    row["proxy_fragile_spot"] = f"{float(proxy_section.get('fragile_spot', 0.0) or 0.0):.2f}"
                     changed = True
     return rewrite_archive(rows) if changed else rows
 
@@ -2367,12 +2563,16 @@ def summarize_flow(
     }
 
 
-def build_archive_row(summary: Dict[str, object]) -> Dict[str, object]:
+def build_archive_row(summary: Dict[str, object], proxy_hedge_impact_section: Optional[Dict[str, object]] = None) -> Dict[str, object]:
     today = UTC_NOW().strftime("%Y-%m-%d")
+    proxy_hedge_impact_section = proxy_hedge_impact_section or {}
     return {
         "date": today,
         "generated_utc": UTC_NOW().isoformat(),
         "spot": round(summary["spot"], 2),
+        "proxy_hedge_score": round(float(proxy_hedge_impact_section.get("current_score", 0.0) or 0.0), 2),
+        "proxy_support_spot": round(float(proxy_hedge_impact_section.get("support_spot", 0.0) or 0.0), 2),
+        "proxy_fragile_spot": round(float(proxy_hedge_impact_section.get("fragile_spot", 0.0) or 0.0), 2),
         "pin_low": int(summary["pin_low"]),
         "pin_center": int(summary["pin_center"]),
         "pin_high": int(summary["pin_high"]),
@@ -2545,6 +2745,58 @@ def make_dealer_pressure_delta_chart(section: Dict[str, object], out_path: Path,
     ax.tick_params(axis="x", labelsize=9)
     ax.legend(loc="lower right", fontsize=8.5, frameon=False)
     fig.subplots_adjust(left=0.12, right=0.98, top=0.93, bottom=0.10)
+    plt.savefig(out_path, dpi=160)
+    plt.close()
+
+
+def make_proxy_hedge_impact_chart(section: Dict[str, object], out_path: Path, lang: str = "tr") -> None:
+    grid_spots = section.get("grid_spots", [])
+    grid_scores = section.get("grid_scores", [])
+    if not grid_spots or not grid_scores:
+        return
+
+    current_score = float(section.get("current_score", 0.0) or 0.0)
+    spot = float(section.get("spot", 0.0) or 0.0)
+    support_spot = float(section.get("support_spot", grid_spots[0]))
+    fragile_spot = float(section.get("fragile_spot", grid_spots[0]))
+    fig, ax = plt.subplots(figsize=(11.8, 5.6))
+    ax.plot(grid_spots, grid_scores, color="#123b52", linewidth=2.2)
+    ax.fill_between(grid_spots, grid_scores, 0, where=[value >= 0 for value in grid_scores], color="#79b87d", alpha=0.30)
+    ax.fill_between(grid_spots, grid_scores, 0, where=[value < 0 for value in grid_scores], color="#c96a5c", alpha=0.30)
+    ax.axhline(0, color="#4b5563", linewidth=1.1)
+    current_idx = min(range(len(grid_spots)), key=lambda idx: abs(grid_spots[idx] - spot)) if spot else min(range(len(grid_spots)), key=lambda idx: abs(grid_scores[idx] - current_score))
+    current_spot = float(grid_spots[current_idx])
+    ax.axvline(current_spot, color="#8f2e28" if current_score < 0 else "#21623a", linestyle="--", linewidth=1.4)
+    ax.scatter([current_spot], [current_score], color="#8f2e28" if current_score < 0 else "#21623a", s=44, zorder=3)
+    ax.scatter([support_spot], [max(grid_scores)], color="#21623a", s=28, zorder=3)
+    ax.scatter([fragile_spot], [min(grid_scores)], color="#8f2e28", s=28, zorder=3)
+    ax.text(support_spot, max(grid_scores), loc(lang, " stabilizing", " stabilizing"), va="bottom", ha="left", fontsize=8, color="#21623a")
+    ax.text(fragile_spot, min(grid_scores), loc(lang, " fragile", " fragile"), va="top", ha="left", fontsize=8, color="#8f2e28")
+    ax.set_title(loc(lang, "Proxy Hedge Impact Surface", "Proxy Hedge Impact Surface"))
+    ax.set_xlabel(loc(lang, "Hipotetik spot seviyesi", "Hypothetical spot level"))
+    ax.set_ylabel(loc(lang, "Proxy hedge-impact skoru", "Proxy hedge-impact score"))
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda value, pos: f"{int(value):,}"))
+    ax.grid(alpha=0.18)
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=160)
+    plt.close()
+
+
+def make_proxy_hedge_impact_trend_chart(section: Dict[str, object], out_path: Path, lang: str = "tr") -> None:
+    dates = section.get("trend_dates", [])
+    scores = section.get("trend_scores", [])
+    if not dates or not scores:
+        return
+    plt.figure(figsize=(9.6, 4.4))
+    plt.plot(dates, scores, color="#0f4c5c", marker="o", linewidth=2.2)
+    plt.axhline(0, color="#1b2228", linewidth=1)
+    plt.axhline(75, color="#2f9e44", linewidth=1, linestyle="--", alpha=0.75)
+    plt.axhline(-75, color="#c0392b", linewidth=1, linestyle="--", alpha=0.75)
+    plt.title(loc(lang, "Proxy Hedge-Impact Trendi", "Proxy Hedge-Impact Trend"))
+    plt.ylabel(loc(lang, "Proxy skor", "Proxy score"))
+    plt.xticks(rotation=45, ha="right")
+    plt.grid(alpha=0.25)
+    plt.tight_layout()
     plt.savefig(out_path, dpi=160)
     plt.close()
 
@@ -5666,6 +5918,7 @@ def render_html(
     summary: Dict[str, object],
     change_section: Dict[str, object],
     dealer_pressure_section: Dict[str, object],
+    proxy_hedge_impact_section: Dict[str, object],
     clean_position_map_section: Dict[str, object],
     position_map_drift_section: Dict[str, object],
     gamma_support_monitor_section: Dict[str, object],
@@ -5692,6 +5945,8 @@ def render_html(
     inventory_chart: Path,
     mm_position_map_chart: Path,
     dealer_pressure_delta_chart: Path,
+    proxy_hedge_impact_chart: Path,
+    proxy_hedge_impact_trend_chart: Path,
     inventory_trend_chart: Path,
     behavioral_trend_chart: Path,
     behavioral_components_chart: Path,
@@ -6108,6 +6363,32 @@ small {{ opacity:0.82; font-size:12px; }}
   </section>
   <section class='two'>
     <div>
+      <h2>Proxy Hedge-Impact Yuzeyi</h2>
+      <img src='laevitas/{proxy_hedge_impact_chart.name}?v={asset_version}' alt='Proxy hedge impact surface'>
+      <p>Bu chart true dealer inventory kullanmaz; strike OI, proxy pressure ve GEX ile spot farkli seviyelere giderse hedge etkisinin daha dengeleyici mi daha kirilgan mi calisabilecegini idealize eder.</p>
+      <div class='delta-row'>{render_delta_badges(proxy_hedge_impact_section['badges'])}</div>
+      <p><strong>Headline:</strong> {proxy_hedge_impact_section['headline']}</p>
+      <p><strong>Tek satir:</strong> {proxy_hedge_impact_section['summary']}</p>
+      <img src='laevitas/{proxy_hedge_impact_trend_chart.name}?v={asset_version}' alt='Proxy hedge impact trend'>
+      <p class='small-muted'>{proxy_hedge_impact_section.get('history_label', '')}</p>
+      <div class='delta-row'>{render_delta_badges(proxy_hedge_impact_section.get('history_badges', []))}</div>
+      <p><strong>Dunden bugune:</strong> {proxy_hedge_impact_section.get('history_summary', '')}</p>
+    </div>
+    <div>
+      <h2>Nasil Okunur?</h2>
+      <p><span class='delta-badge {proxy_hedge_impact_section["regime_class"]}'>{proxy_hedge_impact_section['regime']}</span></p>
+      <div class='grid'>
+        <div class='metric'><div class='label'>Spot</div><div class='value'>{proxy_hedge_impact_section['spot']:,.0f}</div></div>
+        <div class='metric'><div class='label'>Mevcut Skor</div><div class='value'>{proxy_hedge_impact_section['current_score']:+.0f}</div></div>
+        <div class='metric'><div class='label'>Stabilizing Pocket</div><div class='value'>{proxy_hedge_impact_section['support_spot']:,.0f}</div></div>
+        <div class='metric'><div class='label'>Fragile Pocket</div><div class='value'>{proxy_hedge_impact_section['fragile_spot']:,.0f}</div></div>
+      </div>
+      <ul>{render_list(proxy_hedge_impact_section['notes'])}</ul>
+      <ul>{render_list(proxy_hedge_impact_section.get('history_notes', []))}</ul>
+    </div>
+  </section>
+  <section class='two'>
+    <div>
       <h2>Gamma Haritasi</h2>
       <img src='laevitas/{gex_chart.name}?v={asset_version}' alt='GEX chart'>
     </div>
@@ -6325,6 +6606,7 @@ def render_html_en(
     summary: Dict[str, object],
     change_section: Dict[str, object],
     dealer_pressure_section: Dict[str, object],
+    proxy_hedge_impact_section: Dict[str, object],
     clean_position_map_section: Dict[str, object],
     position_map_drift_section: Dict[str, object],
     gamma_support_monitor_section: Dict[str, object],
@@ -6351,6 +6633,8 @@ def render_html_en(
     inventory_chart: Path,
     mm_position_map_chart: Path,
     dealer_pressure_delta_chart: Path,
+    proxy_hedge_impact_chart: Path,
+    proxy_hedge_impact_trend_chart: Path,
     inventory_trend_chart: Path,
     behavioral_trend_chart: Path,
     behavioral_components_chart: Path,
@@ -6440,6 +6724,38 @@ def render_html_en(
         ],
         "summary": tr_to_en_text(str(dealer_pressure_section.get("summary", ""))),
         "notes": tr_to_en_list(dealer_pressure_section.get("notes", [])),
+    }
+    proxy_hedge_impact_section_en = {
+        **proxy_hedge_impact_section,
+        "regime": tr_to_en_text(str(proxy_hedge_impact_section.get("regime", "")))
+        .replace("Dengeleyici / long-gamma-benzeri", "Stabilizing / long-gamma-like")
+        .replace("Kirilgan / short-gamma-benzeri", "Fragile / short-gamma-like")
+        .replace("Gecis / karisik", "Transition / mixed"),
+        "headline": tr_to_en_text(str(proxy_hedge_impact_section.get("headline", ""))),
+        "summary": tr_to_en_text(str(proxy_hedge_impact_section.get("summary", ""))),
+        "badges": [
+            tr_to_en_text(str(item))
+            .replace("Mevcut proxy skor:", "Current proxy score:")
+            .replace("Rejim:", "Regime:")
+            .replace("Dengeleyici pocket:", "Stabilizing pocket:")
+            .replace("Kirilgan pocket:", "Fragile pocket:")
+            .replace("Long-gamma alani:", "Long-gamma pocket:")
+            .replace("Dengeleyici / long-gamma-benzeri", "Stabilizing / long-gamma-like")
+            .replace("Kirilgan / short-gamma-benzeri", "Fragile / short-gamma-like")
+            .replace("Gecis / karisik", "Transition / mixed")
+            for item in proxy_hedge_impact_section.get("badges", [])
+        ],
+        "notes": tr_to_en_list(proxy_hedge_impact_section.get("notes", [])),
+        "history_label": str(proxy_hedge_impact_section.get("history_label", "")),
+        "history_badges": [
+            tr_to_en_text(str(item))
+            .replace("Skor degisimi:", "Score change:")
+            .replace("Dengeleyici pocket kaymasi:", "Stabilizing pocket shift:")
+            .replace("Kirilgan pocket kaymasi:", "Fragile pocket shift:")
+            for item in proxy_hedge_impact_section.get("history_badges", [])
+        ],
+        "history_summary": tr_to_en_text(str(proxy_hedge_impact_section.get("history_summary", ""))),
+        "history_notes": tr_to_en_list(proxy_hedge_impact_section.get("history_notes", [])),
     }
     gamma_map_read_en = {key: tr_to_en_text(value) for key, value in summary.get("gamma_map_read", {}).items()}
     gamma_map_read_en["current_zone"] = re.sub(
@@ -6646,6 +6962,7 @@ def render_html_en(
         summary_en,
         change_section_en,
         dealer_pressure_section_en,
+        proxy_hedge_impact_section_en,
         clean_position_map_section_en,
         position_map_drift_section_en,
         gamma_support_monitor_section_en,
@@ -6672,6 +6989,8 @@ def render_html_en(
         inventory_chart,
         mm_position_map_chart,
         dealer_pressure_delta_chart,
+        proxy_hedge_impact_chart,
+        proxy_hedge_impact_trend_chart,
         inventory_trend_chart,
         behavioral_trend_chart,
         behavioral_components_chart,
@@ -6707,6 +7026,137 @@ def render_html_en(
     html = html.replace(
         "Proxy harita stok agirlikli oldugu icin gunluk degisimler bazen yuzeyde yavas gorunur.",
         "Because the proxy map is stock-weighted, day-to-day changes can sometimes look slower on the surface.",
+    )
+    html = html.replace("Proxy Hedge-Impact Yuzeyi", "Proxy Hedge-Impact Surface")
+    html = html.replace("Nasil Okunur?", "How To Read It")
+    html = html.replace("Tek satir:", "One-line read:")
+    html = html.replace("Mevcut Skor", "Current score")
+    html = html.replace("Dunden bugune:", "Day over day:")
+    html = html.replace("Dengeleyici / long-gamma-benzeri", "Stabilizing / long-gamma-like")
+    html = html.replace("Kirilgan / short-gamma-benzeri", "Fragile / short-gamma-like")
+    html = html.replace("Gecis / karisik", "Transition / mixed")
+    html = html.replace(
+        "Bu chart true dealer inventory kullanmaz; strike OI, proxy pressure ve GEX ile spot farkli seviyelere giderse hedge etkisinin daha dengeleyici mi daha kirilgan mi calisabilecegini idealize eder.",
+        "This chart does not use true dealer inventory; it idealizes whether hedge impact would behave in a more stabilizing or more fragile way if spot moved across different levels, using strike OI, proxy pressure, and GEX.",
+    )
+    html = html.replace(
+        "Bu chart true dealer inventory kullanmaz; strike OI, proxy pressure and GEX ile spot farkli seviyelere giderse hedge etkisinin daha dengeleyici mi daha kirilgan mi calisabilecegini idealize eder.",
+        "This chart does not use true dealer inventory; it idealizes whether hedge impact would behave in a more stabilizing or more fragile way if spot moved across different levels, using strike OI, proxy pressure, and GEX.",
+    )
+    html = re.sub(
+        r"Proxy model, spotun ([\d,]+-[\d,]+) civarinda daha dengeleyici bir hedge rejimine yaklastigini soyluyor; hareketler emilmeye daha yatkin olabilir\.",
+        r"The proxy model suggests spot is sitting near a more stabilizing hedge regime inside the \1 band; moves are more likely to be absorbed than amplified.",
+        html,
+    )
+    html = re.sub(
+        r"Proxy model, spotun hala kirilgan bir pocket'ta oldugunu soyluyor; hareketler emilmekten cok buyumeye daha yatkin olabilir\.",
+        "The proxy model suggests spot is still sitting in a fragile pocket; moves are more likely to amplify than to be absorbed.",
+        html,
+    )
+    html = re.sub(
+        r"Proxy model, spotun temiz bir long-gamma ya da short-gamma pocket'inda olmadigini; rejimin daha gecis karakteri tasidigini soyluyor\.",
+        "The proxy model suggests spot is not sitting in a clean long-gamma or short-gamma pocket; the regime looks more transitional.",
+        html,
+    )
+    html = re.sub(
+        r"Spot cevresindeki yerel gamma tonu pozitif \(([\+\-]?\d+\.\d+)\); bu, idealize edilmis hedge etkisinin hareketi bastirma yonune kaydigini ima ediyor\.",
+        r"Local gamma tone around spot is positive (\1); this implies the idealized hedge effect is leaning toward damping moves.",
+        html,
+    )
+    html = re.sub(
+        r"Spot cevresindeki yerel gamma tonu negatif \(([\+\-]?\d+\.\d+)\); bu, idealize edilmis hedge etkisinin hareketi buyutme yonune kayabildigini ima ediyor\.",
+        r"Local gamma tone around spot is negative (\1); this implies the idealized hedge effect can lean toward amplifying moves.",
+        html,
+    )
+    html = html.replace(
+        "Spot cevresindeki yerel gamma tonu notr; hedge etkisi daha cok akis ve strike yogunluguna bagli.",
+        "Local gamma tone around spot is neutral; hedge impact depends more on flow and strike concentration.",
+    )
+    html = html.replace(
+        "Yerel arsiv buyudukce proxy hedge-impact rejiminin gunler icindeki kaymasi burada izlenir.",
+        "As the local archive grows, this panel tracks how the proxy hedge-impact regime shifts through time.",
+    )
+    html = html.replace(
+        "Proxy hedge-impact skoru dunden bugune belirgin guclendi; piyasa daha dengeleyici bir pocket'e kayiyor olabilir.",
+        "The proxy hedge-impact score strengthened meaningfully day over day; the market may be moving toward a more stabilizing pocket.",
+    )
+    html = html.replace(
+        "Proxy hedge-impact skoru dunden bugune zayifladi; hedge etkisi daha kirilgan bir rejime kayiyor olabilir.",
+        "The proxy hedge-impact score weakened day over day; hedge impact may be shifting toward a more fragile regime.",
+    )
+    html = html.replace(
+        "Proxy hedge-impact skoru dunden bugune sinirli degisti; temel rejim ayni kalsa da pocket seviyeleri hafif yer degistirmis olabilir.",
+        "The proxy hedge-impact score changed only modestly day over day; the core regime is similar, but pocket levels may have shifted slightly.",
+    )
+    html = html.replace(
+        "Proxy hedge-impact skoru day over day weakladi; hedge etkisi daha kirilgan bir rejime kayiyor olabilir.",
+        "The proxy hedge-impact score weakened day over day; hedge impact may be shifting toward a more fragile regime.",
+    )
+    html = html.replace(
+        "Proxy hedge-impact skoru day over day belirgin guclendi; piyasa daha dengeleyici bir pocket'e kayiyor olabilir.",
+        "The proxy hedge-impact score strengthened meaningfully day over day; the market may be moving toward a more stabilizing pocket.",
+    )
+    html = html.replace(
+        "Proxy hedge-impact skoru day over day sinirli degisti; temel rejim ayni kalsa da pocket seviyeleri hafif yer degistirmis olabilir.",
+        "The proxy hedge-impact score changed only modestly day over day; the core regime is similar, but pocket levels may have shifted slightly.",
+    )
+    html = re.sub(
+        r"Proxy hedge-impact skoru day over day weakladi; hedge etkisi daha kirilgan bir rejime kayiyor olabilir\.",
+        "The proxy hedge-impact score weakened day over day; hedge impact may be shifting toward a more fragile regime.",
+        html,
+    )
+    html = re.sub(
+        r"Proxy hedge-impact skoru day over day belirgin guclendi; piyasa daha dengeleyici bir pocket'e kayiyor olabilir\.",
+        "The proxy hedge-impact score strengthened meaningfully day over day; the market may be moving toward a more stabilizing pocket.",
+        html,
+    )
+    html = re.sub(
+        r"Proxy hedge-impact skoru day over day sinirli degisti; temel rejim ayni kalsa da pocket seviyeleri hafif yer degistirmis olabilir\.",
+        "The proxy hedge-impact score changed only modestly day over day; the core regime is similar, but pocket levels may have shifted slightly.",
+        html,
+    )
+    html = html.replace(
+        "Bu bolum true dealer position degil; strike OI, proxy pressure ve GEX'ten turetilen senaryo bazli bir hedge-impact egzersizidir.",
+        "This section is not true dealer positioning; it is a scenario-based hedge-impact exercise derived from strike OI, proxy pressure, and GEX.",
+    )
+    html = html.replace(
+        "Bu bolum true dealer position degil; strike OI, proxy pressure and GEX'ten turetilen senaryo bazli bir hedge-impact egzersizidir.",
+        "This section is not true dealer positioning; it is a scenario-based hedge-impact exercise derived from strike OI, proxy pressure, and GEX.",
+    )
+    html = html.replace(
+        "Pozitif skor, dealerlarin hareketi emmeye daha yakin oldugu long-gamma-benzeri bir pocket'i; negatif skor ise daha kirilgan short-gamma-benzeri davranisi ima eder.",
+        "A positive score implies a long-gamma-like pocket where dealers are more likely to absorb moves; a negative score implies more fragile short-gamma-like behavior.",
+    )
+    html = html.replace(
+        "Positive skor, dealerlarin hareketi emmeye daha yakin oldugu long-gamma-benzeri bir pocket'i; negatif skor ise daha kirilgan short-gamma-benzeri davranisi ima eder.",
+        "A positive score implies a long-gamma-like pocket where dealers are more likely to absorb moves; a negative score implies more fragile short-gamma-like behavior.",
+    )
+    html = re.sub(
+        r"En guclu stabilizing pocket ([\d,]+) civarinda, en kirilgan pocket ise ([\d,]+) civarinda gorunuyor\.",
+        r"The strongest stabilizing pocket appears near \1, while the most fragile pocket appears near \2.",
+        html,
+    )
+    html = re.sub(
+        r"En strong stabilizing pocket ([\d,]+) civarinda, en kirilgan pocket ise ([\d,]+) civarinda gorunuyor\.",
+        r"The strongest stabilizing pocket appears near \1, while the most fragile pocket appears near \2.",
+        html,
+    )
+    html = html.replace(
+        "Bu trend true dealer pozisyonu degil; gunluk snapshot'lardan uretilen proxy hedge-impact skorunun zaman serisini gosterir.",
+        "This trend is not true dealer positioning; it shows the time series of the proxy hedge-impact score built from daily snapshots.",
+    )
+    html = re.sub(
+        r"Son gunluk kaymada dengeleyici pocket ([\+\-]\d+), kirilgan pocket ise ([\+\-]\d+) puan yer degistirdi\.",
+        r"On the latest daily move, the stabilizing pocket shifted by \1 points and the fragile pocket shifted by \2 points.",
+        html,
+    )
+    html = html.replace(
+        "Proxy model, spotun 67,959-86,459 civarinda daha dengeleyici bir hedge rejimine yaklastigini soyluyor; hareketler emilmeye daha yatkin olabilir.",
+        "The proxy model suggests spot is sitting near a more stabilizing hedge regime inside the 67,959-86,459 band; moves are more likely to be absorbed than amplified.",
+    )
+    html = html.replace(
+        "Spot cevresindeki yerel gamma tonu pozitif (+0.83); bu, idealize edilmis hedge etkisinin hareketi bastirma yonune kaydigini ima ediyor.",
+        "Local gamma tone around spot is positive (+0.83); this implies the idealized hedge effect is leaning toward damping moves.",
     )
     html = html.replace(
         "Dunden bugune en net yukari kayma ",
@@ -7111,10 +7561,27 @@ def main() -> int:
     args = parser.parse_args()
 
     ensure_dirs()
-    expiry_rows, expiry_market, expiry_calls = load_expiry_rows(args.currency, args.market)
     fallback_notes = {}
 
     gex_name = f"{args.currency.lower()}_gex_all_{args.market}"
+    expiry_rows, expiry_market, expiry_calls = load_expiry_rows(args.currency, args.market)
+    if not expiry_rows:
+        fallback_payload, fallback_path = load_latest_nonempty_snapshot(f"{args.currency.lower()}_oi_expiry_aggregate")
+        if fallback_payload:
+            expiry_rows = parse_expiry_rows(fallback_payload, "aggregate")
+            expiry_market = "aggregate"
+            fallback_notes["expiry_oi"] = (
+                f"Bugun canli expiry OI verisi bos geldi; {extract_snapshot_date(fallback_path)} tarihli son dolu aggregate snapshot kullanildi."
+            )
+        if not expiry_rows:
+            fallback_payload, fallback_path = load_latest_nonempty_snapshot(f"{args.currency.lower()}_oi_expiry_{args.market}")
+            if fallback_payload:
+                expiry_rows = parse_expiry_rows(fallback_payload, args.market)
+                expiry_market = args.market
+                fallback_notes["expiry_oi"] = (
+                    f"Bugun canli expiry OI verisi bos geldi; {extract_snapshot_date(fallback_path)} tarihli son dolu {args.market} snapshot kullanildi."
+                )
+
     gex_payload = fetch_gex_all(args.market, args.currency)
     save_snapshot(gex_name, gex_payload)
     gex_rows = aggregate_gex_by_strike(gex_payload)
@@ -7309,9 +7776,11 @@ def main() -> int:
         previous_date=previous_snapshot_date,
         current_date=current_snapshot_date,
     )
+    proxy_hedge_impact_section = build_proxy_hedge_impact_section(summary)
     today = UTC_NOW().strftime("%Y-%m-%d")
-    archive_rows = upsert_archive(build_archive_row(summary))
+    archive_rows = upsert_archive(build_archive_row(summary, proxy_hedge_impact_section))
     archive_rows = backfill_archive_metrics(archive_rows, args.currency, args.market)
+    proxy_hedge_impact_section = enrich_proxy_hedge_impact_history(proxy_hedge_impact_section, archive_rows)
     upsert_daily_rows(
         STRIKE_FLOW_CSV,
         strike_flow_fieldnames(),
@@ -7362,6 +7831,8 @@ def main() -> int:
     inventory_chart = CHART_DIR / f"{args.currency.lower()}_inventory_proxy.png"
     mm_position_map_chart = CHART_DIR / f"{args.currency.lower()}_mm_position_map.png"
     dealer_pressure_delta_chart = CHART_DIR / f"{args.currency.lower()}_dealer_pressure_delta.png"
+    proxy_hedge_impact_chart = CHART_DIR / f"{args.currency.lower()}_proxy_hedge_impact.png"
+    proxy_hedge_impact_trend_chart = CHART_DIR / f"{args.currency.lower()}_proxy_hedge_impact_trend.png"
     inventory_trend_chart = CHART_DIR / f"{args.currency.lower()}_inventory_proxy_trend.png"
     behavioral_trend_chart = CHART_DIR / f"{args.currency.lower()}_behavioral_trend.png"
     behavioral_components_chart = CHART_DIR / f"{args.currency.lower()}_behavioral_components.png"
@@ -7389,6 +7860,8 @@ def main() -> int:
     inventory_chart_en = CHART_DIR / f"{args.currency.lower()}_inventory_proxy_en.png"
     mm_position_map_chart_en = CHART_DIR / f"{args.currency.lower()}_mm_position_map_en.png"
     dealer_pressure_delta_chart_en = CHART_DIR / f"{args.currency.lower()}_dealer_pressure_delta_en.png"
+    proxy_hedge_impact_chart_en = CHART_DIR / f"{args.currency.lower()}_proxy_hedge_impact_en.png"
+    proxy_hedge_impact_trend_chart_en = CHART_DIR / f"{args.currency.lower()}_proxy_hedge_impact_trend_en.png"
     inventory_trend_chart_en = CHART_DIR / f"{args.currency.lower()}_inventory_proxy_trend_en.png"
     behavioral_trend_chart_en = CHART_DIR / f"{args.currency.lower()}_behavioral_trend_en.png"
     behavioral_components_chart_en = CHART_DIR / f"{args.currency.lower()}_behavioral_components_en.png"
@@ -7444,6 +7917,10 @@ def main() -> int:
     make_mm_position_map_chart(summary, mm_position_map_chart_en, lang="en")
     make_dealer_pressure_delta_chart(dealer_pressure_section, dealer_pressure_delta_chart)
     make_dealer_pressure_delta_chart(dealer_pressure_section, dealer_pressure_delta_chart_en, lang="en")
+    make_proxy_hedge_impact_chart(proxy_hedge_impact_section, proxy_hedge_impact_chart)
+    make_proxy_hedge_impact_chart(proxy_hedge_impact_section, proxy_hedge_impact_chart_en, lang="en")
+    make_proxy_hedge_impact_trend_chart(proxy_hedge_impact_section, proxy_hedge_impact_trend_chart)
+    make_proxy_hedge_impact_trend_chart(proxy_hedge_impact_section, proxy_hedge_impact_trend_chart_en, lang="en")
     make_inventory_trend_chart(archive_rows, inventory_trend_chart)
     make_inventory_trend_chart(archive_rows, inventory_trend_chart_en, lang="en")
     make_behavioral_trend_chart(archive_rows, behavioral_trend_chart)
@@ -7472,6 +7949,7 @@ def main() -> int:
         summary,
         change_section,
         dealer_pressure_section,
+        proxy_hedge_impact_section,
         clean_position_map_section,
         position_map_drift_section,
         gamma_support_monitor_section,
@@ -7498,6 +7976,8 @@ def main() -> int:
         inventory_chart,
         mm_position_map_chart,
         dealer_pressure_delta_chart,
+        proxy_hedge_impact_chart,
+        proxy_hedge_impact_trend_chart,
         inventory_trend_chart,
         behavioral_trend_chart,
         behavioral_components_chart,
@@ -7525,6 +8005,7 @@ def main() -> int:
         summary,
         change_section,
         dealer_pressure_section,
+        proxy_hedge_impact_section,
         clean_position_map_section,
         position_map_drift_section,
         gamma_support_monitor_section,
@@ -7551,6 +8032,8 @@ def main() -> int:
         inventory_chart_en,
         mm_position_map_chart_en,
         dealer_pressure_delta_chart_en,
+        proxy_hedge_impact_chart_en,
+        proxy_hedge_impact_trend_chart_en,
         inventory_trend_chart_en,
         behavioral_trend_chart_en,
         behavioral_components_chart_en,
