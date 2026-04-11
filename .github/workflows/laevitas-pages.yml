@@ -7,6 +7,11 @@ on:
       - main
     paths:
       - "reports/**"
+      - "docs/**"
+      - "btc_morning_report.html"
+      - "btc_morning_report_en.html"
+      - "index.html"
+      - ".nojekyll"
       - ".github/workflows/laevitas-pages.yml"
 
 permissions:
