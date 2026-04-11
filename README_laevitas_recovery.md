@@ -9,8 +9,8 @@ This document is for restoring the current operating model on a new Windows mach
    - `C:\Users\Kerem\run_laevitas_morning_report.ps1`
 3. That wrapper delegates into the stable runtime folder:
    - `C:\Users\Kerem\LaevitasMorningReportRuntime`
-4. GitHub publish stays manual:
-   - `C:\Users\Kerem\publish_laevitas_report.cmd`
+4. GitHub publish stays manual and separate from local generation:
+   - run `publish_report.cmd` from the repo only when you explicitly want GitHub updated
 
 ## Required software
 - Windows
@@ -74,7 +74,7 @@ Expected outputs:
 
 ### 7. Manual publish stays manual
 ```powershell
-C:\Users\Kerem\publish_laevitas_report.cmd
+.\publish_report.cmd
 ```
 
 ## Fast diagnosis
