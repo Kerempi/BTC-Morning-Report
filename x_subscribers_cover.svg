@@ -1,0 +1,60 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="800" viewBox="0 0 2000 800" role="img" aria-labelledby="title desc">
+  <title>Abonelere Ozel Sabah Opsiyon Notu Kapagi</title>
+  <desc>X abonelik tanitimi icin hazirlanan premium teaser kapagi.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#07111f"/>
+      <stop offset="52%" stop-color="#0b2340"/>
+      <stop offset="100%" stop-color="#123232"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f4ecdb"/>
+      <stop offset="100%" stop-color="#e8dbc1"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#cfa24a"/>
+      <stop offset="100%" stop-color="#f2d48a"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="20" stdDeviation="30" flood-color="#03101b" flood-opacity="0.35"/>
+    </filter>
+    <pattern id="grid" width="88" height="88" patternUnits="userSpaceOnUse">
+      <path d="M 88 0 L 0 0 0 88" fill="none" stroke="#d5c7aa" stroke-opacity="0.08" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="2000" height="800" fill="url(#bg)"/>
+  <rect width="2000" height="800" fill="url(#grid)"/>
+
+  <circle cx="1710" cy="160" r="210" fill="#d4b574" fill-opacity="0.08"/>
+  <circle cx="1640" cy="650" r="280" fill="#8fb7ab" fill-opacity="0.08"/>
+  <circle cx="250" cy="90" r="200" fill="#d4b574" fill-opacity="0.05"/>
+
+  <rect x="70" y="62" width="1290" height="676" rx="36" fill="#08182c" fill-opacity="0.94" stroke="#2a4762" stroke-width="2"/>
+  <rect x="116" y="108" width="1198" height="584" rx="26" fill="url(#paper)" filter="url(#shadow)"/>
+
+  <rect x="1450" y="88" width="470" height="270" rx="28" fill="#f7f0e0" fill-opacity="0.10" stroke="#dcc9a7" stroke-opacity="0.42"/>
+  <rect x="1450" y="392" width="470" height="250" rx="28" fill="#f7f0e0" fill-opacity="0.08" stroke="#dcc9a7" stroke-opacity="0.35"/>
+
+  <text x="178" y="182" fill="#263041" font-family="Arial, Helvetica, sans-serif" font-size="24" letter-spacing="5">X ABONELERINE OZEL</text>
+  <text x="178" y="282" fill="#172131" font-family="Georgia, 'Times New Roman', serif" font-size="78" font-weight="700">Sabah Opsiyon Notu</text>
+  <rect x="178" y="312" width="380" height="7" rx="3.5" fill="url(#line)"/>
+
+  <text x="178" y="388" fill="#43546a" font-family="Arial, Helvetica, sans-serif" font-size="32">Her sabah guncellenen, sadece abonelere acik premium piyasa notu.</text>
+
+  <text x="178" y="486" fill="#172131" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">Icerikte neler var?</text>
+  <text x="178" y="544" fill="#243448" font-family="Arial, Helvetica, sans-serif" font-size="30">Gamma ve dealer pozisyonlanmasi</text>
+  <text x="178" y="596" fill="#243448" font-family="Arial, Helvetica, sans-serif" font-size="30">Akis, smart money vs retail davranisi, vol rejimi</text>
+  <text x="178" y="648" fill="#243448" font-family="Arial, Helvetica, sans-serif" font-size="30">Kritik seviyeler, skew, IV/RV, pain drift ve gunluk oyun plani</text>
+
+  <text x="1492" y="154" fill="#f3dfb7" font-family="Arial, Helvetica, sans-serif" font-size="18" letter-spacing="4">NEDEN TAKIP EDILIYOR</text>
+  <text x="1492" y="222" fill="#ffffff" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="700">Profesyonel masa</text>
+  <text x="1492" y="272" fill="#ffffff" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="700">okumasi mantigi</text>
+  <text x="1492" y="324" fill="#d7dee6" font-family="Arial, Helvetica, sans-serif" font-size="24">Ham veri degil, yorumlanmis sabah notu.</text>
+
+  <text x="1492" y="458" fill="#f3dfb7" font-family="Arial, Helvetica, sans-serif" font-size="18" letter-spacing="4">NEYI GOSTERIR</text>
+  <text x="1492" y="522" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="27">Dealerlar fiyati nerede pinebilir?</text>
+  <text x="1492" y="570" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="27">Piyasa su an neyi fiyatliyor?</text>
+  <text x="1492" y="618" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="27">Piyasa neyi iskaliyor olabilir?</text>
+
+</svg>
