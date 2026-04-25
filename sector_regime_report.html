@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sektor Rejimi: Hikaye, Nakit Akisi ve Makro Destek</title>
+<script src="report_access.js"></script>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0f1115;
+  --panel: #171a20;
+  --panel-2: #1e232b;
+  --ink: #f3efe7;
+  --muted: #b8b1a5;
+  --line: rgba(255,255,255,.13);
+  --green: #43d18b;
+  --red: #ff6b6b;
+  --gold: #f1c75b;
+  --blue: #64b5ff;
+  --steel: #a8b3c4;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(67,209,139,.14), transparent 26rem),
+    radial-gradient(circle at 88% 8%, rgba(100,181,255,.12), transparent 28rem),
+    linear-gradient(180deg, #0f1115 0%, #141820 52%, #101217 100%);
+  color: var(--ink);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  letter-spacing: 0;
+}
+a { color: inherit; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 22px 80px; }
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(15,17,21,.86);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 12px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.brand { font-size: 13px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.nav a {
+  text-decoration: none;
+  color: #d7d1c8;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 12px;
+  background: rgba(255,255,255,.04);
+}
+.hero {
+  min-height: 86vh;
+  display: grid;
+  align-content: center;
+  padding: 38px 0 42px;
+}
+.kicker {
+  display: inline-flex;
+  width: fit-content;
+  gap: 8px;
+  align-items: center;
+  color: #13161a;
+  background: var(--gold);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+h1 {
+  max-width: 980px;
+  margin: 22px 0 16px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(46px, 7vw, 86px);
+  line-height: .94;
+  letter-spacing: 0;
+}
+.lead {
+  max-width: 870px;
+  color: #d8d1c7;
+  font-size: clamp(18px, 2.2vw, 25px);
+  line-height: 1.42;
+  margin: 0 0 28px;
+}
+.thesis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+.thesis {
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.055);
+  border-radius: 8px;
+  padding: 18px;
+  min-height: 145px;
+}
+.thesis strong { display: block; font-size: 28px; color: var(--gold); margin-bottom: 8px; }
+.thesis span { color: var(--muted); line-height: 1.45; }
+.section { margin-top: 34px; }
+.section-head {
+  display: grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: 22px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+h2 {
+  margin: 0;
+  font-size: clamp(26px, 4vw, 44px);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+.section-head p, .note {
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0;
+}
+.share-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.panel {
+  background: linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.035));
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.22);
+  overflow: hidden;
+}
+.panel.wide { grid-column: 1 / -1; }
+.panel-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.panel-title h3 { margin: 0; font-size: 23px; line-height: 1.12; }
+.tag {
+  white-space: nowrap;
+  font-size: 12px;
+  color: #101318;
+  background: #d8dee8;
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-weight: 800;
+}
+.chart { display: grid; gap: 9px; }
+.row {
+  display: grid;
+  grid-template-columns: minmax(150px, 230px) 1fr 70px;
+  align-items: center;
+  gap: 10px;
+  min-height: 30px;
+}
+.label { color: #ede8df; font-size: 13px; line-height: 1.15; }
+.track {
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  position: relative;
+  overflow: hidden;
+}
+.bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--w);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c), white 16%));
+}
+.val {
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  text-align: right;
+  color: var(--ink);
+  font-size: 13px;
+}
+.negative .track { background: rgba(255,107,107,.12); }
+.negative .bar { background: linear-gradient(90deg, var(--red), #ff9a9a); }
+.positive .bar { background: linear-gradient(90deg, var(--green), #8ce8b7); }
+.gold .bar { background: linear-gradient(90deg, var(--gold), #ffe28a); }
+.blue .bar { background: linear-gradient(90deg, var(--blue), #a7d5ff); }
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.mini h4 {
+  margin: 0 0 10px;
+  color: #ddd6ca;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+.quote {
+  margin-top: 18px;
+  border-left: 4px solid var(--gold);
+  padding: 2px 0 2px 14px;
+  color: #e8dfd2;
+  font-size: 18px;
+  line-height: 1.45;
+}
+.matrix {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.matrix-card {
+  min-height: 170px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+.matrix-card b { display: block; font-size: 18px; margin-bottom: 10px; }
+.matrix-card p { margin: 0; color: var(--muted); line-height: 1.5; }
+.pill-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.pill {
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.05);
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #e9e3da;
+}
+.summary {
+  display: grid;
+  grid-template-columns: .9fr 1.1fr;
+  gap: 18px;
+}
+.cycle-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.cycle-card {
+  min-height: 220px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.035));
+}
+.cycle-card em {
+  display: inline-block;
+  font-style: normal;
+  color: #11151a;
+  background: var(--gold);
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.cycle-card b { display: block; font-size: 19px; line-height: 1.15; margin-bottom: 10px; }
+.cycle-card p { margin: 0; color: var(--muted); line-height: 1.48; }
+.score-table {
+  display: grid;
+  gap: 8px;
+}
+.score-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.25fr) .7fr .7fr .7fr 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.09);
+  font-size: 13px;
+}
+.score-row.header {
+  color: var(--muted);
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.score-row:last-child { border-bottom: 0; }
+.score-row span:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.signal {
+  justify-self: end;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-weight: 900;
+  font-size: 11px;
+  color: #101318;
+}
+.signal.hot { background: #85e5b1; }
+.signal.watch { background: #f1c75b; }
+.signal.wait { background: #a8b3c4; }
+.signal.risk { background: #ff8b8b; }
+.big-number {
+  background: #11161c;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 22px;
+}
+.big-number span { color: var(--muted); font-size: 13px; text-transform: uppercase; font-weight: 900; }
+.big-number strong { display: block; color: var(--gold); font-size: clamp(44px, 6vw, 72px); line-height: .95; margin-top: 8px; }
+.print-hint { margin-top: 14px; color: #8f98a6; font-size: 12px; }
+@media (max-width: 860px) {
+  .topbar { position: static; }
+  .topbar-inner, .section-head, .summary, .split, .cycle-grid { grid-template-columns: 1fr; }
+  .topbar-inner { align-items: flex-start; flex-direction: column; }
+  .thesis-grid, .share-grid, .matrix { grid-template-columns: 1fr; }
+  .panel.wide { grid-column: auto; }
+  .score-row { grid-template-columns: 1.1fr .7fr .7fr; }
+  .score-row span:nth-child(4), .score-row span:nth-child(5) { display: none; }
+  .row { grid-template-columns: minmax(112px, 42%) 1fr 58px; gap: 8px; }
+  .label, .val { font-size: 12px; }
+  .panel { padding: 16px; }
+}
+@media print {
+  .topbar { display: none; }
+  body { background: #0f1115; }
+  .panel, .thesis, .matrix-card, .big-number { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">Sector Regime Dashboard</div>
+    <nav class="nav" aria-label="Sayfa bolumleri">
+      <a href="#enerji">Enerji</a>
+      <a href="#teknoloji">Teknoloji</a>
+      <a href="#tuketim">Tuketim</a>
+      <a href="#finans">Finans</a>
+      <a href="#rotasyon">Rotasyon</a>
+      <a href="#sonuc">Sonuc</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <span class="kicker">YTD sektor okuması</span>
+    <h1>Piyasa ucuz olanı değil, hikayesi ve sermaye akışı olanı ödüllendiriyor.</h1>
+    <p class="lead">Güç enerji, fiziksel ekonomi, altyapı, sanayi döngüsü ve donanım tarafında toplanıyor. Zayıflık ise yazılım, reklam, bazı tüketim, konut finansmanı ve kredi bağlantılı alanlarda belirgin.</p>
+    <div class="thesis-grid">
+      <div class="thesis"><strong>1</strong><span>Değerleme tek başına açıklayıcı değil. Makro dayanak ve sermaye akışı daha baskın.</span></div>
+      <div class="thesis"><strong>2</strong><span>Teknoloji rallisi geniş değil. Para yazılımdan çok fiziksel teknoloji altyapısına gidiyor.</span></div>
+      <div class="thesis"><strong>3</strong><span>Bu tablo geniş boğa piyasasından çok seçici bir rejime işaret ediyor.</span></div>
+    </div>
+    <p class="print-hint">Grafik panelleri ekran görüntüsü almak için ayrı bloklar halinde tasarlandı.</p>
+  </section>
+
+  <section class="section" id="enerji">
+    <div class="section-head">
+      <h2>Enerji piyasanın ana makro mesajını taşıyor.</h2>
+      <p>Yükseliş sadece petrol fiyatı anlatısı değil; servis, sondaj, rafineri, entegre üreticiler ve arama-üretim halkaları birlikte fiyatlanıyor. Bu, fiziksel ekonomide arz tarafının yeniden önem kazandığını gösteriyor.</p>
+    </div>
+    <div class="share-grid">
+      <article class="panel wide">
+        <div class="panel-title"><h3>Enerji zinciri: uçtan uca pozitif ayrışma</h3><span class="tag">YTD %</span></div>
+        <div class="chart">
+          <div class="row positive"><div class="label">Petrol ve Gaz Sondaj</div><div class="track"><div class="bar" style="--w:100%"></div></div><div class="val">+54.96</div></div>
+          <div class="row positive"><div class="label">Petrol ve Gaz Ekipman ve Hizmetleri</div><div class="track"><div class="bar" style="--w:92%"></div></div><div class="val">+50.60</div></div>
+          <div class="row positive"><div class="label">Petrol ve Gaz Rafineri ve Pazarlama</div><div class="track"><div class="bar" style="--w:62%"></div></div><div class="val">+34.19</div></div>
+          <div class="row positive"><div class="label">Entegre Petrol ve Gaz</div><div class="track"><div class="bar" style="--w:56%"></div></div><div class="val">+30.88</div></div>
+          <div class="row positive"><div class="label">Petrol ve Gaz Arama-Uretim</div><div class="track"><div class="bar" style="--w:53%"></div></div><div class="val">+28.91</div></div>
+          <div class="row positive"><div class="label">Petrol ve Gaz Midstream</div><div class="track"><div class="bar" style="--w:33%"></div></div><div class="val">+18.05</div></div>
+        </div>
+        <div class="quote">Ana mesaj: piyasa fiziksel ekonomide arz, kapasite ve reel varlık temasını satın alıyor.</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="teknoloji">
+    <div class="section-head">
+      <h2>Teknolojide geniş ralli yok; donanım kazanıyor, yazılım zayıf.</h2>
+      <p>Klasik "teknoloji güçlü" cümlesi bu tabloda yetersiz kalıyor. Para soyut büyüme hikayelerinden çok ekipman, çip üretim zinciri, iletişim altyapısı, donanım ve dağıtım alanlarına gidiyor.</p>
+    </div>
+    <div class="share-grid">
+      <article class="panel">
+        <div class="panel-title"><h3>Fiziksel teknoloji altyapısı</h3><span class="tag">Liderler</span></div>
+        <div class="chart">
+          <div class="row blue"><div class="label">Elektrik Ekipman ve Parcalari</div><div class="track"><div class="bar" style="--w:100%"></div></div><div class="val">+71.76</div></div>
+          <div class="row blue"><div class="label">Bilgisayar Donanimi</div><div class="track"><div class="bar" style="--w:98%"></div></div><div class="val">+70.64</div></div>
+          <div class="row blue"><div class="label">Yari Iletken Ekipmanlari</div><div class="track"><div class="bar" style="--w:76%"></div></div><div class="val">+54.87</div></div>
+          <div class="row blue"><div class="label">Elektronik ve Bilgisayar Dagitimi</div><div class="track"><div class="bar" style="--w:65%"></div></div><div class="val">+46.41</div></div>
+          <div class="row blue"><div class="label">Iletisim Ekipmanlari</div><div class="track"><div class="bar" style="--w:49%"></div></div><div class="val">+35.11</div></div>
+        </div>
+      </article>
+      <article class="panel">
+        <div class="panel-title"><h3>Yazılım ve servisler</h3><span class="tag">Geride kalanlar</span></div>
+        <div class="chart">
+          <div class="row negative"><div class="label">Uygulama Yazilimlari</div><div class="track"><div class="bar" style="--w:100%"></div></div><div class="val">-25.31</div></div>
+          <div class="row negative"><div class="label">Bilgi Teknolojisi Hizmetleri</div><div class="track"><div class="bar" style="--w:93%"></div></div><div class="val">-23.42</div></div>
+          <div class="row negative"><div class="label">Altyapi Yazilimlari</div><div class="track"><div class="bar" style="--w:43%"></div></div><div class="val">-10.95</div></div>
+        </div>
+        <div class="quote">Doğru cümle: piyasa dijital hikayeyi değil, dijitalleşmenin fiziksel altyapısını satın alıyor.</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="tuketim">
+    <div class="section-head">
+      <h2>Tüketici ölmedi ama eşit harcamıyor.</h2>
+      <p>Yeni tabloda tüketim tarafı önceki kadar parlak değil; güç daha çok indirim mağazaları, konaklama, lüks, internet perakendesi ve seçilmiş perakende tarafında kalıyor. Seyahat hizmetleri, eğlence ve bazı geniş tüketim alanları ise zayıf.</p>
+    </div>
+    <article class="panel wide">
+      <div class="panel-title"><h3>Tüketimde ayrışma</h3><span class="tag">Seçilmiş harcama</span></div>
+      <div class="split">
+        <div class="mini">
+          <h4>Güçlü tüketim alanları</h4>
+          <div class="chart">
+            <div class="row gold"><div class="label">Indirim Magazalari</div><div class="track"><div class="bar" style="--w:100%"></div></div><div class="val">+15.95</div></div>
+            <div class="row gold"><div class="label">Konaklama</div><div class="track"><div class="bar" style="--w:93%"></div></div><div class="val">+14.87</div></div>
+            <div class="row gold"><div class="label">Luks Urunler</div><div class="track"><div class="bar" style="--w:57%"></div></div><div class="val">+9.12</div></div>
+          <div class="row gold"><div class="label">İnternet Perakendesi</div><div class="track"><div class="bar" style="--w:46%"></div></div><div class="val">+7.28</div></div>
+          </div>
+        </div>
+        <div class="mini">
+          <h4>Zayıf tüketim alanları</h4>
+          <div class="chart">
+            <div class="row negative"><div class="label">Kumar</div><div class="track"><div class="bar" style="--w:100%"></div></div><div class="val">-32.05</div></div>
+            <div class="row negative"><div class="label">Ayakkabi ve Aksesuar</div><div class="track"><div class="bar" style="--w:63%"></div></div><div class="val">-20.14</div></div>
+            <div class="row negative"><div class="label">Seyahat Hizmetleri</div><div class="track"><div class="bar" style="--w:33%"></div></div><div class="val">-10.67</div></div>
+            <div class="row negative"><div class="label">Buyuk Magazalar</div><div class="track"><div class="bar" style="--w:27%"></div></div><div class="val">-8.65</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="quote">Bu tablo tüketimin geniş bir boğa değil, savunmacı fiyat-perakende, konaklama ve seçilmiş online kanallar üzerinden ayrıştığını anlatıyor.</div>
+    </article>
+  </section>
+
+  <section class="section" id="finans">
+    <div class="section-head">
+      <h2>Finans tarafında aktivite var, kredi tarafında aynı iyimserlik yok.</h2>
+      <p>Finans tarafında tablo daha temkinli: büyük bankalar yatay, bölgesel bankalar ve kredi hizmetleri zayıf; sermaye piyasaları da YTD bazında sadece hafif pozitif. Asıl mesaj, finansal aktiviteden çok kredi riskine karşı seçicilik.</p>
+    </div>
+    <article class="panel wide">
+      <div class="panel-title"><h3>Finans içinde seçici fiyatlama</h3><span class="tag">YTD %</span></div>
+      <div class="chart">
+        <div class="row positive"><div class="label">Sermaye Piyasalari</div><div class="track"><div class="bar" style="--w:100%"></div></div><div class="val">+0.68</div></div>
+        <div class="row positive"><div class="label">Buyuk Bankalar</div><div class="track"><div class="bar" style="--w:93%"></div></div><div class="val">+0.63</div></div>
+        <div class="row negative"><div class="label">Bolgesel Bankalar</div><div class="track"><div class="bar" style="--w:1%"></div></div><div class="val">-0.17</div></div>
+        <div class="row negative"><div class="label">Finansal Veri ve Borsalar</div><div class="track"><div class="bar" style="--w:31%"></div></div><div class="val">-6.38</div></div>
+        <div class="row negative"><div class="label">Varlik Yonetimi</div><div class="track"><div class="bar" style="--w:38%"></div></div><div class="val">-7.63</div></div>
+        <div class="row negative"><div class="label">Kredi Hizmetleri</div><div class="track"><div class="bar" style="--w:63%"></div></div><div class="val">-12.82</div></div>
+        <div class="row negative"><div class="label">Konut Finansmanı</div><div class="track"><div class="bar" style="--w:100%"></div></div><div class="val">-20.28</div></div>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="rotasyon">
+    <div class="section-head">
+      <h2>Döngüsellik: sıra kimlere geliyor olabilir?</h2>
+      <p>Burada ana sinyal sadece YTD performans değil. YTD trend, son 1 ay ivmesi, çeyreklik toparlanma ve ileri F/K birlikte okununca piyasa döngüsü dört ayrı faza ayrılıyor: liderler, genişleme adayları, toparlanma adayları ve teyit bekleyenler.</p>
+    </div>
+
+    <article class="panel wide">
+      <div class="panel-title"><h3>Rotasyon haritası</h3><span class="tag">Momentum + değerleme</span></div>
+      <div class="cycle-grid">
+        <div class="cycle-card">
+          <em>Faz 1</em>
+          <b>Liderler ama uzamış alanlar</b>
+          <p>Elektrik ekipmanları, bilgisayar donanımı, yarı iletken ekipmanları, petrol servisleri ve sondaj. YTD çok güçlü; burada yeni girişten çok trendin korunup korunmadığı izlenir.</p>
+        </div>
+        <div class="cycle-card">
+          <em>Faz 2</em>
+          <b>Fiziksel döngü genişlemesi</b>
+          <p>Makine, mühendislik-inşaat, kamyon taşımacılığı, bilimsel/teknik enstrümanlar, demiryolları ve lojistik. Lider temanın sanayi ve taşıma tarafına yayılma ihtimali var.</p>
+        </div>
+        <div class="cycle-card">
+          <em>Faz 3</em>
+          <b>Sıra gelebilecek makul çarpanlar</b>
+          <p>Otomotiv parçaları, konut inşaatı, özel perakende, gıda dağıtımı, düzenlenmiş elektrik/gaz/su şirketleri ve seçilmiş gayrimenkul yatırım ortaklıkları. YTD daha sakin, aylık ivme daha yapıcı.</p>
+        </div>
+        <div class="cycle-card">
+          <em>Faz 4</em>
+          <b>Tepki var ama teyit zayıf</b>
+          <p>Uygulama yazılımı, reklam ajansları, bilgi teknolojisi hizmetleri ve bazı sağlık ekipmanları. Çarpanlar yer yer makul; fakat çeyreklik trend hala zayıf olduğu için teyit gerekiyor.</p>
+        </div>
+      </div>
+      <div class="quote">Rotasyon mantığı: liderleri kovalamak yerine, lider temanın beslendiği makro hikayenin bir sonraki halkasına bakmak daha anlamlı.</div>
+    </article>
+
+    <div class="share-grid" style="margin-top:16px">
+      <article class="panel">
+        <div class="panel-title"><h3>Güçlü liderler: trend var, kovalamak riskli</h3><span class="tag">YTD / Ay</span></div>
+        <div class="chart">
+          <div class="row positive"><div class="label">Elektrik Ekipmanları ve Parçaları</div><div class="track"><div class="bar" style="--w:100%"></div></div><div class="val">+71.76</div></div>
+          <div class="row positive"><div class="label">Bilgisayar Donanımı</div><div class="track"><div class="bar" style="--w:98%"></div></div><div class="val">+70.64</div></div>
+          <div class="row positive"><div class="label">Petrol ve Gaz Sondaj</div><div class="track"><div class="bar" style="--w:77%"></div></div><div class="val">+54.96</div></div>
+          <div class="row positive"><div class="label">Yarı İletken Ekipmanları</div><div class="track"><div class="bar" style="--w:76%"></div></div><div class="val">+54.87</div></div>
+          <div class="row positive"><div class="label">Petrol ve Gaz Ekipmanları</div><div class="track"><div class="bar" style="--w:71%"></div></div><div class="val">+50.60</div></div>
+        </div>
+        <div class="quote">Bu grup rejimin lideri; ama aylık ivme ve çarpanlar artık giriş zamanlamasını daha hassas yapıyor.</div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-title"><h3>Genişleme adayları: lider temanın yan halkaları</h3><span class="tag">YTD %</span></div>
+        <div class="chart">
+          <div class="row blue"><div class="label">Kamyon Taşımacılığı</div><div class="track"><div class="bar" style="--w:100%"></div></div><div class="val">+41.58</div></div>
+          <div class="row blue"><div class="label">Bilimsel ve Teknik Enstrümanlar</div><div class="track"><div class="bar" style="--w:94%"></div></div><div class="val">+39.20</div></div>
+          <div class="row blue"><div class="label">Mühendislik ve İnşaat</div><div class="track"><div class="bar" style="--w:80%"></div></div><div class="val">+33.36</div></div>
+          <div class="row blue"><div class="label">Tarım ve Ağır İnşaat Makineleri</div><div class="track"><div class="bar" style="--w:79%"></div></div><div class="val">+32.71</div></div>
+          <div class="row blue"><div class="label">Demiryolları</div><div class="track"><div class="bar" style="--w:42%"></div></div><div class="val">+17.62</div></div>
+        </div>
+        <div class="quote">Eğer fiziksel ekonomi teması sürerse, taşıma, inşaat, makine ve ölçüm ekipmanları ikinci halka gibi davranabilir.</div>
+      </article>
+    </div>
+
+    <article class="panel wide" style="margin-top:16px">
+      <div class="panel-title"><h3>Takip listesi: sıra gelebilecek alanlar</h3><span class="tag">Koşullu sinyal</span></div>
+      <div class="score-table">
+        <div class="score-row header"><span>Sektor</span><span>YTD</span><span>Ay</span><span>Fwd F/K</span><span>Sinyal</span></div>
+        <div class="score-row"><span>Konut İnşaatı</span><span>+4.20%</span><span>+8.34%</span><span>13.24</span><span class="signal hot">erken aday</span></div>
+        <div class="score-row"><span>Otomotiv Parçaları</span><span>+6.76%</span><span>+5.87%</span><span>15.12</span><span class="signal hot">makul fiyat</span></div>
+        <div class="score-row"><span>Özel Perakende</span><span>+4.05%</span><span>+3.10%</span><span>17.88</span><span class="signal watch">seçici tüketim</span></div>
+        <div class="score-row"><span>Gıda Dağıtımı</span><span>+10.13%</span><span>-1.72%</span><span>15.88</span><span class="signal watch">defansif kalite</span></div>
+        <div class="score-row"><span>Düzenlenmiş Elektrik Şirketleri</span><span>+10.75%</span><span>+1.99%</span><span>16.31</span><span class="signal watch">istikrar</span></div>
+        <div class="score-row"><span>Perakende GYO</span><span>+11.46%</span><span>+7.42%</span><span>33.07</span><span class="signal wait">çarpan yüksek</span></div>
+        <div class="score-row"><span>Reklam Ajansları</span><span>-29.08%</span><span>+3.29%</span><span>15.53</span><span class="signal wait">teyit bekler</span></div>
+        <div class="score-row"><span>Altyapı Yazılımları</span><span>-10.95%</span><span>+11.88%</span><span>23.77</span><span class="signal wait">tepki var</span></div>
+      </div>
+      <div class="quote">En temiz "sıra geliyor" profili: YTD henüz aşırı koşmamış, son ay toparlanmış, ileri F/K makul ve mevcut lider hikayeyle bağlantısı olan sektörler.</div>
+    </article>
+
+    <article class="panel wide" style="margin-top:16px">
+      <div class="panel-title"><h3>Döngü okumasının özeti</h3><span class="tag">Karar ağacı</span></div>
+      <div class="matrix">
+        <div class="matrix-card"><b>Makro enerji/arz döngüsü sürerse</b><p>Petrol servisleri sonrası sanayi, taşıma, mühendislik, makine, metal ve elektrik ekipmanları tarafı güçlü kalabilir.</p></div>
+        <div class="matrix-card"><b>Faiz baskısı azalırsa</b><p>Konut inşaatı, seçilmiş GYO'lar, konut finansmanı bağlantılı alanlar ve tüketim finansmanı daha fazla ilgi görebilir.</p></div>
+        <div class="matrix-card"><b>Risk iştahı genişlerse</b><p>Yazılım, reklam, bilgi teknolojisi hizmetleri ve internet perakendesi gibi geride kalan büyüme alanlarında tepki rallisi güçlenebilir.</p></div>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="sonuc">
+    <div class="section-head">
+      <h2>En önemli çıkarım: bu geniş boğa değil, seçici rejim.</h2>
+      <p>Piyasa risk almıyor demek yanlış. Piyasa risk alıyor; fakat her riski almıyor. Makro dayanağı, arz kısıtı, nakit akışı ve fiziksel ekonomi bağlantısı olan alanları ödüllendiriyor.</p>
+    </div>
+    <div class="summary">
+      <div class="big-number">
+        <span>Rejim özeti</span>
+        <strong>Seçici risk iştahı</strong>
+      </div>
+      <article class="panel">
+        <div class="panel-title"><h3>Alınan ve cezalandırılan temalar</h3><span class="tag">Harita</span></div>
+        <div class="matrix">
+          <div class="matrix-card"><b>Piyasa alıyor</b><p>Enerji, altyapı, sanayi ekipmanları, fiziksel teknoloji altyapısı, metaller ve seçilmiş savunmacı tüketim.</p></div>
+          <div class="matrix-card"><b>Piyasa seçiyor</b><p>Teknoloji içinde donanım; tüketimde indirim mağazaları ve konaklama; gayrimenkulde seçilmiş GYO ve konut başlıkları.</p></div>
+          <div class="matrix-card"><b>Piyasa cezalandırıyor</b><p>Yazılım, reklam, bilgi teknolojisi hizmetleri, konut finansmanı, kredi hizmetleri ve geniş tabanlı tüketim riskleri.</p></div>
+        </div>
+      </article>
+    </div>
+    <article class="panel wide" style="margin-top:16px">
+      <div class="panel-title"><h3>Tek cümlelik sonuç</h3><span class="tag">Paylaşılabilir</span></div>
+      <div class="quote">Sermaye artık sadece büyüme hikayesine değil; makro dayanağı olan, fiziksel ekonomiyle bağlantılı, nakit akışı veya arz kısıtı tarafından desteklenen alanlara gidiyor.</div>
+      <div class="pill-list">
+        <span class="pill">Hikaye</span>
+        <span class="pill">Nakit akışı</span>
+        <span class="pill">Makro destek</span>
+        <span class="pill">Arz kısıtı</span>
+        <span class="pill">Fiziksel ekonomi</span>
+      </div>
+    </article>
+  </section>
+</main>
+</body>
+</html>
