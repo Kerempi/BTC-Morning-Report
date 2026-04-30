@@ -313,6 +313,24 @@ td { padding:9px 7px; border-bottom:1px solid rgba(255,255,255,.08); text-align:
 .portfolio-table td:first-child span { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
 .history-chart { width:100%; min-height:230px; display:block; margin-top:10px; }
 code { color:var(--gold); background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:6px; padding:2px 5px; }
+.participation-panel { background:linear-gradient(180deg,rgba(106,184,255,.12),rgba(255,255,255,.035)); border:1px solid rgba(106,184,255,.34); border-radius:10px; padding:18px; margin:0 0 16px; }
+.participation-hero { display:grid; grid-template-columns:minmax(0,1fr) 220px; gap:16px; align-items:stretch; }
+.participation-hero h2 { margin:10px 0 8px; font-size:38px; line-height:1.04; }
+.participation-hero p { margin:0; color:#d8d1c7; font-size:15px; line-height:1.48; }
+.participation-score { background:#d9e0ea; color:#101318; border-radius:8px; padding:14px; display:grid; align-content:center; }
+.participation-score span { font-size:11px; font-weight:900; text-transform:uppercase; }
+.participation-score b { display:block; font-size:42px; line-height:1; margin:6px 0; }
+.participation-score em { font-style:normal; font-size:12px; line-height:1.35; }
+.participation-kpis { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; margin-top:12px; }
+.participation-kpis article { background:rgba(15,17,21,.38); border:1px solid var(--line); border-radius:8px; padding:12px; }
+.participation-kpis span { display:block; color:var(--muted); font-size:10px; font-weight:900; text-transform:uppercase; }
+.participation-kpis b { display:block; color:var(--gold); font-size:22px; margin-top:5px; }
+.participation-kpis small { display:block; color:var(--muted); font-size:11px; margin-top:3px; line-height:1.3; }
+.participation-history { background:rgba(15,17,21,.32); border:1px solid var(--line); border-radius:8px; padding:14px; margin-top:10px; }
+.participation-mini-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+.participation-mini-grid article { background:rgba(255,255,255,.045); border:1px solid var(--line); border-radius:8px; padding:12px; }
+.participation-mini-grid h4 { margin:0 0 6px; font-size:15px; }
+.compact-chart { min-height:150px; }
 .detail-zone { margin-top:18px; border:1px solid rgba(255,255,255,.14); border-radius:10px; padding:16px; background:rgba(255,255,255,.035); }
 .detail-zone > .panel-title { margin-bottom:10px; }
 details.detail-block { border:1px solid var(--line); border-radius:8px; background:rgba(15,17,21,.42); margin-top:10px; overflow:hidden; }
@@ -370,7 +388,7 @@ details.detail-block[open] > summary:after { content:"kapat"; }
 .spark { width:130px; height:34px; display:block; }
 .muted { color:var(--muted); font-size:12px; }
 @media(max-width:1180px) { .side-nav { position:static; width:auto; display:flex; overflow:auto; padding:10px 20px 0; } }
-@media(max-width:900px) { .hero,.grid,.cards,.kpis,.score-notes,.focus-board,.factor-grid,.factor-hero,.factor-deep-grid,.factor-analytics,.pulse-head,.pulse-grid,.scatter-layout,.glossary,.macro-head,.macro-stats,.macro-grid,.macro-readthrough,.world-hero,.macro-cards,.world-grid,.brief-cards,.brief-grid,.signal-bars,.scenario-tree > div,.intel-grid,.positioning-grid,.positioning-legend,.session-head,.session-kpis,.session-grid,.session-read,.session-trend-grid,.action-hero,.action-grid,.action-sector,.rotation-hero,.rotation-grid,.portfolio-hero,.portfolio-grid,.portfolio-scores,.portfolio-trends,.portfolio-lower { grid-template-columns:1fr; } .panel.wide,.wide-session,.action-card.wide { grid-column:auto; } .bar-row { grid-template-columns:1fr 1fr 62px; } .top-inner { align-items:flex-start; flex-direction:column; } }
+@media(max-width:900px) { .hero,.grid,.cards,.kpis,.score-notes,.focus-board,.factor-grid,.factor-hero,.factor-deep-grid,.factor-analytics,.pulse-head,.pulse-grid,.scatter-layout,.glossary,.macro-head,.macro-stats,.macro-grid,.macro-readthrough,.world-hero,.macro-cards,.world-grid,.brief-cards,.brief-grid,.signal-bars,.scenario-tree > div,.intel-grid,.positioning-grid,.positioning-legend,.session-head,.session-kpis,.session-grid,.session-read,.session-trend-grid,.action-hero,.action-grid,.action-sector,.rotation-hero,.rotation-grid,.portfolio-hero,.portfolio-grid,.portfolio-scores,.portfolio-trends,.portfolio-lower,.participation-hero,.participation-kpis,.participation-mini-grid { grid-template-columns:1fr; } .panel.wide,.wide-session,.action-card.wide { grid-column:auto; } .bar-row { grid-template-columns:1fr 1fr 62px; } .top-inner { align-items:flex-start; flex-direction:column; } }
 </style>
 </head>
 <body>
@@ -378,6 +396,7 @@ details.detail-block[open] > summary:after { content:"kapat"; }
 <nav class="side-nav" aria-label="Kokpit menüsü">
   <a href="#ozet">Özet</a>
   <a href="#portfoy-rejimi">Portföy Rejimi</a>
+  <a href="#katilim">Katılım</a>
   <a href="#yil-ici-rejim">Yıl İçi Test</a>
   <a href="#uzun-donem-rejim">Uzun Dönem</a>
   <a href="#rotasyon">Rotasyon Radarı</a>
@@ -532,6 +551,134 @@ details.detail-block[open] > summary:after { content:"kapat"; }
         <article>
           <h4>Risk Eğrisi Teyitleri</h4>
           <ol class="session-list"><li><span><b>QQQ - SPY</b><small>Teknoloji büyüme iştahı</small></span><em class="pos">+5.90%</em></li><li><span><b>IWM - SPY</b><small>Küçük ölçek risk iştahı</small></span><em class="pos">+0.95%</em></li><li><span><b>HYG - LQD</b><small>Kredi riski iştahı</small></span><em class="pos">+1.28%</em></li><li><span><b>TLT - SHY</b><small>Faiz/duration talebi</small></span><em class="neg">-1.11%</em></li><li><span><b>GLD - SPY</b><small>Güvenli liman / altın talebi</small></span><em class="neg">-11.92%</em></li><li><span><b>EEM - SPY</b><small>Global risk rotasyonu</small></span><em class="pos">+1.90%</em></li></ol>
+        </article>
+      </div>
+    </section>
+    
+
+  
+    <section class="participation-panel" id="katilim">
+      <div class="panel-title"><h3>Katılım ve Yoğunlaşma</h3><span>herkes kazanıyor mu?</span></div>
+      <div class="participation-hero">
+        <div>
+          <span class="kicker">Piyasa İç Yapısı</span>
+          <h2>Büyükler endeksi taşıyor</h2>
+          <p>Piyasa değeri ağırlıklı hareket eşit ağırlıktan belirgin güçlü; liderlik daralabilir. Günlük pozitif hisse oranı 26.77%; piyasa değeri ağırlıklı hareket ile eşit ağırlık farkı +1.03%.</p>
+        </div>
+        <div class="participation-score"><span>Gerçek katılım</span><b>26.77%</b><em>1487/5555 hisse pozitif</em></div>
+      </div>
+      <div class="participation-kpis"><article><span>Günlük hisse genişliği</span><b>26.77%</b><small>1487/5555 hisse pozitif</small></article><article><span>Aylık hisse genişliği</span><b>73.65%</b><small>1 aylık pozitif oran</small></article><article><span>YTD hisse genişliği</span><b>52.01%</b><small>yıl başından beri pozitif oran</small></article><article><span>Sektör genişliği</span><b>90.91%</b><small>aylık pozitif sektör oranı</small></article><article><span>Ağırlıklı - eşit</span><b>+1.03%</b><small>günlük yoğunlaşma farkı</small></article><article><span>Top 10 katkı payı</span><b>89.75%</b><small>cap payı 31.95%</small></article></div>
+      
+        <div class="portfolio-trends">
+          <article><div><span>Genişlik</span><b>26.77%</b></div>
+      <svg class="signal-spark" viewBox="0 0 260 64" role="img" aria-label="breadth trendi">
+        <line x1="8" y1="32.0" x2="252" y2="32.0" class="axis-soft"/>
+        <polyline points="8.0,31.8 30.2,31.8 52.4,31.8 74.5,31.8 96.7,31.8 118.9,33.0 141.1,33.2 163.3,36.2 185.5,36.2 207.6,42.9 229.8,43.2 252.0,43.2" fill="none" stroke="#46d48f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="252.0" cy="43.2" r="4" fill="#46d48f"/>
+      </svg>
+      <small class="pos">son 26.77 · önceki 26.77</small>
+    </article>
+          <article><div><span>Yoğunlaşma</span><b>+1.03%</b></div>
+      <svg class="signal-spark" viewBox="0 0 260 64" role="img" aria-label="concentration trendi">
+        <line x1="8" y1="32.0" x2="252" y2="32.0" class="axis-soft"/>
+        <polyline points="8.0,55.7 30.2,55.7 52.4,55.7 74.5,55.7 96.7,55.7 118.9,55.9 141.1,55.9 163.3,56.0 185.5,56.0 207.6,55.5 229.8,55.5 252.0,55.5" fill="none" stroke="#f0c75b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="252.0" cy="55.5" r="4" fill="#f0c75b"/>
+      </svg>
+      <small class="pos">son 1.03 · önceki 1.03</small>
+    </article>
+          <article><div><span>QQQ-SPY</span><b>+0.63%</b></div>
+      <svg class="signal-spark" viewBox="0 0 260 64" role="img" aria-label="qqq_spy trendi">
+        <line x1="8" y1="31.9" x2="252" y2="31.9" class="axis-soft"/>
+        <polyline points="8.0,55.8 30.2,55.8 52.4,55.8 74.5,55.2 96.7,55.2 118.9,55.8 141.1,55.8 163.3,56.0 185.5,56.0 207.6,55.4 229.8,55.5 252.0,55.5" fill="none" stroke="#6ab8ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="252.0" cy="55.5" r="4" fill="#6ab8ff"/>
+      </svg>
+      <small class="pos">son 0.63 · önceki 0.63</small>
+    </article>
+        </div>
+        
+      
+        <article class="participation-history">
+          <div class="panel-title"><h3>Gerçek Katılım Geçmişi</h3><span>snapshot bazlı</span></div>
+          <p class="explain">Bu grafik hisse evreninden alınan gerçek snapshot kayıtlarıyla oluşur. Geriye dönük tarihsel hisse genişliği yok; kokpit her çalıştıkça seri uzayacak. Küçük değerli yoğunlaşma ve QQQ-SPY serileri ayrı ölçeklerde altta gösterilir.</p>
+          
+    <svg class="history-chart compact-chart" viewBox="0 0 980 220" role="img" aria-label="Gerçek katılım grafiği">
+      <line x1='48' y1='186.0' x2='962' y2='186.0' class='axis-soft'/><text x='6' y='190.0' class='axis-text'>0.0%</text><line x1='48' y1='101.0' x2='962' y2='101.0' class='axis-soft'/><text x='6' y='105.0' class='axis-text'>50.0%</text><line x1='48' y1='16.0' x2='962' y2='16.0' class='axis-soft'/><text x='6' y='20.0' class='axis-text'>100.0%</text>
+      <line x1='48' y1='16' x2='48' y2='186' class='axis'/>
+      <line x1='48' y1='186' x2='962' y2='186' class='axis'/>
+      <polyline points="48.0,100.4 131.1,100.4 214.2,100.4 297.3,100.4 380.4,100.3 463.5,104.6 546.5,105.3 629.6,115.7 712.7,115.8 795.8,139.7 878.9,140.5 962.0,140.5" fill="none" stroke="#46d48f" stroke-width="2.8"/>
+      <rect x='6.5' y='16.0' width='83.1' height='170.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>25.04
+Gerçek katılım: 50.35%</title></rect><rect x='89.5' y='16.0' width='83.1' height='170.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>25.04
+Gerçek katılım: 50.35%</title></rect><rect x='172.6' y='16.0' width='83.1' height='170.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>25.04
+Gerçek katılım: 50.35%</title></rect><rect x='255.7' y='16.0' width='83.1' height='170.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>25.04
+Gerçek katılım: 50.35%</title></rect><rect x='338.8' y='16.0' width='83.1' height='170.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>27.04
+Gerçek katılım: 50.42%</title></rect><rect x='421.9' y='16.0' width='83.1' height='170.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>27.04
+Gerçek katılım: 47.91%</title></rect><rect x='505.0' y='16.0' width='83.1' height='170.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>28.04
+Gerçek katılım: 47.46%</title></rect><rect x='588.1' y='16.0' width='83.1' height='170.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>28.04
+Gerçek katılım: 41.34%</title></rect><rect x='671.2' y='16.0' width='83.1' height='170.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>29.04
+Gerçek katılım: 41.30%</title></rect><rect x='754.3' y='16.0' width='83.1' height='170.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>29.04
+Gerçek katılım: 27.24%</title></rect><rect x='837.4' y='16.0' width='83.1' height='170.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>30.04
+Gerçek katılım: 26.77%</title></rect><rect x='920.5' y='16.0' width='83.1' height='170.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>Son
+Gerçek katılım: 26.77%</title></rect>
+      <text x='48.0' y='211' class='axis-text' text-anchor='middle'>25.04</text><text x='546.5' y='211' class='axis-text' text-anchor='middle'>28.04</text><text x='962.0' y='211' class='axis-text' text-anchor='middle'>Son</text>
+    </svg>
+    
+          <div class="participation-mini-grid">
+            <article><h4>Yoğunlaşma Farkı</h4>
+    <svg class="history-chart compact-chart" viewBox="0 0 980 150" role="img" aria-label="Yoğunlaşma farkı grafiği">
+      <line x1='48' y1='116.0' x2='962' y2='116.0' class='axis-soft'/><text x='6' y='120.0' class='axis-text'>-1.0%</text><line x1='48' y1='66.0' x2='962' y2='66.0' class='axis-soft'/><text x='6' y='70.0' class='axis-text'>0.5%</text><line x1='48' y1='16.0' x2='962' y2='16.0' class='axis-soft'/><text x='6' y='20.0' class='axis-text'>2.0%</text>
+      <line x1='48' y1='16' x2='48' y2='116' class='axis'/>
+      <line x1='48' y1='116' x2='962' y2='116' class='axis'/>
+      <polyline points="48.0,63.4 131.1,63.4 214.2,63.4 297.3,63.4 380.4,63.4 463.5,78.3 546.5,78.1 629.6,82.5 712.7,82.6 795.8,49.4 878.9,49.8 962.0,49.8" fill="none" stroke="#f0c75b" stroke-width="2.8"/>
+      <rect x='6.5' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>25.04
+Yoğunlaşma farkı: 0.63%</title></rect><rect x='89.5' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>25.04
+Yoğunlaşma farkı: 0.63%</title></rect><rect x='172.6' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>25.04
+Yoğunlaşma farkı: 0.63%</title></rect><rect x='255.7' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>25.04
+Yoğunlaşma farkı: 0.63%</title></rect><rect x='338.8' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>27.04
+Yoğunlaşma farkı: 0.63%</title></rect><rect x='421.9' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>27.04
+Yoğunlaşma farkı: 0.18%</title></rect><rect x='505.0' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>28.04
+Yoğunlaşma farkı: 0.18%</title></rect><rect x='588.1' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>28.04
+Yoğunlaşma farkı: 0.05%</title></rect><rect x='671.2' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>29.04
+Yoğunlaşma farkı: 0.05%</title></rect><rect x='754.3' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>29.04
+Yoğunlaşma farkı: 1.05%</title></rect><rect x='837.4' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>30.04
+Yoğunlaşma farkı: 1.03%</title></rect><rect x='920.5' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>Son
+Yoğunlaşma farkı: 1.03%</title></rect>
+      <text x='48.0' y='141' class='axis-text' text-anchor='middle'>25.04</text><text x='546.5' y='141' class='axis-text' text-anchor='middle'>28.04</text><text x='962.0' y='141' class='axis-text' text-anchor='middle'>Son</text>
+    </svg>
+    </article>
+            <article><h4>QQQ - SPY</h4>
+    <svg class="history-chart compact-chart" viewBox="0 0 980 150" role="img" aria-label="QQQ-SPY grafiği">
+      <line x1='48' y1='116.0' x2='962' y2='116.0' class='axis-soft'/><text x='6' y='120.0' class='axis-text'>-1.5%</text><line x1='48' y1='66.0' x2='962' y2='66.0' class='axis-soft'/><text x='6' y='70.0' class='axis-text'>0.3%</text><line x1='48' y1='16.0' x2='962' y2='16.0' class='axis-soft'/><text x='6' y='20.0' class='axis-text'>2.1%</text>
+      <line x1='48' y1='16' x2='48' y2='116' class='axis'/>
+      <line x1='48' y1='116' x2='962' y2='116' class='axis'/>
+      <polyline points="48.0,74.5 131.1,74.5 214.2,74.5 297.3,43.3 380.4,43.3 463.5,77.7 546.5,77.7 629.6,88.4 712.7,88.7 795.8,57.0 878.9,57.3 962.0,57.3" fill="none" stroke="#6ab8ff" stroke-width="2.8"/>
+      <rect x='6.5' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>25.04
+QQQ-SPY: 0.00%</title></rect><rect x='89.5' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>25.04
+QQQ-SPY: 0.00%</title></rect><rect x='172.6' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>25.04
+QQQ-SPY: 0.00%</title></rect><rect x='255.7' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>25.04
+QQQ-SPY: 1.14%</title></rect><rect x='338.8' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>27.04
+QQQ-SPY: 1.14%</title></rect><rect x='421.9' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>27.04
+QQQ-SPY: -0.12%</title></rect><rect x='505.0' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>28.04
+QQQ-SPY: -0.12%</title></rect><rect x='588.1' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>28.04
+QQQ-SPY: -0.51%</title></rect><rect x='671.2' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>29.04
+QQQ-SPY: -0.52%</title></rect><rect x='754.3' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>29.04
+QQQ-SPY: 0.64%</title></rect><rect x='837.4' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>30.04
+QQQ-SPY: 0.63%</title></rect><rect x='920.5' y='16.0' width='83.1' height='100.0' fill='rgba(255,255,255,0.001)' stroke='transparent' pointer-events='all'><title>Son
+QQQ-SPY: 0.63%</title></rect>
+      <text x='48.0' y='141' class='axis-text' text-anchor='middle'>25.04</text><text x='546.5' y='141' class='axis-text' text-anchor='middle'>28.04</text><text x='962.0' y='141' class='axis-text' text-anchor='middle'>Son</text>
+    </svg>
+    </article>
+          </div>
+        </article>
+        
+      <div class="portfolio-lower">
+        <article>
+          <h4>Endeks Teyitleri</h4>
+          <ol class="session-list"><li><span><b>SPY</b><small>ana endeks</small></span><em class="neg">-0.02%</em></li><li><span><b>QQQ - SPY</b><small>mega/growth liderliği</small></span><em class="pos">+0.63%</em></li><li><span><b>IWM - SPY</b><small>küçük ölçek katılımı</small></span><em class="neg">-0.65%</em></li><li><span><b>HYG - LQD</b><small>kredi risk iştahı</small></span><em class="pos">+0.22%</em></li><li><span><b>Ağırlıklı - Eşit</b><small>hisse içi yoğunlaşma</small></span><em class="pos">+1.03%</em></li><li><span><b>Aylık ağırlıklı - eşit</b><small>orta vadeli yoğunlaşma</small></span><em class="pos">+4.42%</em></li></ol>
+        </article>
+        <article>
+          <h4>En Büyük 10 Hisse Ne Yapıyor?</h4>
+          <table class="portfolio-table"><thead><tr><th>Ticker</th><th>Şirket</th><th>Piyasa Değeri</th><th>Gün</th><th>Ay</th></tr></thead><tbody><tr><td>NVDA</td><td>NVIDIA Corp</td><td>$5.08T</td><td class="neg">-1.84%</td><td class="pos">+26.69%</td></tr><tr><td>GOOG</td><td>Alphabet Inc</td><td>$4.23T</td><td class="neg">-0.05%</td><td class="pos">+27.15%</td></tr><tr><td>GOOGL</td><td>Alphabet Inc</td><td>$4.23T</td><td class="pos">+0.05%</td><td class="pos">+27.95%</td></tr><tr><td>AAPL</td><td>Apple Inc</td><td>$3.97T</td><td class="neg">-0.20%</td><td class="pos">+9.54%</td></tr><tr><td>MSFT</td><td>Microsoft Corp</td><td>$3.15T</td><td class="neg">-1.12%</td><td class="pos">+18.25%</td></tr><tr><td>AMZN</td><td>Amazon.com Inc</td><td>$2.83T</td><td class="pos">+1.29%</td><td class="pos">+30.90%</td></tr><tr><td>TSM</td><td>Taiwan Semiconductor Manufacturing</td><td>$2.04T</td><td class="pos">+0.38%</td><td class="pos">+24.43%</td></tr><tr><td>AVGO</td><td>Broadcom Inc</td><td>$1.92T</td><td class="pos">+1.41%</td><td class="pos">+38.19%</td></tr><tr><td>META</td><td>Meta Platforms Inc</td><td>$1.70T</td><td class="neg">-0.33%</td><td class="pos">+24.75%</td></tr><tr><td>TSLA</td><td>Tesla Inc</td><td>$1.40T</td><td class="neg">-0.86%</td><td class="pos">+4.93%</td></tr></tbody></table>
+          <p class="note">Top 10 pozitif oranı 40.00%. Top 10 katkı payı yüksek ama genişlik düşükse endeksin yükselişi dar liderlikle taşınıyor olabilir.</p>
         </article>
       </div>
     </section>
@@ -883,7 +1030,7 @@ Stres: 10.13</title></rect>
         </article>
         <article>
           <h4>Nasıl Okunmalı?</h4>
-          <p class="note">Bu panel sektör/hisse snapshot'ından değil, ETF fiyat geçmişindeki rolling 1 aylık değişimlerden hesaplanır. Üstteki Portföy Rejim Haritası Finviz faktör/sektör verisini de ekler; bu yüzden aynı gün birebir aynı seviye olmak zorunda değildir. Ayrışma varsa, genelde hisse içi kalabalıklaşma, spekülasyon veya faktör verisi üst paneli daha temkinli yapıyordur.</p>
+          <p class="note">Bu panel sektör/hisse snapshot'ından değil, ETF fiyat geçmişindeki rolling 1 aylık değişimlerden hesaplanır. Üstteki Portföy Rejim Haritası faktör/sektör verisini de ekler; bu yüzden aynı gün birebir aynı seviye olmak zorunda değildir. Ayrışma varsa, genelde hisse içi kalabalıklaşma, spekülasyon veya faktör verisi üst paneli daha temkinli yapıyordur.</p>
         </article>
       </div>
     </section>
