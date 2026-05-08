@@ -97,8 +97,9 @@ p { color:var(--muted); line-height:1.55; }
 
 <script>
 const DAILY_HASHES = {
-  "2026-05-08": "a6ea19515d26eb9273a4e4baf13a14430cc0e9387711ae44f0cc2b53a20e8bc9"
+  "2026-05-08": "a544e08fc61fb752b842f09acaff1a801f6aec14e3b8a187184d1ca37db9d33f"
 };
+const ACCESS_STORAGE_KEY = "report_access_2026_05_08_v2";
 
 async function sha256(text) {
   const bytes = new TextEncoder().encode(text);
@@ -110,7 +111,7 @@ async function unlock(password) {
   const hash = await sha256(password);
   const allowed = Object.values(DAILY_HASHES);
   if (allowed.includes(hash)) {
-    sessionStorage.setItem("report_access", hash);
+    sessionStorage.setItem(ACCESS_STORAGE_KEY, hash);
     document.body.classList.remove("locked");
     document.body.classList.add("unlocked");
     return true;
@@ -126,7 +127,7 @@ document.getElementById("gate").addEventListener("submit", async (event) => {
   if (ok) input.value = "";
 });
 
-const saved = sessionStorage.getItem("report_access");
+const saved = sessionStorage.getItem(ACCESS_STORAGE_KEY);
 if (saved && Object.values(DAILY_HASHES).includes(saved)) {
   document.body.classList.remove("locked");
   document.body.classList.add("unlocked");
