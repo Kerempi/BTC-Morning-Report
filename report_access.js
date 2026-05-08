@@ -1,6 +1,6 @@
 (function () {
   const allowed = [
-    "51216a202487373730d19aad238f481ab4ee8895a0e13297233308dccafcda88"
+    "a6ea19515d26eb9273a4e4baf13a14430cc0e9387711ae44f0cc2b53a20e8bc9"
   ];
   const saved = sessionStorage.getItem("report_access");
   if (!saved || !allowed.includes(saved)) {
