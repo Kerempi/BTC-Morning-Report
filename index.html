@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Piyasa Raporları</title>
 <style>
-:root { --bg:#0f1115; --panel:#181c23; --panel2:#202631; --ink:#f3efe7; --muted:#aaa398; --line:rgba(255,255,255,.12); --gold:#f0c75b; --green:#46d48f; --blue:#6ab8ff; --red:#ff6f6f; }
+:root { --bg:#0f1115; --panel:#181c23; --panel2:#202631; --ink:#f3efe7; --muted:#aaa398; --line:rgba(255,255,255,.12); --gold:#f0c75b; }
 * { box-sizing:border-box; }
 body { margin:0; min-height:100vh; font-family:Inter,Segoe UI,Arial,sans-serif; background:linear-gradient(145deg,#0f1115,#151b25 50%,#101217); color:var(--ink); }
 main { max-width:1120px; margin:0 auto; padding:34px 20px 70px; }
@@ -19,7 +19,6 @@ p { color:var(--muted); line-height:1.55; }
 .gate input { width:100%; background:#0d1118; border:1px solid var(--line); color:var(--ink); border-radius:8px; padding:13px 14px; font-size:16px; outline:none; }
 .gate input:focus { border-color:rgba(240,199,91,.75); }
 .button,button { border:0; border-radius:8px; background:var(--gold); color:#101318; padding:13px 16px; font-weight:900; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; min-height:44px; }
-.button.secondary { background:#d9e0ea; }
 .error { grid-column:1 / -1; display:none; color:#ffb3b3; font-size:13px; margin:0; }
 .tabs { display:none; margin-top:20px; }
 .tabbar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
@@ -27,7 +26,7 @@ p { color:var(--muted); line-height:1.55; }
 .tabbar button.active { background:var(--gold); color:#101318; }
 .panel { display:none; }
 .panel.active { display:block; }
-.cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.cards { display:grid; grid-template-columns:minmax(280px,520px); gap:14px; }
 .card { background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.035)); border:1px solid var(--line); border-radius:10px; padding:18px; min-height:210px; display:grid; align-content:space-between; }
 .card h2 { margin:0 0 8px; font-size:25px; }
 .card p { margin:0; }
@@ -48,7 +47,7 @@ p { color:var(--muted); line-height:1.55; }
       <h1>Piyasa Raporları</h1>
       <p>BTC opsiyon notları ve Makro Rejim Haritası için günlük erişim kapısı.</p>
     </div>
-    <div class="status">Son üretim: 2026-04-25<br>Günlük şifre gerekir</div>
+    <div class="status">Son üretim: 2026-05-08<br>Günlük şifre gerekir</div>
   </div>
 
   <form class="gate" id="gate">
@@ -76,14 +75,6 @@ p { color:var(--muted); line-height:1.55; }
           </div>
           <div class="actions"><a class="button" href="btc_morning_report.html">Raporu Aç</a></div>
         </article>
-        <article class="card">
-          <div>
-            <h2>English Version</h2>
-            <p>BTC options morning note in English.</p>
-            <p class="meta">Secondary language</p>
-          </div>
-          <div class="actions"><a class="button secondary" href="btc_morning_report_en.html">Open Report</a></div>
-        </article>
       </div>
     </div>
 
@@ -92,18 +83,10 @@ p { color:var(--muted); line-height:1.55; }
         <article class="card">
           <div>
             <h2>Makro Rejim Haritası</h2>
-            <p>Makro rejim, likidite rejimi, risk genişlemesi, AI/capex, enerji-sanayi ve defansif-stres okumaları.</p>
+            <p>Makro rejim, portföy rejimi, yıl içi geri test, risk genişlemesi, AI/capex, enerji-sanayi ve defansif-stres okumaları.</p>
             <p class="meta">Ana kokpit</p>
           </div>
-          <div class="actions"><a class="button" href="market_cockpit.html">Haritayı Aç</a></div>
-        </article>
-        <article class="card">
-          <div>
-            <h2>Aylık Makro Rapor</h2>
-            <p>YTD büyük resimden Nisan rejimine geçiş, yıl içi rejim akışı ve sonraki senaryo.</p>
-            <p class="meta">Aylık anlatı</p>
-          </div>
-          <div class="actions"><a class="button secondary" href="macro_april_report.html">Raporu Aç</a></div>
+          <div class="actions"><a class="button" href="market_cockpit.html">Kokpiti Aç</a></div>
         </article>
       </div>
     </div>
@@ -114,8 +97,9 @@ p { color:var(--muted); line-height:1.55; }
 
 <script>
 const DAILY_HASHES = {
-  "2026-04-25": "7f36521c46fe193a1a19bd16e77e4ddb8191eee92ed9a53a359d8ac4979c6541"
+  "2026-05-08": "a544e08fc61fb752b842f09acaff1a801f6aec14e3b8a187184d1ca37db9d33f"
 };
+const ACCESS_STORAGE_KEY = "report_access_2026_05_08_v2";
 
 async function sha256(text) {
   const bytes = new TextEncoder().encode(text);
@@ -123,16 +107,11 @@ async function sha256(text) {
   return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-function todayKey() {
-  const d = new Date();
-  return d.toISOString().slice(0, 10);
-}
-
 async function unlock(password) {
   const hash = await sha256(password);
   const allowed = Object.values(DAILY_HASHES);
   if (allowed.includes(hash)) {
-    sessionStorage.setItem("report_access", hash);
+    sessionStorage.setItem(ACCESS_STORAGE_KEY, hash);
     document.body.classList.remove("locked");
     document.body.classList.add("unlocked");
     return true;
@@ -148,7 +127,7 @@ document.getElementById("gate").addEventListener("submit", async (event) => {
   if (ok) input.value = "";
 });
 
-const saved = sessionStorage.getItem("report_access");
+const saved = sessionStorage.getItem(ACCESS_STORAGE_KEY);
 if (saved && Object.values(DAILY_HASHES).includes(saved)) {
   document.body.classList.remove("locked");
   document.body.classList.add("unlocked");
