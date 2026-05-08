@@ -4,7 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Market Kokpit</title>
-<script src="report_access.js?v=20260508v2"></script>
+<script>
+(function () {
+  const storageKey = "report_access_2026_05_08_v2";
+  const allowed = ["a544e08fc61fb752b842f09acaff1a801f6aec14e3b8a187184d1ca37db9d33f"];
+  const saved = sessionStorage.getItem(storageKey);
+  if (!saved || !allowed.includes(saved)) {
+    window.location.replace("index.html");
+  }
+})();
+</script>
 <style>
 :root { --bg:#0f1115; --panel:#181c23; --panel2:#202631; --ink:#f3efe7; --muted:#aaa398; --line:rgba(255,255,255,.12); --green:#46d48f; --red:#ff6f6f; --gold:#f0c75b; --blue:#6ab8ff; }
 * { box-sizing:border-box; }
