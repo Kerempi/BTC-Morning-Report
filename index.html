@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="tr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Piyasa Raporları</title>
+<title>Piyasa RaporlarÄ±</title>
 <style>
 :root { --bg:#0f1115; --panel:#181c23; --panel2:#202631; --ink:#f3efe7; --muted:#aaa398; --line:rgba(255,255,255,.12); --gold:#f0c75b; }
 * { box-sizing:border-box; }
@@ -44,36 +44,36 @@ p { color:var(--muted); line-height:1.55; }
   <div class="top">
     <div class="brand">
       <span>Private Research</span>
-      <h1>Piyasa Raporları</h1>
-      <p>BTC opsiyon notları ve Makro Rejim Haritası için günlük erişim kapısı.</p>
+      <h1>Piyasa RaporlarÄ±</h1>
+      <p>BTC opsiyon notlarÄ± ve Makro Rejim HaritasÄ± iÃ§in gÃ¼nlÃ¼k eriÅŸim kapÄ±sÄ±.</p>
     </div>
-    <div class="status">Son üretim: 2026-05-08<br>Günlük şifre gerekir</div>
+    <div class="status">Son gÃ¼ncelleme: 2026-05-15<br>GÃ¼nlÃ¼k ÅŸifre gerekir</div>
   </div>
 
   <form class="gate" id="gate">
     <div>
-      <label for="password">Günlük Şifre</label>
-      <input id="password" type="password" autocomplete="current-password" placeholder="Şifreyi gir">
+      <label for="password">GÃ¼nlÃ¼k Åžifre</label>
+      <input id="password" type="password" autocomplete="current-password" placeholder="Åžifreyi gir">
     </div>
-    <button type="submit">Giriş</button>
-    <p class="error" id="error">Şifre hatalı. Günlük şifreyi kontrol et.</p>
+    <button type="submit">GiriÅŸ</button>
+    <p class="error" id="error">Åžifre hatalÄ±. GÃ¼nlÃ¼k ÅŸifreyi kontrol et.</p>
   </form>
 
   <section class="tabs" aria-label="Rapor sekmeleri">
     <div class="tabbar">
-      <button class="active" type="button" data-tab="btc">BTC Opsiyon Notları</button>
-      <button type="button" data-tab="macro">Makro Rejim Haritası</button>
+      <button class="active" type="button" data-tab="btc">BTC Opsiyon NotlarÄ±</button>
+      <button type="button" data-tab="macro">Makro Rejim HaritasÄ±</button>
     </div>
 
     <div class="panel active" id="tab-btc">
       <div class="cards">
         <article class="card">
           <div>
-            <h2>Türkçe BTC Opsiyon Notu</h2>
-            <p>Güncel sabah opsiyon raporu, volatilite, risk reversal, positioning ve desk note özeti.</p>
+            <h2>TÃ¼rkÃ§e BTC Opsiyon Notu</h2>
+            <p>GÃ¼ncel sabah opsiyon raporu, volatilite, risk reversal, positioning ve desk note Ã¶zeti.</p>
             <p class="meta">Ana rapor</p>
           </div>
-          <div class="actions"><a class="button" href="btc_morning_report.html">Raporu Aç</a></div>
+          <div class="actions"><a class="button" href="btc_morning_report.html?v=2026051501">Raporu AÃ§</a></div>
         </article>
       </div>
     </div>
@@ -82,16 +82,16 @@ p { color:var(--muted); line-height:1.55; }
       <div class="cards">
         <article class="card">
           <div>
-            <h2>Makro Rejim Haritası</h2>
-            <p>Makro rejim, portföy rejimi, yıl içi geri test, risk genişlemesi, AI/capex, enerji-sanayi ve defansif-stres okumaları.</p>
+            <h2>Makro Rejim HaritasÄ±</h2>
+            <p>Makro rejim, portfÃ¶y rejimi, yÄ±l iÃ§i geri test, risk geniÅŸlemesi, AI/capex, enerji-sanayi ve defansif-stres okumalarÄ±.</p>
             <p class="meta">Ana kokpit</p>
           </div>
-          <div class="actions"><a class="button" href="market_cockpit.html">Kokpiti Aç</a></div>
+          <div class="actions"><a class="button" href="market_cockpit.html?v=2026051501">Kokpiti AÃ§</a></div>
         </article>
       </div>
     </div>
 
-    <p class="note">Not: GitHub Pages statik yayın yaptığı için bu günlük şifre kapısı hafif erişim kontrolüdür. Gerçek kullanıcı bazlı güvenlik için Cloudflare Access, Vercel/Netlify auth veya benzeri bir giriş katmanı gerekir.</p>
+    <p class="note">Not: GitHub Pages statik yayÄ±n yaptÄ±ÄŸÄ± iÃ§in bu gÃ¼nlÃ¼k ÅŸifre kapÄ±sÄ± hafif eriÅŸim kontrolÃ¼dÃ¼r. GerÃ§ek kullanÄ±cÄ± bazlÄ± gÃ¼venlik iÃ§in Cloudflare Access, Vercel/Netlify auth veya benzeri bir giriÅŸ katmanÄ± gerekir.</p>
   </section>
 </main>
 
@@ -144,3 +144,4 @@ document.querySelectorAll("[data-tab]").forEach(button => {
 </script>
 </body>
 </html>
+
