@@ -86,91 +86,47 @@ small { opacity:0.82; font-size:12px; }
 <main>
   <section class='hero'>
     <h1>BTC Sabah Opsiyon Notu</h1>
-    <p><strong>Bugunun rejimi:</strong> Kirilgan. Gamma yapisi artik hareketi bastirmaktan cok buyutmeye daha yakin, bu yuzden fiyat davranisi daha yonlu olabilir.</p>
-    <p><strong>Risk asimetrisi:</strong> Asagi yon daha kolay hizlanabilir. Yukari devam icin 82,000 ustu acceptance gerekirken, 77,000 alti kirilma hedge akislarini daha hizli buyutebilir.</p>
-    <p><strong>Yukari teyit:</strong> 82,000 ustunde kalici acceptance ve belirgin yeni call eklenmesi.</p>
+    <p><strong>Bugunun rejimi:</strong> Kontrollu ama kirilgan. Genel gamma yapisi tampon uretmeye devam ediyor, ancak on vadedeki zayiflama nedeniyle denge bozulursa hareket hizlanabilir.</p>
+    <p><strong>Risk asimetrisi:</strong> Asagi yon daha kolay hizlanabilir. Yukari devam icin 85,000 ustu acceptance gerekirken, 77,000 alti kirilma hedge akislarini daha hizli buyutebilir.</p>
+    <p><strong>Yukari teyit:</strong> 85,000 ustunde kalici acceptance ve belirgin yeni call eklenmesi.</p>
     <p><strong>Asagi tetik:</strong> 77,000 alti kabul. Bu bolgenin altinda hareket emilen degil buyuyen tarafa donebilir.</p>
-    <p><strong>Tek cumlelik masa notu:</strong> Opsiyon yapisi net trend gununden cok kontrollu fiyatlama anlatiyor; kirilma olursa asimetrinin hangi yone daha kolay calistigi asil belirleyici olacak.</p>
+    <p><strong>Tek cumlelik masa notu:</strong> Opsiyon yapisi yapici kalmaya devam ediyor, ancak temiz yukari devam icin acceptance olmadan momentumun kalici oldugu soylenemez.</p>
     <p><span class='badge'>Vade kaynagi: deribit</span><span class='badge'>GEX kaynagi: deribit</span><span class='badge'>Laevitas API: 13</span><span class='badge'>Public veri: 1</span></p>
-    <small>Uretim zamani 2026-05-23T06:55:49.223048+00:00</small>
+    <small>Uretim zamani 2026-05-25T07:07:33.291141+00:00</small>
   </section>
   <section class='summary-strip'>
     <h2>Cekirdek Rapor</h2>
     <p>Bu ust bolum yalnizca savunulabilir katmanlari tutar: seviyeler, expiry destegi, GEX yapisi, opex gecisi ve gunluk risk migrasyonu. Ham tape, behavioral ve proxy bloklari appendix kismina alinir.</p>
   </section>
 
-<!-- BTC_ML_PANEL_START -->
-  <section class='btc-ml-panel'>
-    <h2>BTC Beklenti Modeli</h2>
-    <p>Opsiyon zinciri, volatilite, skew, gamma ve proxy bask&#305; bile&#351;enlerinden &#252;retilen 7 g&#252;nl&#252;k takip ekran&#305;d&#305;r. Tek ba&#351;&#305;na &#246;neri de&#287;ildir; spot seviye, ak&#305;&#351; ve haber teyidi ayr&#305;ca aranmal&#305;d&#305;r.</p>
-    <div class='grid'>
-      <div class='metric'><div class='label'>G&#252;ncel okuma</div><div class='value'>Yukar&#305; e&#287;ilim</div><small>Yukar&#305; rejimde ba&#351;ar&#305;l&#305; / d&#252;&#351;&#252;&#351; filtresi teyit edilmedi</small></div>
-      <div class='metric'><div class='label'>Beklenen relatif hareket</div><div class='value'>+4.70%</div><small>7 g&#252;nl&#252;k model okumas&#305;</small></div>
-      <div class='metric'><div class='label'>Yukar&#305; olas&#305;l&#305;k</div><div class='value'>63.2%</div><small>temkinli kalibre; kontrol g&#252;&#231;lenmeden y&#252;ksek g&#252;ven verilmez</small></div>
-      <div class='metric'><div class='label'>Kontrol d&#246;nemi</div><div class='value'>36</div><small>t&#252;m ge&#231;mi&#351; kar&#351;&#305;la&#351;t&#305;rma</small></div>
-    </div>
-    <div class='grid'>
-      <div class='metric'><div class='label'>Karne</div><div class='value'>Yukar&#305; rejimde ba&#351;ar&#305;l&#305; / d&#252;&#351;&#252;&#351; filtresi teyit edilmedi</div><small>Kontrol d&#246;neminde y&#252;kseli&#351; bask&#305;n; modelin d&#252;&#351;&#252;&#351; g&#252;nlerini ay&#305;rma g&#252;c&#252; hen&#252;z zay&#305;f.</small></div>
-      <div class='metric'><div class='label'>Y&#246;n isabeti</div><div class='value'>66.7%</div><small>t&#252;m kontrol d&#246;neminde y&#246;n uyumu</small></div>
-      <div class='metric'><div class='label'>Ortalama ger&#231;ekle&#351;en</div><div class='value'>+1.00%</div><small>t&#252;m kontrol d&#246;nemi sonucu</small></div>
-      <div class='metric'><div class='label'>Ortalama hata</div><div class='value'>3.31%</div><small>t&#252;m tahminlerde beklenti-ger&#231;ek fark&#305;</small></div>
-    </div>
-    <div class='grid'>
-      <div class='metric'><div class='label'>Baseline kar&#351;&#305;la&#351;t&#305;rmas&#305;</div><div class='value'>63.9%</div><small>her g&#252;n yukar&#305; denseydi</small></div>
-      <div class='metric'><div class='label'>Model ek katk&#305;s&#305;</div><div class='value'>+2.8%</div><small>model y&#246;n isabeti eksi baseline</small></div>
-      <div class='metric'><div class='label'>D&#252;&#351;&#252;&#351; yakalama</div><div class='value'>7.7%</div><small>13 d&#252;&#351;&#252;&#351; g&#252;n&#252;nde a&#351;a&#287;&#305; sinyal oran&#305;</small></div>
-      <div class='metric'><div class='label'>Y&#252;ksek olas&#305;l&#305;k kontrol&#252;</div><div class='value'>veri teyidi gerekiyor</div><small>0 y&#252;ksek olas&#305;l&#305;k g&#252;n&#252;nde isabet</small></div>
-    </div>
-    <p><strong>Ge&#231;mi&#351; kontrol tablosu:</strong> A&#351;a&#287;&#305;da son 8 kontrol sat&#305;r&#305; g&#246;sterilir; &#246;zet istatistikler test edilebilir t&#252;m ge&#231;mi&#351; liste &#252;zerinden hesaplan&#305;r.</p>
-    <table>
-      <tr><th>Durum</th><th>Tahmin tarihi</th><th>Kontrol tarihi</th><th>Beklenti</th><th>Yukar&#305; olas&#305;l&#305;k</th><th>Ger&#231;ekle&#351;en</th><th>Y&#246;n</th></tr>
-      <tr><td>Son kapanm&#305;&#351; kontrol</td><td>2026-05-16</td><td>2026-05-23</td><td>+3.89%</td><td>63.8%</td><td>-4.13%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>Bekleyen g&#252;ncel tahmin</td><td>2026-05-23</td><td>2026-05-30</td><td>+4.70%</td><td>63.2%</td><td>bekliyor</td><td>Yukar&#305; e&#287;ilim</td></tr>
-    </table>
-    <table>
-      <tr><th>Tahmin tarihi</th><th>Kontrol tarihi</th><th>Beklenti</th><th>Yukar&#305; olas&#305;l&#305;k</th><th>Ger&#231;ekle&#351;en</th><th>Y&#246;n</th></tr>
-      <tr><td>2026-05-09</td><td>2026-05-16</td><td>+3.19%</td><td>61.5%</td><td>-2.12%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-10</td><td>2026-05-17</td><td>+2.23%</td><td>62.3%</td><td>-3.30%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-11</td><td>2026-05-18</td><td>+2.64%</td><td>62.9%</td><td>-4.71%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-12</td><td>2026-05-19</td><td>+2.99%</td><td>62.4%</td><td>-4.20%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-13</td><td>2026-05-20</td><td>+1.72%</td><td>59.1%</td><td>-4.59%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-14</td><td>2026-05-21</td><td>+2.39%</td><td>56.9%</td><td>-4.52%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-15</td><td>2026-05-22</td><td>-1.52%</td><td>56.0%</td><td>-4.07%</td><td>isabet</td></tr><tr><td>2026-05-16</td><td>2026-05-23</td><td>+3.89%</td><td>63.8%</td><td>-4.13%</td><td>ka&#231;&#305;rd&#305;</td></tr>
-    </table>
-    <details>
-      <summary>T&#252;m ge&#231;mi&#351; kontrol sat&#305;rlar&#305;n&#305; g&#246;ster</summary>
-      <table>
-        <tr><th>Tahmin tarihi</th><th>Kontrol tarihi</th><th>Beklenti</th><th>Yukar&#305; olas&#305;l&#305;k</th><th>Ger&#231;ekle&#351;en</th><th>Y&#246;n</th></tr>
-        <tr><td>2026-04-11</td><td>2026-04-18</td><td>+0.18%</td><td>50.5%</td><td>+5.93%</td><td>isabet</td></tr><tr><td>2026-04-12</td><td>2026-04-19</td><td>+0.45%</td><td>50.8%</td><td>+6.33%</td><td>isabet</td></tr><tr><td>2026-04-13</td><td>2026-04-20</td><td>+0.63%</td><td>51.0%</td><td>+5.95%</td><td>isabet</td></tr><tr><td>2026-04-14</td><td>2026-04-21</td><td>+0.71%</td><td>51.3%</td><td>+0.35%</td><td>isabet</td></tr><tr><td>2026-04-15</td><td>2026-04-22</td><td>+0.99%</td><td>51.5%</td><td>+6.50%</td><td>isabet</td></tr><tr><td>2026-04-16</td><td>2026-04-23</td><td>+1.05%</td><td>51.7%</td><td>+2.64%</td><td>isabet</td></tr><tr><td>2026-04-17</td><td>2026-04-24</td><td>+1.19%</td><td>51.9%</td><td>+2.82%</td><td>isabet</td></tr><tr><td>2026-04-18</td><td>2026-04-25</td><td>+1.26%</td><td>52.2%</td><td>+0.51%</td><td>isabet</td></tr><tr><td>2026-04-19</td><td>2026-04-26</td><td>+1.38%</td><td>52.4%</td><td>+3.21%</td><td>isabet</td></tr><tr><td>2026-04-20</td><td>2026-04-27</td><td>+1.51%</td><td>52.6%</td><td>+3.41%</td><td>isabet</td></tr><tr><td>2026-04-21</td><td>2026-04-28</td><td>+0.55%</td><td>50.8%</td><td>+1.48%</td><td>isabet</td></tr><tr><td>2026-04-22</td><td>2026-04-29</td><td>+1.07%</td><td>54.9%</td><td>-1.78%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-04-23</td><td>2026-04-30</td><td>+2.91%</td><td>59.0%</td><td>-1.89%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-04-24</td><td>2026-05-01</td><td>+2.30%</td><td>53.7%</td><td>-1.03%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-04-25</td><td>2026-05-02</td><td>+4.21%</td><td>57.0%</td><td>+1.01%</td><td>isabet</td></tr><tr><td>2026-04-26</td><td>2026-05-03</td><td>+4.25%</td><td>55.1%</td><td>+0.19%</td><td>isabet</td></tr><tr><td>2026-04-27</td><td>2026-05-04</td><td>+5.36%</td><td>49.9%</td><td>+2.68%</td><td>isabet</td></tr><tr><td>2026-04-28</td><td>2026-05-05</td><td>+5.74%</td><td>53.9%</td><td>+5.06%</td><td>isabet</td></tr><tr><td>2026-04-29</td><td>2026-05-06</td><td>+4.00%</td><td>55.9%</td><td>+5.17%</td><td>isabet</td></tr><tr><td>2026-04-30</td><td>2026-05-07</td><td>+5.23%</td><td>56.6%</td><td>+7.10%</td><td>isabet</td></tr><tr><td>2026-05-01</td><td>2026-05-08</td><td>+5.41%</td><td>59.2%</td><td>+3.18%</td><td>isabet</td></tr><tr><td>2026-05-02</td><td>2026-05-09</td><td>+4.10%</td><td>60.6%</td><td>+2.56%</td><td>isabet</td></tr><tr><td>2026-05-03</td><td>2026-05-10</td><td>+3.12%</td><td>57.2%</td><td>+3.38%</td><td>isabet</td></tr><tr><td>2026-05-04</td><td>2026-05-11</td><td>+2.04%</td><td>55.9%</td><td>+1.34%</td><td>isabet</td></tr><tr><td>2026-05-05</td><td>2026-05-12</td><td>+1.87%</td><td>60.6%</td><td>-0.50%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-06</td><td>2026-05-13</td><td>+2.31%</td><td>60.3%</td><td>-0.13%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-07</td><td>2026-05-14</td><td>+2.28%</td><td>61.1%</td><td>+0.50%</td><td>isabet</td></tr><tr><td>2026-05-08</td><td>2026-05-15</td><td>+4.31%</td><td>61.9%</td><td>+1.61%</td><td>isabet</td></tr><tr><td>2026-05-09</td><td>2026-05-16</td><td>+3.19%</td><td>61.5%</td><td>-2.12%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-10</td><td>2026-05-17</td><td>+2.23%</td><td>62.3%</td><td>-3.30%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-11</td><td>2026-05-18</td><td>+2.64%</td><td>62.9%</td><td>-4.71%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-12</td><td>2026-05-19</td><td>+2.99%</td><td>62.4%</td><td>-4.20%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-13</td><td>2026-05-20</td><td>+1.72%</td><td>59.1%</td><td>-4.59%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-14</td><td>2026-05-21</td><td>+2.39%</td><td>56.9%</td><td>-4.52%</td><td>ka&#231;&#305;rd&#305;</td></tr><tr><td>2026-05-15</td><td>2026-05-22</td><td>-1.52%</td><td>56.0%</td><td>-4.07%</td><td>isabet</td></tr><tr><td>2026-05-16</td><td>2026-05-23</td><td>+3.89%</td><td>63.8%</td><td>-4.13%</td><td>ka&#231;&#305;rd&#305;</td></tr>
-      </table>
-    </details>
-    <details>
-      <summary>Y&#252;ksek olas&#305;l&#305;kla ka&#231;an g&#252;nleri g&#246;ster</summary>
-      <table>
-        <tr><th>Tahmin tarihi</th><th>Kontrol tarihi</th><th>Yukar&#305; olas&#305;l&#305;k</th><th>Beklenti</th><th>Ger&#231;ekle&#351;en</th></tr>
-        <tr><td colspan='5'>Y&#252;ksek olas&#305;l&#305;kla ka&#231;an g&#252;n yok.</td></tr>
-      </table>
-    </details>
-  </section>
-<!-- BTC_ML_PANEL_END -->
+
+
+
 
   <section class='playbook-strip'>
     <h2>Gunluk Oyun Plani</h2>
-    <ul><li>Base case: 77,000-81,000 icinde pin/range. Ilk beklenen davranis mean reversion ve 80,000 merkezine geri cekilme.</li><li>Bull case: 82,000 ustunde kabul gorulurse yukari test 85,000 seviyesine uzayabilir. Bu senaryo kosullu; temiz trend icin yeni call eklenmesi ve flow tonunun belirgin iyilesmesi lazim.</li><li>Bear case: 77,000 alti kabul downside hedge akislarini hizlandirir; 75,000 civari ikinci hizlanma bolgesi. Asagi taraf simdilik daha az teyitle aktive olabilir.</li></ul>
+    <ul><li>Base case: 77,000-82,000 icinde pin/range. Ilk beklenen davranis mean reversion ve 80,000 merkezine geri cekilme.</li><li>Bull case: 85,000 ustunde kabul gorulurse yukari test 90,000 seviyesine uzayabilir. Bu senaryo kosullu; temiz trend icin yeni call eklenmesi ve flow tonunun belirgin iyilesmesi lazim.</li><li>Bear case: 77,000 alti kabul downside hedge akislarini hizlandirir; 75,000 civari ikinci hizlanma bolgesi. Asagi taraf simdilik daha az teyitle aktive olabilir.</li></ul>
     <p><strong>Yesterday vs Today:</strong></p>
-    <div class='delta-row'><span class='delta-badge delta-down'>Spot -2,100</span><span class='delta-badge delta-up'>Front IV +0.90</span><span class='delta-badge delta-down'>IV-RV -7.20</span><span class='delta-badge delta-down'>Net gamma -2.842</span><span class='delta-badge delta-up'>Ertesi gun OI +109.0mn USD</span></div>
+    <div class='delta-row'><span class='delta-badge delta-up'>Spot +0</span><span class='delta-badge delta-down'>Front IV -2.36</span><span class='delta-badge delta-down'>IV-RV -2.41</span><span class='delta-badge delta-up'>Net gamma +0.000</span><span class='delta-badge delta-up'>Ertesi gun OI +0.0mn USD</span></div>
   </section>
   <section class='two'>
     <div class='takeaway-shell'>
       <div class='takeaway-card'>
         <h2>ANA SEVIYELER VE OKUMALAR</h2>
-        <p class='takeaway-red'>Gamma kirilgan/negatif. MM hedge akisi hareketi bastirmaktan cok buyutebilir.</p>
-        <p class='takeaway-strong'>Balance: 80,000 (zayif)</p>
-        <p class='takeaway-strong'>UPSIDE TEST: 81,000 -> 82,000 -> 85,000</p>
-        <div class='takeaway-box'>Ralliye ilk anda guvenme; temiz acceptance icin en az 82,000 ustunde kabul lazim.</div>
+        <p class='takeaway-red'>Gamma 77,000-82,000 bandinda pozitif. Spot band icinde kaldigi surece MM hedge akisi hareketi bastirmaya yatkin.</p>
+        <p class='takeaway-strong'>Balance: 80,000 (guclu)</p>
+        <p class='takeaway-strong'>UPSIDE TEST: 82,000 -> 85,000 -> 90,000</p>
+        <div class='takeaway-box'>Ralliye ilk anda guvenme; temiz acceptance icin en az 85,000 ustunde kabul lazim.</div>
         <p><strong>DOWNSIDE TEST:</strong> 77,000 -> 75,000</p>
         <p>77,000 alti hedge baskisini artirir; asil hizlanma riski 75,000.</p>
         <div class='signal-grid'>
           <div class='signal-card accept-card'>
             <strong>ACCEPT ABOVE</strong>
-            Spot 82,000 ustunde kalir ve call akisi desteklerse yukari test aktif.
+            Spot 85,000 ustunde kalir ve call akisi desteklerse yukari test aktif.
           </div>
           <div class='signal-card reject-card'>
             <strong>REJECT ABOVE</strong>
-            81,000 civari red gelirse ralliye guvenme; range mantigi suruyor.
+            82,000 civari red gelirse ralliye guvenme; range mantigi suruyor.
           </div>
           <div class='signal-card accept-card'>
             <strong>ACCEPT BELOW</strong>
@@ -185,79 +141,79 @@ small { opacity:0.82; font-size:12px; }
     </div>
     <div>
       <h2>Tetik Haritasi</h2>
-      <p><strong>Squeeze trigger:</strong> 82,000</p>
-      <p><strong>Breakout confirm:</strong> 85,000</p>
+      <p><strong>Squeeze trigger:</strong> 85,000</p>
+      <p><strong>Breakout confirm:</strong> 90,000</p>
       <p><strong>Breakdown trigger:</strong> 77,000</p>
       <p><strong>Acceleration trigger:</strong> 75,000</p>
-      <p><strong>Reject above:</strong> 81,000</p>
+      <p><strong>Reject above:</strong> 82,000</p>
       <p><strong>Reject below:</strong> 77,000</p>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Davranissal Akis Avantaji</h2>
-      <p><strong>Kalabalik sinyali:</strong> Retail-benzeri gec call kovalamasi</p>
-      <p><strong>Fade mi Follow mu?:</strong> Spot squeeze seviyesi ustunde kabul gormeden yukari kovalamayi fade et</p>
-      <p><strong>Guven duzeyi:</strong> Orta</p>
-      <ul><li>Kalabalik kovalama skoru +3: Retail-benzeri gec call kovalamasi.</li><li>Fade mi Follow mu?: Spot squeeze seviyesi ustunde kabul gormeden yukari kovalamayi fade et.</li><li>Yukari call akisi fiyatin arkasindan kosuyor olabilir. 82,000 ustunde kalici acceptance ve yeni call eklenmesi gormeden bu akis daha cok gec momentum alimi gibi okunur.</li></ul>
+      <p><strong>Kalabalik sinyali:</strong> Smart-money-benzeri savunmaci akis</p>
+      <p><strong>Fade mi Follow mu?:</strong> Kirilim seviyeleri gecerli kaldikca savunmaci konumlanmayi takip et</p>
+      <p><strong>Guven duzeyi:</strong> Yuksek</p>
+      <ul><li>Kalabalik kovalama skoru -2: Smart-money-benzeri savunmaci akis.</li><li>Fade mi Follow mu?: Kirilim seviyeleri gecerli kaldikca savunmaci konumlanmayi takip et.</li><li>Bu akis tamamen duygusal gorunmuyor; skew, flow ve strike dagilimi savunmaci hedge'in daha bilgili olabilecegini soyluyor. 77,000 alti kabul bu okumayi guclendirir.</li></ul>
       <p><strong>Bu skor neden boyle cikti:</strong></p>
-      <ul><li>Put/Call dengesizligi (+2): Call eklenmesi put eklenmesinden belirgin guclu.</li><li>Spota gore strike konumu (+0): Baskin yeni risk spota gore asiri kovalanan bir strike'ta degil.</li><li>Premium stresi (+1): Opsiyon primi pahali ve call tarafi kovalamaya daha yakin.</li><li>Skew stresi (+0): Skew tarafinda asiri tek yonlu baski yok.</li></ul>
+      <ul><li>Put/Call dengesizligi (+0): Put ve call eklenmesi birbirine yakin.</li><li>Spota gore strike konumu (-2): Baskin yeni risk spotun altindaki put strike'larinda birikiyor.</li><li>Premium stresi (+0): IV-RV farki bu sinyali asiri guclendirmiyor.</li><li>Skew stresi (+0): Skew tarafinda asiri tek yonlu baski yok.</li></ul>
     </div>
     <div>
       <div class='grid'>
-        <div class='metric'><div class='label'>Kalabalik Kovalama Skoru</div><div class='value'>+3</div></div>
-        <div class='metric'><div class='label'>Akis Skoru</div><div class='value'>+4</div></div>
-        <div class='metric'><div class='label'>Skew Gosterge</div><div class='value'>-4.66</div></div>
-        <div class='metric'><div class='label'>IV-RV</div><div class='value'>+12.60</div></div>
+        <div class='metric'><div class='label'>Kalabalik Kovalama Skoru</div><div class='value'>-2</div></div>
+        <div class='metric'><div class='label'>Akis Skoru</div><div class='value'>-2</div></div>
+        <div class='metric'><div class='label'>Skew Gosterge</div><div class='value'>-4.41</div></div>
+        <div class='metric'><div class='label'>IV-RV</div><div class='value'>+5.10</div></div>
       </div>
-      <img src='laevitas/btc_behavioral_components.png?v=20260523065549' alt='Davranissal bilesenler'>
+      <img src='laevitas/btc_behavioral_components.png?v=20260525070733' alt='Davranissal bilesenler'>
       <p>Bu grafik skorun hangi bilesenlerden geldigini gosterir; yani sinyalin sadece tek bir etiketten ibaret olmadigini aciklar.</p>
-      <img src='laevitas/btc_behavioral_trend.png?v=20260523065549' alt='Davranissal akis skoru trendi'>
+      <img src='laevitas/btc_behavioral_trend.png?v=20260525070733' alt='Davranissal akis skoru trendi'>
       <p>Bu grafik kalabaligin gec put panigi mi yoksa gec call kovalamasi mi yaptigini zaman icinde daha net okumayi saglar.</p>
     </div>
   </section>
   <section>
     <h2>Sabah Masa Notu</h2>
-    <div class='delta-row'><span class='delta-badge delta-neutral'>Rejim: Kirilgan</span><span class='delta-badge delta-down'>Asimetri: Asagi hizlanma</span><span class='delta-badge delta-neutral'>Gecis noktasi: 80,000</span><span class='delta-badge delta-up'>Yukari teyit: 82,000+</span><span class='delta-badge delta-down'>Asagi tetik: 77,000-</span></div>
-    <p>Opsiyon yapisi net trend gununden cok kontrollu fiyatlama anlatiyor; kirilma olursa asimetrinin hangi yone daha kolay calistigi asil belirleyici olacak.</p>
+    <div class='delta-row'><span class='delta-badge delta-neutral'>Rejim: Kontrollu ama kirilgan</span><span class='delta-badge delta-down'>Asimetri: Asagi hizlanma</span><span class='delta-badge delta-neutral'>Gecis noktasi: 80,000</span><span class='delta-badge delta-up'>Yukari teyit: 85,000+</span><span class='delta-badge delta-down'>Asagi tetik: 77,000-</span></div>
+    <p>Opsiyon yapisi yapici kalmaya devam ediyor, ancak temiz yukari devam icin acceptance olmadan momentumun kalici oldugu soylenemez.</p>
   </section>
   <section class='two'>
     <div>
       <h2>Katmanli Teyit</h2>
-      <p><span class='delta-badge delta-down'>Downside devam setup'i guclu</span></p>
+      <p><span class='delta-badge delta-neutral'>Long setup var ama teyit eksik</span></p>
       <div class='grid'>
-        <div class='metric'><div class='label'>Bias</div><div class='value'>Short bias</div></div>
-        <div class='metric'><div class='label'>Trade Gate</div><div class='value'>Trade gate acik</div></div>
+        <div class='metric'><div class='label'>Bias</div><div class='value'>Long adayi</div></div>
+        <div class='metric'><div class='label'>Trade Gate</div><div class='value'>Teyit bekle</div></div>
         <div class='metric'><div class='label'>Long Skor</div><div class='value'>2</div></div>
-        <div class='metric'><div class='label'>Short Skor</div><div class='value'>4</div></div>
-        <div class='metric'><div class='label'>RSI(14)</div><div class='value'>30.4</div></div>
-        <div class='metric'><div class='label'>20g Z-Score</div><div class='value'>-1.86</div></div>
+        <div class='metric'><div class='label'>Short Skor</div><div class='value'>1</div></div>
+        <div class='metric'><div class='label'>RSI(14)</div><div class='value'>33.7</div></div>
+        <div class='metric'><div class='label'>20g Z-Score</div><div class='value'>-0.75</div></div>
       </div>
-      <p><strong>Beklenen aksiyon:</strong> Short / defensive taraf daha agir; destek alti kabul gelmeden yine de kovalamak yerine teyit ara.</p>
+      <p><strong>Beklenen aksiyon:</strong> Uc katman ust uste binmedikce agresif boyut alma.</p>
       <table>
         <tr><th>Katman</th><th>Long</th><th>Short</th><th>Okuma</th></tr>
-        <tr><td>Teknik ekstrem</td><td>2</td><td>0</td><td>RSI(14) 30.4: asiri satima yakin / relief adayi.</td></tr><tr><td>Vol tepkisi</td><td>0</td><td>1</td><td>IV-RV spread +12.60: hareket korkuyla fiyatlaniyor, dusus teyidi daha guclu.</td></tr><tr><td>Skew tepkisi</td><td>0</td><td>1</td><td>25d RR +0.40 puan daha savunmaci; skew rahatlamiyor.</td></tr><tr><td>Positioning filtresi</td><td>0</td><td>2</td><td>Spot denge bandinin altinda / gamma kirilgan; positioning downside devamini daha kolay aktive ediyor.</td></tr>
+        <tr><td>Teknik ekstrem</td><td>1</td><td>0</td><td>RSI(14) 33.7: asiri satima yakin / relief adayi.</td></tr><tr><td>Vol tepkisi</td><td>0</td><td>0</td><td>IV-RV spread +5.10: vol tepkisi ara bolgede, tek basina karar vermiyor.</td></tr><tr><td>Skew tepkisi</td><td>1</td><td>0</td><td>25d RR +0.60 puan rahatliyor; put skew gevsemeye baslamis.</td></tr><tr><td>Positioning filtresi</td><td>0</td><td>1</td><td>Spot denge bandinin altinda / gamma kirilgan; positioning downside devamini daha kolay aktive ediyor.</td></tr>
       </table>
     </div>
     <div>
-      <img src='laevitas/btc_layered_trade_check.png?v=20260523065549' alt='Katmanli teyit matrisi'>
+      <img src='laevitas/btc_layered_trade_check.png?v=20260525070733' alt='Katmanli teyit matrisi'>
       <h2>Bu Setup Neyi Arar?</h2>
-      <ul><li>RSI(14) 30.4: asiri satima yakin / relief adayi.</li><li>Spot Bollinger alt banda yakin (75,117) / z-score -1.86; teknik baski asiriya kaymis olabilir.</li><li>IV-RV spread +12.60: hareket korkuyla fiyatlaniyor, dusus teyidi daha guclu.</li><li>25d RR +0.40 puan daha savunmaci; skew rahatlamiyor.</li><li>Spot denge bandinin altinda / gamma kirilgan; positioning downside devamini daha kolay aktive ediyor.</li><li>Spot 77,000 alti ve inventory -0.57; savunmaci fiyatlama agirlikli.</li></ul>
-      <p><strong>Teknik referans:</strong> Bollinger alt bant 75,117, ust bant 83,145.</p>
+      <ul><li>RSI(14) 33.7: asiri satima yakin / relief adayi.</li><li>Bollinger/z-score tarafinda fiyat orta bolgede; band ici davranis daha baskin (band %31).</li><li>IV-RV spread +5.10: vol tepkisi ara bolgede, tek basina karar vermiyor.</li><li>25d RR +0.60 puan rahatliyor; put skew gevsemeye baslamis.</li><li>Spot denge bandinin altinda / gamma kirilgan; positioning downside devamini daha kolay aktive ediyor.</li></ul>
+      <p><strong>Teknik referans:</strong> Bollinger alt bant 75,024, ust bant 82,747.</p>
       <p>Bu blok tek bir sinyal degil; teknik ekstrem + vol tepkisi + skew davranisi + positioning filtresinin ust uste binip binmedigini kontrol eder.</p>
     </div>
   </section>
   <section>
     <div class='grid'>
-      <div class='metric'><div class='label'>Yaklasik Spot</div><div class='value'>75,351</div></div>
-      <div class='metric'><div class='label'>Pin Bandi</div><div class='value'>77,000 - 81,000</div></div>
+      <div class='metric'><div class='label'>Yaklasik Spot</div><div class='value'>76,849</div></div>
+      <div class='metric'><div class='label'>Pin Bandi</div><div class='value'>77,000 - 82,000</div></div>
       <div class='metric'><div class='label'>Ertesi Gun Vadesi</div><div class='value'>12JUN26</div></div>
-      <div class='metric'><div class='label'>Ertesi Gun OI</div><div class='value'>$176,645,292</div></div>
-      <div class='metric'><div class='label'>24s OI Eklenmesi</div><div class='value'>$131,859,767</div></div>
-      <div class='metric'><div class='label'>Call / Put Notional</div><div class='value'>1.42x</div></div>
-      <div class='metric'><div class='label'>Front ATM IV</div><div class='value'>34.12</div></div>
-      <div class='metric'><div class='label'>7g Realized Vol</div><div class='value'>21.52</div></div>
-      <div class='metric'><div class='label'>IV - RV Spread</div><div class='value'>+12.60</div></div>
+      <div class='metric'><div class='label'>Ertesi Gun OI</div><div class='value'>$239,830,780</div></div>
+      <div class='metric'><div class='label'>24s OI Eklenmesi</div><div class='value'>$20,728,766</div></div>
+      <div class='metric'><div class='label'>Call / Put Notional</div><div class='value'>1.44x</div></div>
+      <div class='metric'><div class='label'>Front ATM IV</div><div class='value'>31.16</div></div>
+      <div class='metric'><div class='label'>7g Realized Vol</div><div class='value'>26.06</div></div>
+      <div class='metric'><div class='label'>IV - RV Spread</div><div class='value'>+5.10</div></div>
       <div class='metric'><div class='label'>Magnet Strike</div><div class='value'>80,000</div></div>
       <div class='metric'><div class='label'>Put Hedge Zone</div><div class='value'>60,000-75,000</div></div>
       <div class='metric'><div class='label'>Call Cluster</div><div class='value'>100,000</div></div>
@@ -266,7 +222,7 @@ small { opacity:0.82; font-size:12px; }
   <section class='two'>
     <div>
       <h2>BTC Opsiyon Pozisyon Haritasi (Temiz)</h2>
-      <img src='laevitas/btc_options_position_map_clean.png?v=20260523065549' alt='BTC Options Position Map Clean'>
+      <img src='laevitas/btc_options_position_map_clean.png?v=20260525070733' alt='BTC Options Position Map Clean'>
     </div>
     <div>
       <h2>Pozisyon Haritasi Okumasi</h2>
@@ -274,128 +230,128 @@ small { opacity:0.82; font-size:12px; }
       <p><strong>Seviyeler:</strong> Tail Hedge 40,000 | Put Hedge 60,000-75,000 | Magnet 80,000 | Call Cluster 100,000 | Speculation 120,000</p>
       <ul><li>Magnet strike degismedi ve 80,000 seviyesinde kaldi.</li><li>Put hedge zone degismedi ve 60,000-75,000 bandinda kaldi.</li></ul>
       <p><strong>Bugun ne degisti:</strong> magnet sabit | put zone sabit | call cluster sabit</p>
-      <ul><li>Magnet strike degismedi ve 80,000 seviyesinde kaldi.</li><li>Put hedge zone merkezi ayni kaldi (60,000-75,000).</li><li>Call cluster degismedi ve 100,000 seviyesinde kaldi.</li><li>Call cluster spotdan uzaklasti (22,549 -> 24,649); yakin upside ilgisi zayifladi.</li><li>Speculation seviyesi sabit ve 120,000.</li></ul>
+      <ul><li>Magnet strike degismedi ve 80,000 seviyesinde kaldi.</li><li>Put hedge zone merkezi ayni kaldi (60,000-75,000).</li><li>Call cluster degismedi ve 100,000 seviyesinde kaldi.</li><li>Call cluster spota yaklasti (23,151 -> 23,151); yakin upside ilgisi artti.</li><li>Speculation seviyesi sabit ve 120,000.</li></ul>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Vade Destek Haritasi</h2>
-      <p><span class='delta-badge delta-down'>Pasif destek zayif</span></p>
+      <p><span class='delta-badge delta-neutral'>Pasif destek inceliyor</span></p>
       <div class='grid'>
-        <div class='metric'><div class='label'>Bugunku Skor</div><div class='value'>12</div></div>
-        <div class='metric'><div class='label'>Gunluk Degisim</div><div class='value'>-34</div></div>
-        <div class='metric'><div class='label'>14g OI Payi</div><div class='value'>26.4%</div></div>
-        <div class='metric'><div class='label'>30g OI Payi</div><div class='value'>27.0%</div></div>
+        <div class='metric'><div class='label'>Bugunku Skor</div><div class='value'>39</div></div>
+        <div class='metric'><div class='label'>Gunluk Degisim</div><div class='value'>+0</div></div>
+        <div class='metric'><div class='label'>14g OI Payi</div><div class='value'>25.0%</div></div>
+        <div class='metric'><div class='label'>30g OI Payi</div><div class='value'>25.7%</div></div>
       </div>
       <p><strong>Headline:</strong> Pasif destek on tarafta yogun; yakin vadeler hala aktif tampon uretiyor.</p>
       <p><strong>Forward Verdict:</strong> Beklenen sey: destek hemen bitmiyor ama takvime yayiliyor; en yogun pencere JUN26, sonrasinda tampon daha secici hale geliyor.</p>
-      <ul><li>Bugunku pasif destek skoru 12/100; dunden bugune -34, son 5 baz gune gore -4.</li><li>Onumuzdeki 14 gunde gorunen expiry OI'nin %26.4'i, 30 gunde %27.0'i, 60 gunde %56.7'i birikiyor.</li><li>Takvimde en yogun pasif destek penceresi JUN26 (skor 23.8); en ince pencere MAR27 (skor 0.5).</li><li>Yapi tamamen bosalmis degil, ama destek artik tek bir gunluk expiry duvarindan cok dagilan bir takvim etkisiyle tasiniyor.</li></ul>
+      <ul><li>Bugunku pasif destek skoru 39/100; dunden bugune +0, son 5 baz gune gore +3.</li><li>Onumuzdeki 14 gunde gorunen expiry OI'nin %25.0'i, 30 gunde %25.7'i, 60 gunde %55.7'i birikiyor.</li><li>Takvimde en yogun pasif destek penceresi JUN26 (skor 24.8); en ince pencere MAR27 (skor 0.5).</li><li>Yapi tamamen bosalmis degil, ama destek artik tek bir gunluk expiry duvarindan cok dagilan bir takvim etkisiyle tasiniyor.</li></ul>
     </div>
     <div>
-      <img src='laevitas/btc_gamma_support_monitor.png?v=20260523065549' alt='Gamma support monitor'>
+      <img src='laevitas/btc_gamma_support_monitor.png?v=20260525070733' alt='Gamma support monitor'>
       <p>Ust panel pasif destek skorunun son gunlerde guclenip zayifladigini, alt panel ise onumuzdeki aylarda destegin hangi vade pencerelerinde yogunlastigini gosterir.</p>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>GEX Vade Yapisi</h2>
-      <img src='laevitas/btc_gex_term_structure.png?v=20260523065549' alt='GEX term structure by expiry'>
+      <img src='laevitas/btc_gex_term_structure.png?v=20260525070733' alt='GEX term structure by expiry'>
       <p>Bu grafik gercek expiry-bazli GEX dagilimini gosterir; pasif destegin hangi vadelerde tasindigini ve negatif gamma riskinin nerede biriktigini burada goruruz.</p>
-      <p><strong>Tek cumlelik okuma:</strong> Yakin vadede pozitif gamma nedeniyle fiyat davranisinin daha kontrollu kalmasi beklenir; negatif gamma ceplerine yaklastikca hareket daha yonlu hale gelebilir.</p>
-      <h3>Dunden Bugune Vade Bazli GEX Degisimi</h3><img src='laevitas/btc_gex_term_structure_delta.png?v=20260523065549' alt='Day-over-day GEX delta by expiry'><p class='small-muted'>2026-05-22 -> 2026-05-23</p><div class='delta-row'><span class='delta-badge delta-up'>Toplam GEX: +1,643,999</span><span class='delta-badge delta-up'>On vade 23MAY26: +762,844</span><span class='delta-badge delta-up'>En guclenen: 24MAY26 +1,343,484</span><span class='delta-badge delta-down'>En zayiflayan: 25MAY26 -610,130</span></div><p><strong>Delta okuma:</strong> Dunden bugune gamma destegi genisledi; ozellikle yakin takvimdeki tampon daha destekleyici hale geldi.</p>
+      <p><strong>Tek cumlelik okuma:</strong> Yakin vadede negatif gamma nedeniyle fiyat davranisi daha kirilgan olabilir; sonraki pozitif gamma ceplerinde hareketin daha kontrollu hale gelmesi beklenir.</p>
+      <h3>Dunden Bugune Vade Bazli GEX Degisimi</h3><img src='laevitas/btc_gex_term_structure_delta.png?v=20260525070733' alt='Day-over-day GEX delta by expiry'><p class='small-muted'>2026-05-24 -> 2026-05-25</p><div class='delta-row'><span class='delta-badge delta-up'>Toplam GEX: +2,356,290</span><span class='delta-badge delta-up'>On vade 25MAY26: +2,453,474</span><span class='delta-badge delta-up'>En guclenen: 25MAY26 +2,453,474</span><span class='delta-badge delta-down'>En zayiflayan: 26MAY26 -235,886</span></div><p><strong>Delta okuma:</strong> Dunden bugune gamma destegi genisledi; ozellikle yakin takvimdeki tampon daha destekleyici hale geldi.</p>
     </div>
     <div>
       <h2>Term Structure Okumasi</h2>
       <div class='grid'>
-        <div class='metric'><div class='label'>On Vade</div><div class='value'>23MAY26</div></div>
-        <div class='metric'><div class='label'>On Vade GEX</div><div class='value'>767,559</div></div>
-        <div class='metric'><div class='label'>Toplam GEX</div><div class='value'>233,994</div></div>
-        <div class='metric'><div class='label'>Spot</div><div class='value'>75,351</div></div>
+        <div class='metric'><div class='label'>On Vade</div><div class='value'>25MAY26</div></div>
+        <div class='metric'><div class='label'>On Vade GEX</div><div class='value'>-5,088,494</div></div>
+        <div class='metric'><div class='label'>Toplam GEX</div><div class='value'>-1,667,729</div></div>
+        <div class='metric'><div class='label'>Spot</div><div class='value'>76,849</div></div>
       </div>
-      <p><strong>Headline:</strong> On vade 23MAY26 pozitif gamma tasiyor; pasif destek var ama 25MAY26 vadesinde negatif gamma cebi duruyor.</p>
-      <p><strong>Front gamma roll-off risk:</strong> Orta: on vade anlamli destek tasiyor ama takvimde arkadan gelen ikinci bir tampon var.</p>
-      <p><strong>Next support expiry:</strong> 24MAY26: sonraki pozitif gamma tamponu burada; front bosalirken destek ilk olarak bu vadeye kayabilir.</p>
-      <p><strong>Gamma vacuum window:</strong> 25MAY26 civari: on vade gectikten sonra ilk yakin pencere negatif gamma tasiyor; pasif destekten yonlu davranisa gecis riski var.</p>
-      <ul><li>En guclu pozitif gamma vadesi 26JUN26 (2,465,609); pasif destek en cok burada yogunlasiyor.</li><li>En riskli negatif gamma vadesi 25MAY26 (-5,482,011); bu pencere fiyat davranisini daha yonlu yapabilir.</li><li>On vade 23MAY26 pozitif gamma ile 767,559; bu expiry gectikce pasif desteğin ilk nereye kayacagi term structure ile okunabilir.</li><li>Front expiry bosalirken destek tamamen kaybolmak yerine 26JUN26 tarafina kayabilir.</li></ul>
-      <ul><li>Toplam expiry-bazli GEX 2026-05-22 snapshot'ina gore +1,643,999 degisti.</li><li>En belirgin destek artisi 24MAY26 vadesinde goruldu (+1,343,484).</li><li>En belirgin zayiflama 25MAY26 vadesinde goruldu (-610,130).</li></ul>
+      <p><strong>Headline:</strong> On vade 25MAY26 destekleyici degil; bir sonraki anlamli gamma destegi 26JUN26 vadesinde.</p>
+      <p><strong>Front gamma roll-off risk:</strong> Yuksek: on vade destekleyici degil; expiry gecisi pasif destek eklemeyecek.</p>
+      <p><strong>Next support expiry:</strong> 26MAY26: sonraki pozitif gamma tamponu burada; front bosalirken destek ilk olarak bu vadeye kayabilir.</p>
+      <p><strong>Gamma vacuum window:</strong> 27MAY26 civari: on vade gectikten sonra ilk yakin pencere negatif gamma tasiyor; pasif destekten yonlu davranisa gecis riski var.</p>
+      <ul><li>En guclu pozitif gamma vadesi 26JUN26 (2,386,700); pasif destek en cok burada yogunlasiyor.</li><li>En riskli negatif gamma vadesi 25MAY26 (-5,088,494); bu pencere fiyat davranisini daha yonlu yapabilir.</li><li>On vade 25MAY26 negatif gamma ile -5,088,494; bu expiry gectikce pasif desteğin ilk nereye kayacagi term structure ile okunabilir.</li><li>Front expiry tek basina pasif destek vermiyor; relief yerine daha kirilgan fiyat davranisi beklenmeli.</li></ul>
+      <ul><li>Toplam expiry-bazli GEX 2026-05-24 snapshot'ina gore +2,356,290 degisti.</li><li>En belirgin destek artisi 25MAY26 vadesinde goruldu (+2,453,474).</li><li>En belirgin zayiflama 26MAY26 vadesinde goruldu (-235,886).</li></ul>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Opex Takvimi ve Rejim Gecisi</h2>
-      <div class='opex-visual-grid'><div class='opex-card tone-up'><div class='label'>Destek ufku</div><div class='value'>23MAY26</div><div class='opex-card-detail'>0 gun | front-end destek ufku</div><div class='opex-meter-label'><span>Takvim ilerleyisi</span><span>8%</span></div><div class='opex-meter'><span style='width:8.0%'></span></div></div><div class='opex-card tone-down'><div class='label'>En riskli roll-off tarihi</div><div class='value'>26JUN26</div><div class='opex-card-detail'>34 gun | OI payi 29.7%</div><div class='opex-meter-label'><span>Roll-off yogunlugu</span><span>100%</span></div><div class='opex-meter'><span style='width:100.0%'></span></div></div><div class='opex-card tone-up'><div class='label'>Siradaki dengeleyici vade</div><div class='value'>24MAY26</div><div class='opex-card-detail'>1 gun | GEX +1,158,952</div><div class='opex-meter-label'><span>Pozitif gamma tamponu</span><span>47%</span></div><div class='opex-meter'><span style='width:47.0%'></span></div></div><div class='opex-card tone-down'><div class='label'>Post-opex bosluk penceresi</div><div class='value'>23MAY26 -> 25MAY26</div><div class='opex-card-detail'>2 gunluk gecis | front sonrasi bosluk haritasi</div><div class='opex-meter-label'><span>Bosluk genisligi</span><span>8%</span></div><div class='opex-meter'><span style='width:8.0%'></span></div></div></div>
+      <div class='opex-visual-grid'><div class='opex-card tone-up'><div class='label'>Destek ufku</div><div class='value'>26MAY26</div><div class='opex-card-detail'>1 gun | front-end destek ufku</div><div class='opex-meter-label'><span>Takvim ilerleyisi</span><span>8%</span></div><div class='opex-meter'><span style='width:8.0%'></span></div></div><div class='opex-card tone-down'><div class='label'>En riskli roll-off tarihi</div><div class='value'>26JUN26</div><div class='opex-card-detail'>32 gun | OI payi 30.0%</div><div class='opex-meter-label'><span>Roll-off yogunlugu</span><span>100%</span></div><div class='opex-meter'><span style='width:100.0%'></span></div></div><div class='opex-card tone-up'><div class='label'>Siradaki dengeleyici vade</div><div class='value'>26MAY26</div><div class='opex-card-detail'>1 gun | GEX +577,380</div><div class='opex-meter-label'><span>Pozitif gamma tamponu</span><span>24%</span></div><div class='opex-meter'><span style='width:24.2%'></span></div></div><div class='opex-card tone-down'><div class='label'>Post-opex bosluk penceresi</div><div class='value'>25MAY26 -> 27MAY26</div><div class='opex-card-detail'>2 gunluk gecis | front sonrasi bosluk haritasi</div><div class='opex-meter-label'><span>Bosluk genisligi</span><span>8%</span></div><div class='opex-meter'><span style='width:8.0%'></span></div></div></div>
       <p><strong>Headline:</strong> Opex takvimi, destek yogunlugunun 26JUN26 ve sonrasi icin kritiklestigini gosteriyor; destegin front expiry'den sonraki pencereye nasil devredilecegi ana okuma olmali.</p>
       <ul><li>Destek ufku alani, front-end gamma desteginin ilk hangi expiry'ye kadar dayandigini okur.</li><li>En riskli roll-off tarihi, expiry gectiginde en buyuk destek kaybi veya rejim degisimi riski tasiyan tarihi gosterir.</li><li>Siradaki dengeleyici vade, front pencere zayiflarsa pasif destegin ilk nereye kayabilecegini gosterir.</li><li>Post-opex bosluk penceresi, expiry sonrasi ilk kirilgan bosluk veya negatif gamma cebini tarif eder.</li></ul>
     </div>
     <div>
       <h2>Yaklasan Opex Takvimi</h2>
-      <table><tr><th>Vade</th><th>DTE</th><th>Open Interest</th><th>OI Payi</th><th>GEX</th><th>Tag</th></tr><tr><td>23MAY26</td><td>0</td><td>$406,679,032</td><td>1.3%</td><td>+767,559</td><td>Guclu destek</td></tr><tr><td>24MAY26</td><td>1</td><td>$147,508,086</td><td>0.5%</td><td>+1,158,952</td><td>Guclu destek</td></tr><tr><td>25MAY26</td><td>2</td><td>$488,823,956</td><td>1.6%</td><td>-5,482,011</td><td>Kirilgan / riskli</td></tr><tr><td>26MAY26</td><td>3</td><td>$69,513,462</td><td>0.2%</td><td>+904,184</td><td>Guclu destek</td></tr><tr><td>29MAY26</td><td>6</td><td>$6,372,532,241</td><td>20.6%</td><td>+1,226,126</td><td>Guclu destek</td></tr><tr><td>05JUN26</td><td>13</td><td>$680,009,446</td><td>2.2%</td><td>-432,560</td><td>Kirilgan / riskli</td></tr><tr><td>12JUN26</td><td>20</td><td>$176,645,292</td><td>0.6%</td><td>-326,224</td><td>Kirilgan / riskli</td></tr><tr><td>26JUN26</td><td>34</td><td>$9,187,452,236</td><td>29.7%</td><td>+2,465,609</td><td>Guclu destek | Quarterly</td></tr></table>
+      <table><tr><th>Vade</th><th>DTE</th><th>Open Interest</th><th>OI Payi</th><th>GEX</th><th>Tag</th></tr><tr><td>25MAY26</td><td>0</td><td>$387,845,313</td><td>1.2%</td><td>-5,088,494</td><td>Kirilgan / riskli</td></tr><tr><td>26MAY26</td><td>1</td><td>$146,449,195</td><td>0.5%</td><td>+577,380</td><td>Guclu destek</td></tr><tr><td>27MAY26</td><td>2</td><td>$34,149,367</td><td>0.1%</td><td>-43,031</td><td>Negatif gamma</td></tr><tr><td>29MAY26</td><td>4</td><td>$6,500,270,202</td><td>20.8%</td><td>+917,807</td><td>Guclu destek</td></tr><tr><td>05JUN26</td><td>11</td><td>$745,464,431</td><td>2.4%</td><td>-40,253</td><td>Negatif gamma</td></tr><tr><td>12JUN26</td><td>18</td><td>$239,830,780</td><td>0.8%</td><td>-295,388</td><td>Kirilgan / riskli</td></tr><tr><td>26JUN26</td><td>32</td><td>$9,382,551,176</td><td>30.0%</td><td>+2,386,700</td><td>Guclu destek | Quarterly</td></tr><tr><td>31JUL26</td><td>67</td><td>$1,280,850,115</td><td>4.1%</td><td>-146,270</td><td>Negatif gamma</td></tr></table>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>OI / GEX Gocu</h2>
-      <div class='delta-row'><span class='delta-badge delta-down'>Spot -2,100</span><span class='delta-badge delta-up'>Front IV +0.90</span><span class='delta-badge delta-down'>IV-RV -7.20</span><span class='delta-badge delta-down'>Net gamma -2.842</span><span class='delta-badge delta-up'>Ertesi gun OI +109.0mn USD</span><span class='delta-badge delta-up'>Toplam GEX: +1,643,999</span><span class='delta-badge delta-up'>On vade 23MAY26: +762,844</span></div>
-      <ul><li>Spot dunden bugune -2,100 degisti.</li><li>ATM spot IV degisimi +0.08 puan; front ATM IV degisimi +0.90; net gamma degisimi -2.842.</li><li>Magnet strike degismedi ve 80,000 seviyesinde kaldi.</li><li>Put hedge zone merkezi ayni kaldi (60,000-75,000).</li><li>Toplam expiry-bazli GEX 2026-05-22 snapshot'ina gore +1,643,999 degisti.</li><li>En belirgin destek artisi 24MAY26 vadesinde goruldu (+1,343,484).</li></ul>
-      <p><strong>5 gunluk referans:</strong> Spot -1,691, ATM IV -1.32, ertesi gun OI -98.6 milyon USD.</p>
+      <div class='delta-row'><span class='delta-badge delta-up'>Spot +0</span><span class='delta-badge delta-down'>Front IV -2.36</span><span class='delta-badge delta-down'>IV-RV -2.41</span><span class='delta-badge delta-up'>Net gamma +0.000</span><span class='delta-badge delta-up'>Ertesi gun OI +0.0mn USD</span><span class='delta-badge delta-up'>Toplam GEX: +2,356,290</span><span class='delta-badge delta-up'>On vade 25MAY26: +2,453,474</span></div>
+      <ul><li>Spot dunden bugune +0 degisti.</li><li>ATM spot IV degisimi -0.81 puan; front ATM IV degisimi -2.36; net gamma degisimi +0.000.</li><li>Magnet strike degismedi ve 80,000 seviyesinde kaldi.</li><li>Put hedge zone merkezi ayni kaldi (60,000-75,000).</li><li>Toplam expiry-bazli GEX 2026-05-24 snapshot'ina gore +2,356,290 degisti.</li><li>En belirgin destek artisi 25MAY26 vadesinde goruldu (+2,453,474).</li></ul>
+      <p><strong>5 gunluk referans:</strong> Spot -912, ATM IV -1.89, ertesi gun OI +59.3 milyon USD.</p>
     </div>
     <div>
       <h2>Risk Goc Trendi</h2>
-      <img src='laevitas/btc_archive_trend.png?v=20260523065549' alt='Gunluk trend'>
+      <img src='laevitas/btc_archive_trend.png?v=20260525070733' alt='Gunluk trend'>
       <p>Bu grafik spot, vol ve net gamma'nin zaman icindeki kaymasini birlikte izler. Ana okuma ise riskin hangi strike ve expiry'ye tasindigini migration notlariyla birlikte okumaktir.</p>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Koruma Talebi / Skew Repositioning</h2>
-      <p><span class='delta-badge delta-neutral'>Karısık / secici</span></p>
-      <p><strong>Headline:</strong> Vol dusuyor; ancak put skew hala savunmaci. Koruma cozülmesi baslamis olabilir ama henuz net degil.</p>
-      <div class='delta-row'><span class='delta-badge delta-neutral'>Front IV: 34.12</span><span class='delta-badge delta-down'>7g IV degisimi: -2.69</span><span class='delta-badge delta-down'>30g IV degisimi: -7.44</span><span class='delta-badge delta-down'>25D RR: -4.66</span><span class='delta-badge delta-up'>7g RR degisimi: +0.45</span><span class='delta-badge delta-up'>30g RR degisimi: +0.16</span><span class='delta-badge delta-neutral'>7/7 vade IV haftalik bazda dustu</span><span class='delta-badge delta-neutral'>5/5 vade IV aylik bazda dustu</span></div>
-      <ul><li>Kisa sonuc: vol rahatliyor ama skew rahatlamiyor; piyasa henuz asagi korumayi tamamen birakmis degil.</li><li>1 ay once piyasa cok daha pahali vol / koruma rejimindeydi; bugun IV egrisi belirgin sekilde asagi gelmis durumda.</li><li>Spot yukari tasinirken risk reversal da genel olarak daha az stresli bolgeye geldi; ancak son 7 gunde RR tekrar daha negatif oldugu icin asagi koruma tamamen birakilmis degil.</li><li>Gelecek icin ana sinyal: spot yukarida kalirken RR sifira yaklasirsa rahatlama devam eder; spot duserken RR yeniden negatife giderse piyasa tekrar put korumasi almaya basliyor demektir.</li><li>Flow teyidi: En belirgin put unwind: BTC-29MAY26-75000-P ($10,858,176)</li></ul>
+      <p><span class='delta-badge delta-up'>Koruma talebi azaliyor</span></p>
+      <p><strong>Headline:</strong> Vol dusuyor ve skew de rahatliyorsa, piyasa asagi korumayi azaltmaya baslamis olabilir.</p>
+      <div class='delta-row'><span class='delta-badge delta-neutral'>Front IV: 31.16</span><span class='delta-badge delta-down'>7g IV degisimi: -6.86</span><span class='delta-badge delta-down'>30g IV degisimi: -4.34</span><span class='delta-badge delta-down'>25D RR: -4.41</span><span class='delta-badge delta-up'>7g RR degisimi: +1.99</span><span class='delta-badge delta-up'>30g RR degisimi: +0.03</span><span class='delta-badge delta-neutral'>7/7 vade IV haftalik bazda dustu</span><span class='delta-badge delta-neutral'>6/6 vade IV aylik bazda dustu</span></div>
+      <ul><li>Kisa sonuc: opsiyon primi gevserken asagi koruma talebi de azaliyor; bu daha rahat bir rejime gecis sinyali olabilir.</li><li>1 ay once piyasa cok daha pahali vol / koruma rejimindeydi; bugun IV egrisi belirgin sekilde asagi gelmis durumda.</li><li>Spot yukari tasinirken risk reversal da genel olarak daha az stresli bolgeye geldi; ancak son 7 gunde RR tekrar daha negatif oldugu icin asagi koruma tamamen birakilmis degil.</li><li>Gelecek icin ana sinyal: spot yukarida kalirken RR sifira yaklasirsa rahatlama devam eder; spot duserken RR yeniden negatife giderse piyasa tekrar put korumasi almaya basliyor demektir.</li><li>Flow teyidi: Top instrument tape tarafinda net put unwind teyidi sinirli.</li></ul>
       <p class='small-muted'>Bu blok sunu cevaplar: piyasa asagi korumayi azaltiyor mu, yoksa put primi hala savunmaci mi? Bu bir signed dealer inventory iddiasi degildir.</p>
     </div>
     <div>
-      <img src='laevitas/btc_vol_skew_spot.png?v=20260523065549' alt='Spot versus front 25D RR'>
-      <img src='laevitas/btc_vol_skew_term_compare.png?v=20260523065549' alt='Today versus one-week ATM IV curve'>
+      <img src='laevitas/btc_vol_skew_spot.png?v=20260525070733' alt='Spot versus front 25D RR'>
+      <img src='laevitas/btc_vol_skew_term_compare.png?v=20260525070733' alt='Today versus one-week ATM IV curve'>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Volatilite Piyasa Istihbarati</h2>
-      <ul><li>On vade ATM IV (05JUN26) 34.12; uzak vade ATM IV (25MAY26) 28.64. On taraf pahali ve term structure belirgin backwardation gosteriyor.</li><li>Front ATM IV, 7 gunluk realized volun 12.60 puan uzerinde. Vol market spotun son gercek hareketine gore primli calisiyor.</li><li>25d RR -4.66; skew savunmaci ama panik boyutunda degil. Piyasa asagiyi ciddiye aliyor fakat tek yonlu korku fiyatlamiyor.</li><li>10d RR -8.61 ve 25d BF 0.41; bu kombinasyon kisa vadede tail priminin ne kadar yuksek oldugunu gosteriyor.</li></ul>
+      <ul><li>On vade ATM IV (05JUN26) 31.16; uzak vade ATM IV (26MAR27) 42.94. Vol egirisi yukari egimli; piyasa yakin riski degil daha kalici belirsizligi fiyatliyor.</li><li>Front ATM IV ile 7 gunluk realized vol arasindaki fark 5.10 puan. Vol market ile spot hareketi birbirinden kopuk degil.</li><li>25d RR -4.41; skew savunmaci ama panik boyutunda degil. Piyasa asagiyi ciddiye aliyor fakat tek yonlu korku fiyatlamiyor.</li><li>10d RR -8.24 ve 25d BF 0.67; bu kombinasyon kisa vadede tail priminin ne kadar yuksek oldugunu gosteriyor.</li></ul>
       <p><strong>Front maturity:</strong> 29MAY26</p>
-      <p><strong>Gunluk ATM IV degisimi:</strong> +2.49</p>
-      <p><strong>Haftalik ATM IV degisimi:</strong> -1.78</p>
+      <p><strong>Gunluk ATM IV degisimi:</strong> -1.60</p>
+      <p><strong>Haftalik ATM IV degisimi:</strong> -7.02</p>
       
     </div>
     <div>
       <h2>IV ve RV Karsilastirmasi</h2>
-      <img src='laevitas/btc_iv_rv.png?v=20260523065549' alt='IV RV chart'>
+      <img src='laevitas/btc_iv_rv.png?v=20260525070733' alt='IV RV chart'>
       <p>Laevitas historical RV endpoint'i bu key ile kapali oldugu icin realized vol public BTC gunluk kapanis serisinden hesaplanir.</p>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Akis ve Strateji Teyidi</h2>
-      <p><span class='delta-badge delta-down'>Karisik ama savunmaci egilimli</span></p>
-      <p><strong>Flow skoru:</strong> Constructive / upside chase akisi (+4)</p>
-      <ul><li>Son 24 saatte en guclu yeni risk BTC-23MAY26-75500-P uzerinden geldi; bu, put korumasi tarafinda aktif yeni konumlanma oldugunu gosteriyor.</li><li>Ayni anda en belirgin bosalma BTC-23MAY26-77000-C tarafinda; bu da eski call riskinin bir kisminin temizlendigini gosteriyor.</li><li>Strike bazli net ekleme en cok 76,500 ve 75,500 civarinda yogunlasmis; bu bolgeler kisa vadede yeni ilgi merkezi.</li><li>En sert net bosalma 90,000 ve 70,000 cevresinde; bu da eski pozisyonun oradan cekildigine isaret ediyor.</li></ul>
-      <p><strong>Strateji Karari:</strong> Karisik ama savunmaci egilimli</p>
-      <p><strong>Baskin Aksiyon:</strong> Taze downside hedge + hedge roll-forward</p>
-      <p><strong>Trade Yansimasi:</strong> Bu tape outright panic degil ama rahat risk-on da degil; yukariyi secici, asagiyi ise korunmaci oku.</p>
-      <ul><li>PUT_CALENDAR $38,446,000 ve 470 OI artisi ile one cikiyor; bu, downside korumanin sadece kapatilmasindan cok vade boyunca tasindigi / uzatildigi bir tape'e daha yakin.</li><li>LONG_PUT tarafinda $344,869,604 ve 10,009 OI artisi var; bu, asagi yonlu korumanin taze hedge olarak eklendigini gosteriyor.</li><li>SHORT_CALL OI artisi 3,128; bu, yukari hareketin call satarak cap'lendigini ve temiz breakout beklentisinin sinirli kaldigini gosteriyor.</li><li>LONG_CALL OI artisi 3,480; tape'in bir parcasi yukari risk tekrar insa ediyor, ancak bu tek basina euforia okumasi degil.</li><li>SHORT_PUT OI artisi 4,238; oyuncularin bir kismi downside'i satip carry toplamaya devam ediyor.</li></ul>
+      <p><span class='delta-badge delta-down'>Savunmaci</span></p>
+      <p><strong>Flow skoru:</strong> Defensive / downside hedge akisi (-2)</p>
+      <ul><li>Son 24 saatte en guclu yeni risk BTC-29MAY26-73000-P uzerinden geldi; bu, put korumasi tarafinda aktif yeni konumlanma oldugunu gosteriyor.</li><li>Ayni anda en belirgin bosalma BTC-26JUN26-80000-C tarafinda; bu da eski call riskinin bir kisminin temizlendigini gosteriyor.</li><li>Strike bazli net ekleme en cok 80,000 ve 70,000 civarinda yogunlasmis; bu bolgeler kisa vadede yeni ilgi merkezi.</li><li>En sert net bosalma 76,000 ve 75,500 cevresinde; bu da eski pozisyonun oradan cekildigine isaret ediyor.</li></ul>
+      <p><strong>Strateji Karari:</strong> Savunmaci</p>
+      <p><strong>Baskin Aksiyon:</strong> Taze hedge + upside cap</p>
+      <p><strong>Trade Yansimasi:</strong> Breakout kalitesi zayiflar; yukari extension gorursen bile cap riski nedeniyle acceptance ara.</p>
+      <ul><li>LONG_PUT tarafinda $101,307,471 ve 1,484 OI artisi var; bu, asagi yonlu korumanin taze hedge olarak eklendigini gosteriyor.</li><li>SHORT_CALL OI artisi 2,444; bu, yukari hareketin call satarak cap'lendigini ve temiz breakout beklentisinin sinirli kaldigini gosteriyor.</li><li>LONG_CALL OI artisi 1,092; tape'in bir parcasi yukari risk tekrar insa ediyor, ancak bu tek basina euforia okumasi degil.</li><li>SHORT_PUT OI artisi 1,298; oyuncularin bir kismi downside'i satip carry toplamaya devam ediyor.</li></ul>
       
     </div>
     <div>
       <h2>Strike Bazli Akis Degisimi</h2>
-      <img src='laevitas/btc_flow_change.png?v=20260523065549' alt='Akis degisimi grafigi'>
+      <img src='laevitas/btc_flow_change.png?v=20260525070733' alt='Akis degisimi grafigi'>
       <p>Bu grafik son 24 saatte riskin hangi strike'lara tasindigini gosterir. Core raporda flow ve strategy teyidini tek panelde tutuyoruz; ham tape ayrintisi appendix'te kaliyor.</p>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Profesyonel Son Okuma</h2>
-      <ul><li>Birlesik okuma, pin mekanizmasinin zayifladigini ve piyasanin daha yonlu bir asagi hareket riski tasidigini gosteriyor. Bu durumda opsiyon piyasasi spota istikrar degil ivme ekleyebilir.</li><li>Vol market tarafinda front ATM IV 34.12, 7 gunluk realized vol 21.52 ve IV-RV spread 12.60. Bu, opsiyon primlerinin son spot hareketine gore primli oldugunu gosteriyor.</li><li>Strategy tape tarafinda baskin ton constructive. Bu nedenle bugunun okumasini sadece strike yigilmasi degil, aktif trade edilen stratejilerin ne anlattigi da destekliyor.</li></ul>
+      <ul><li>Birlesik okuma, pin mekanizmasinin zayifladigini ve piyasanin daha yonlu bir asagi hareket riski tasidigini gosteriyor. Bu durumda opsiyon piyasasi spota istikrar degil ivme ekleyebilir.</li><li>Vol market tarafinda front ATM IV 31.16, 7 gunluk realized vol 26.06 ve IV-RV spread 5.10. Bu, opsiyon primlerinin son spot hareketine gore primli oldugunu gosteriyor.</li><li>Strategy tape tarafinda baskin ton constructive. Bu nedenle bugunun okumasini sadece strike yigilmasi degil, aktif trade edilen stratejilerin ne anlattigi da destekliyor.</li></ul>
     </div>
     <div>
       <h2>Ekler</h2>
@@ -405,16 +361,16 @@ small { opacity:0.82; font-size:12px; }
   <section class='two'>
     <div>
       <h2>Akis Isi Haritasi</h2>
-      <img src='laevitas/btc_flow_heatmap.png?v=20260523065549' alt='Flow heatmap'>
+      <img src='laevitas/btc_flow_heatmap.png?v=20260525070733' alt='Flow heatmap'>
       <p>Heatmap spot cevresinde call ve put akisinin tam olarak hangi strike'larda yogunlastigini gosterir.</p>
       
     </div>
     <div>
       <h2>Gunluk / Haftalik / Aylik Flow Notu</h2>
       <p><strong>Gunluk:</strong></p>
-      <ul><li>Bugun en baskin strike akis degisimi 90,000 ve 70,000 cevresinde goruldu.</li></ul>
+      <ul><li>Bugun en baskin strike akis degisimi 80,000 ve 70,000 cevresinde goruldu.</li></ul>
       <p><strong>Haftalik:</strong></p>
-      <ul><li>Son 5 gunluk yerel kayitta akis en cok 78,000 ve 77,000 strike'larinda birikmis.</li></ul>
+      <ul><li>Son 5 gunluk yerel kayitta akis en cok 90,000 ve 82,000 strike'larinda birikmis.</li></ul>
       <p><strong>Aylik:</strong></p>
       <ul><li>20 gunluk birikimde call tarafi daha baskin.</li></ul>
     </div>
@@ -422,34 +378,34 @@ small { opacity:0.82; font-size:12px; }
   <section class='two'>
     <div>
       <h2>ATM IV Vade Yapisi</h2>
-      <img src='laevitas/btc_iv_term_structure.png?v=20260523065549' alt='ATM IV term structure'>
-      <table><tr><th>Vade</th><th>ATM IV</th><th>25d RR</th><th>25d BF</th></tr><tr><td>05JUN26</td><td>34.12</td><td>-4.66</td><td>0.41</td></tr><tr><td>12JUN26</td><td>34.37</td><td>-5.26</td><td>0.71</td></tr><tr><td>23MAY26</td><td>25.51</td><td>0.00</td><td>0.00</td></tr><tr><td>24MAY26</td><td>21.46</td><td>-5.81</td><td>1.58</td></tr><tr><td>25DEC26</td><td>42.10</td><td>-4.88</td><td>0.94</td></tr><tr><td>25MAY26</td><td>28.64</td><td>-4.56</td><td>0.64</td></tr><tr><td>25SEP26</td><td>38.54</td><td>-4.73</td><td>1.09</td></tr><tr><td>26JUN26</td><td>35.06</td><td>-5.14</td><td>1.14</td></tr></table>
+      <img src='laevitas/btc_iv_term_structure.png?v=20260525070733' alt='ATM IV term structure'>
+      <table><tr><th>Vade</th><th>ATM IV</th><th>25d RR</th><th>25d BF</th></tr><tr><td>05JUN26</td><td>31.16</td><td>-4.41</td><td>0.67</td></tr><tr><td>12JUN26</td><td>31.95</td><td>-4.65</td><td>0.82</td></tr><tr><td>25DEC26</td><td>41.49</td><td>-4.88</td><td>0.92</td></tr><tr><td>25MAY26</td><td>0.00</td><td>0.00</td><td>0.00</td></tr><tr><td>25SEP26</td><td>37.75</td><td>-4.87</td><td>1.17</td></tr><tr><td>26JUN26</td><td>33.07</td><td>-4.36</td><td>1.05</td></tr><tr><td>26MAR27</td><td>42.94</td><td>-4.69</td><td>1.06</td></tr><tr><td>26MAY26</td><td>28.41</td><td>-2.34</td><td>0.56</td></tr></table>
     </div>
     <div>
       <h2>Strateji Bandı</h2>
-      <img src='laevitas/btc_top_strategies.png?v=20260523065549' alt='Strategy chart'>
+      <img src='laevitas/btc_top_strategies.png?v=20260525070733' alt='Strategy chart'>
       <p><strong>Baskin ton:</strong> constructive</p>
-      <ul><li>En buyuk strategy baskisi CUSTOM_STRATEGY tarafinda; yaklasik $558,451,784 notional ve 7,283 OI degisimi ile tape'i tasiyor.</li><li>Strategy tape genel olarak yapici; short put, long call veya bull spread benzeri yapilar savunmadan daha agir basiyor.</li></ul>
-      <table><tr><th>Strategy</th><th>Notional</th><th>OI Degisimi</th><th>Delta</th></tr><tr><td>CUSTOM_STRATEGY</td><td>$558,451,784</td><td>7,283</td><td>-272.7</td></tr><tr><td>LONG_PUT</td><td>$344,869,604</td><td>10,009</td><td>-1014.4</td></tr><tr><td>SHORT_PUT</td><td>$337,510,948</td><td>4,238</td><td>603.4</td></tr><tr><td>LONG_CALL</td><td>$252,179,530</td><td>3,480</td><td>655.1</td></tr><tr><td>SHORT_CALL</td><td>$249,803,055</td><td>3,128</td><td>-671.7</td></tr><tr><td>SHORT_PUT_CONDOR</td><td>$153,145,730</td><td>0</td><td>235.7</td></tr><tr><td>PUT_CALENDAR</td><td>$38,446,000</td><td>470</td><td>-8.5</td></tr><tr><td>HEDGED_OPTIONS_STRATEGY</td><td>$26,985,008</td><td>234</td><td>11.5</td></tr></table>
+      <ul><li>En buyuk strategy baskisi SHORT_PUT tarafinda; yaklasik $128,514,580 notional ve 1,298 OI degisimi ile tape'i tasiyor.</li><li>Strategy tape genel olarak yapici; short put, long call veya bull spread benzeri yapilar savunmadan daha agir basiyor.</li></ul>
+      <table><tr><th>Strategy</th><th>Notional</th><th>OI Degisimi</th><th>Delta</th></tr><tr><td>SHORT_PUT</td><td>$128,514,580</td><td>1,298</td><td>154.3</td></tr><tr><td>LONG_CALL</td><td>$115,597,621</td><td>1,092</td><td>223.8</td></tr><tr><td>LONG_PUT</td><td>$101,307,471</td><td>1,484</td><td>-209.9</td></tr><tr><td>SHORT_CALL</td><td>$88,031,603</td><td>2,444</td><td>-236.6</td></tr><tr><td>CUSTOM_STRATEGY</td><td>$19,033,973</td><td>175</td><td>-6.4</td></tr><tr><td>BEAR_PUT_SPREAD</td><td>$17,354,732</td><td>151</td><td>-26.0</td></tr><tr><td>ROLL_FORWARD</td><td>$15,440,234</td><td>0</td><td>-5.9</td></tr><tr><td>LONG_RATIO_PUT_SPREAD</td><td>$5,740,045</td><td>4</td><td>0.4</td></tr></table>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Strateji Akis Yorumu</h2>
-      <p><span class='delta-badge delta-down'>Karisik ama savunmaci egilimli</span></p>
-      <p><strong>Strateji Karari:</strong> Karisik ama savunmaci egilimli</p>
-      <p><strong>Baskin Aksiyon:</strong> Taze downside hedge + hedge roll-forward</p>
-      <p><strong>Trade Yansimasi:</strong> Bu tape outright panic degil ama rahat risk-on da degil; yukariyi secici, asagiyi ise korunmaci oku.</p>
-      <p><strong>Headline:</strong> Tape, downside korumanin hem tazelendigini hem de daha ileri vadeye tasindigini gosteriyor.</p>
-      <ul><li>PUT_CALENDAR $38,446,000 ve 470 OI artisi ile one cikiyor; bu, downside korumanin sadece kapatilmasindan cok vade boyunca tasindigi / uzatildigi bir tape'e daha yakin.</li><li>LONG_PUT tarafinda $344,869,604 ve 10,009 OI artisi var; bu, asagi yonlu korumanin taze hedge olarak eklendigini gosteriyor.</li><li>SHORT_CALL OI artisi 3,128; bu, yukari hareketin call satarak cap'lendigini ve temiz breakout beklentisinin sinirli kaldigini gosteriyor.</li><li>LONG_CALL OI artisi 3,480; tape'in bir parcasi yukari risk tekrar insa ediyor, ancak bu tek basina euforia okumasi degil.</li><li>SHORT_PUT OI artisi 4,238; oyuncularin bir kismi downside'i satip carry toplamaya devam ediyor.</li></ul>
+      <p><span class='delta-badge delta-down'>Savunmaci</span></p>
+      <p><strong>Strateji Karari:</strong> Savunmaci</p>
+      <p><strong>Baskin Aksiyon:</strong> Taze hedge + upside cap</p>
+      <p><strong>Trade Yansimasi:</strong> Breakout kalitesi zayiflar; yukari extension gorursen bile cap riski nedeniyle acceptance ara.</p>
+      <p><strong>Headline:</strong> Tape ayni anda hem downside hedge hem de upside cap anlatiyor; yon var ama rahat degil.</p>
+      <ul><li>LONG_PUT tarafinda $101,307,471 ve 1,484 OI artisi var; bu, asagi yonlu korumanin taze hedge olarak eklendigini gosteriyor.</li><li>SHORT_CALL OI artisi 2,444; bu, yukari hareketin call satarak cap'lendigini ve temiz breakout beklentisinin sinirli kaldigini gosteriyor.</li><li>LONG_CALL OI artisi 1,092; tape'in bir parcasi yukari risk tekrar insa ediyor, ancak bu tek basina euforia okumasi degil.</li><li>SHORT_PUT OI artisi 1,298; oyuncularin bir kismi downside'i satip carry toplamaya devam ediyor.</li></ul>
     </div>
     <div>
       <h2>Strateji Aksiyon Haritasi</h2>
-      <img src='laevitas/btc_strategy_action_map.png?v=20260523065549' alt='Strategy action map'>
+      <img src='laevitas/btc_strategy_action_map.png?v=20260525070733' alt='Strategy action map'>
       <p>Bu grafik strateji isimlerini degil, tape'in hangi aksiyonlarda yogunlastigini gosterir. Soldaki tabloyu hizli okumak icin kullan.</p>
-      <img src='laevitas/btc_roll_transfer_map.png?v=20260523065549' alt='Roll transfer map'>
+      <img src='laevitas/btc_roll_transfer_map.png?v=20260525070733' alt='Roll transfer map'>
       <p><strong>Tahmini Roll / Transfer:</strong> Mevcut strategy endpoint'i leg-level veri vermedigi icin bu bolum tahmini transfer okumasidir.</p>
-      <ul><li>Put tarafinda en guclu ekleme BTC-23MAY26-75500-P, en guclu bosalma BTC-29MAY26-75000-P; bu, korumanin 29MAY26 vadesinden 23MAY26 vadesine tasiniyor olabilecegini dusunduruyor.</li><li>Put strike transferi tahminen 75,000 -> 75,500 yonunde yukariya; bu da hedge seviyesinin yeniden konumlandigini ima eder.</li><li>Call tarafinda en guclu ekleme BTC-29MAY26-80000-C, en guclu bosalma BTC-23MAY26-77000-C; bu, upside pozisyonunun 23MAY26 vadesinden 29MAY26 vadesine aktariliyor olabilecegini gosteriyor.</li><li>Call strike transferi tahminen 77,000 -> 80,000 yonunde yukariya; bu, upside target/cap seviyesinin yer degistirdigine isaret edebilir.</li><li>Net strike akis merkezi 90,000'dan 76,500'a asagiya kayiyor; bu da yeni ilginin hangi strike'a toplandigini gosteriyor.</li></ul>
+      <ul><li>Put tarafinda en guclu ekleme BTC-29MAY26-73000-P, en guclu bosalma BTC-26JUN26-76000-P; bu, korumanin 26JUN26 vadesinden 29MAY26 vadesine tasiniyor olabilecegini dusunduruyor.</li><li>Put strike transferi tahminen 76,000 -> 73,000 yonunde asagiya; bu da hedge seviyesinin yeniden konumlandigini ima eder.</li><li>Call tarafinda en guclu ekleme BTC-5JUN26-79000-C, en guclu bosalma BTC-26JUN26-80000-C; bu, upside pozisyonunun 26JUN26 vadesinden 5JUN26 vadesine aktariliyor olabilecegini gosteriyor.</li><li>Call strike transferi tahminen 80,000 -> 79,000 yonunde asagiya; bu, upside target/cap seviyesinin yer degistirdigine isaret edebilir.</li><li>Net strike akis merkezi 76,000'dan 80,000'a yukariya kayiyor; bu da yeni ilginin hangi strike'a toplandigini gosteriyor.</li></ul>
       <h3>Bu Ne Anlama Geliyor?</h3>
       <ul>
         <li>Roll / extend: koruma kapatilmiyor, daha ileri vadeye tasiniyor olabilir.</li>
@@ -463,115 +419,115 @@ small { opacity:0.82; font-size:12px; }
   <section class='two'>
     <div>
       <h2>Dealer Baski Haritasi (Proxy)</h2>
-      <img src='laevitas/btc_mm_position_map.png?v=20260523065549' alt='MM Position Map v1'>
+      <img src='laevitas/btc_mm_position_map.png?v=20260525070733' alt='MM Position Map v1'>
       <p>Bu chart mevcut GEX, strike OI ve 24s strike akisini birlestiren bir proxy haritadir. Gercek MM inventory degildir; hangi strike'larda yukari/asagi baski yogunlasiyor onu gosterir.</p>
-      <img src='laevitas/btc_dealer_pressure_delta.png?v=20260523065549' alt='Dealer pressure delta'>
-      <p class='small-muted'>2026-05-22 -> 2026-05-23</p>
-      <div class='delta-row'><span class='delta-badge delta-neutral'>Yukari baski azaldi: -879.5</span><span class='delta-badge delta-down'>Asagi baski artti: +901.9</span><span class='delta-badge delta-up'>Yukari build: 76,500 +169.6</span><span class='delta-badge delta-down'>Asagi build: 90,000 +142.0</span></div>
-      <p><strong>Gunluk delta okuma:</strong> Dunden bugune en net asagi kayma 90,000 cevresinde; ana harita benzer kalsa bile taze baski dagilimi savunmaci tarafa kaydi.</p>
-      <ul><li>En guclu yukari merkezler 80,000, 90,000, 85,000; bu strike'larda call agirligi, pozitif gamma ve/veya taze akis birlikte yogunlasiyor.</li><li>En guclu asagi hedge cepleri 75,000, 70,000, 65,000; bu alanlar downside korumasinin en yogun kaldigi bolgeler.</li><li>Son 24 saatte en belirgin zincir kaymasi 90,000 strike'inda asagi yone oldu (-148.2mn); bu seviye kisa vadede yeni ilgi merkezi gibi okunmali.</li></ul>
+      <img src='laevitas/btc_dealer_pressure_delta.png?v=20260525070733' alt='Dealer pressure delta'>
+      <p class='small-muted'>2026-05-24 -> 2026-05-25</p>
+      <div class='delta-row'><span class='delta-badge delta-neutral'>Yukari baski azaldi: -255.0</span><span class='delta-badge delta-neutral'>Asagi baski azaldi: -251.2</span><span class='delta-badge delta-up'>Yukari build: 78,000 +10.7</span><span class='delta-badge delta-down'>Asagi build: 76,000 +13.2</span></div>
+      <p><strong>Gunluk delta okuma:</strong> Dunden bugune en net yukari kayma 76,500 cevresinde; ana harita benzer kalsa bile taze baski dagilimi yukari yone kaydi.</p>
+      <ul><li>En guclu yukari merkezler 80,000, 90,000, 85,000; bu strike'larda call agirligi, pozitif gamma ve/veya taze akis birlikte yogunlasiyor.</li><li>En guclu asagi hedge cepleri 75,000, 70,000, 76,000; bu alanlar downside korumasinin en yogun kaldigi bolgeler.</li><li>Son 24 saatte en belirgin zincir kaymasi 80,000 strike'inda yukari yone oldu (+22.4mn); bu seviye kisa vadede yeni ilgi merkezi gibi okunmali.</li></ul>
       <ul><li>Bu harita gercek dealer inventory degil; strike OI, GEX ve 24s strike akisindan uretilen proxy baski skorudur.</li><li>Ust harita yapisal stok agirligini gosterir; bu nedenle ayni strike'lar birden fazla gun boyunca benzer gorunebilir.</li><li>Alt delta chart'i ayni strike'larda bugun dunden daha fazla yukari mi asagi mi baski biriktigini gosterir.</li></ul>
     </div>
     <div>
       <h2>Zincir Tablosu v1</h2>
-      <table><tr><th>Strike</th><th>Call Notional</th><th>Put Notional</th><th>Net OI</th><th>24s Net Flow</th><th>Net GEX</th></tr><tr><td>80,000</td><td>$1,637,588,778</td><td>$485,577,687</td><td>+1152.0mn</td><td>-55.3mn</td><td>+0.55</td></tr><tr><td>90,000</td><td>$1,010,331,157</td><td>$220,253,993</td><td>+790.1mn</td><td>-148.2mn</td><td>+0.12</td></tr><tr><td>82,000</td><td>$714,473,616</td><td>$73,355,658</td><td>+641.1mn</td><td>-38.7mn</td><td>+0.24</td></tr><tr><td>85,000</td><td>$874,564,552</td><td>$300,221,503</td><td>+574.3mn</td><td>-73.9mn</td><td>+0.14</td></tr><tr><td>75,000</td><td>$496,340,100</td><td>$1,023,871,713</td><td>-527.5mn</td><td>-12.2mn</td><td>-1.06</td></tr><tr><td>88,000</td><td>$439,928,318</td><td>$1,777,951</td><td>+438.2mn</td><td>-62.4mn</td><td>+0.09</td></tr><tr><td>65,000</td><td>$101,787,393</td><td>$495,136,699</td><td>-393.3mn</td><td>-25.4mn</td><td>-0.07</td></tr><tr><td>84,000</td><td>$352,826,561</td><td>$19,014,047</td><td>+333.8mn</td><td>-51.5mn</td><td>+0.08</td></tr><tr><td>70,000</td><td>$607,520,782</td><td>$777,364,199</td><td>-169.8mn</td><td>-142.5mn</td><td>-0.11</td></tr><tr><td>81,000</td><td>$249,058,899</td><td>$50,113,819</td><td>+198.9mn</td><td>-112.5mn</td><td>+0.08</td></tr><tr><td>78,000</td><td>$631,786,846</td><td>$399,468,646</td><td>+232.3mn</td><td>-67.5mn</td><td>+0.09</td></tr><tr><td>86,000</td><td>$236,462,500</td><td>$9,077,345</td><td>+227.4mn</td><td>-66.2mn</td><td>+0.05</td></tr><tr><td>74,000</td><td>$172,358,950</td><td>$371,180,432</td><td>-198.8mn</td><td>-69.5mn</td><td>-0.27</td></tr><tr><td>71,000</td><td>$35,483,856</td><td>$245,350,630</td><td>-209.9mn</td><td>-50.2mn</td><td>-0.11</td></tr></table>
+      <table><tr><th>Strike</th><th>Call Notional</th><th>Put Notional</th><th>Net OI</th><th>24s Net Flow</th><th>Net GEX</th></tr><tr><td>80,000</td><td>$1,686,294,456</td><td>$495,100,834</td><td>+1191.2mn</td><td>+22.4mn</td><td>+0.80</td></tr><tr><td>90,000</td><td>$1,032,171,867</td><td>$224,686,783</td><td>+807.5mn</td><td>+11.8mn</td><td>+0.16</td></tr><tr><td>82,000</td><td>$726,386,899</td><td>$74,486,719</td><td>+651.9mn</td><td>+8.2mn</td><td>+0.31</td></tr><tr><td>85,000</td><td>$899,000,466</td><td>$306,226,607</td><td>+592.8mn</td><td>+9.2mn</td><td>+0.16</td></tr><tr><td>75,000</td><td>$522,453,480</td><td>$990,187,659</td><td>-467.7mn</td><td>-2.7mn</td><td>-0.52</td></tr><tr><td>88,000</td><td>$447,616,135</td><td>$1,813,686</td><td>+445.8mn</td><td>+3.4mn</td><td>+0.09</td></tr><tr><td>65,000</td><td>$103,918,493</td><td>$513,615,554</td><td>-409.7mn</td><td>+7.1mn</td><td>-0.07</td></tr><tr><td>84,000</td><td>$362,997,164</td><td>$19,397,043</td><td>+343.6mn</td><td>+8.9mn</td><td>+0.11</td></tr><tr><td>62,000</td><td>$8,497,486</td><td>$263,308,273</td><td>-254.8mn</td><td>+2.9mn</td><td>-0.03</td></tr><tr><td>86,000</td><td>$240,148,354</td><td>$9,259,844</td><td>+230.9mn</td><td>+3.4mn</td><td>+0.06</td></tr><tr><td>68,000</td><td>$178,248,476</td><td>$379,373,540</td><td>-201.1mn</td><td>+8.4mn</td><td>-0.04</td></tr><tr><td>70,000</td><td>$619,702,221</td><td>$807,894,824</td><td>-188.2mn</td><td>+16.0mn</td><td>-0.06</td></tr><tr><td>73,000</td><td>$28,503,037</td><td>$227,657,708</td><td>-199.2mn</td><td>+3.5mn</td><td>-0.12</td></tr><tr><td>74,000</td><td>$177,737,384</td><td>$378,947,671</td><td>-201.2mn</td><td>-1.4mn</td><td>-0.16</td></tr></table>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Yaklasik Hedge-Etki Yuzeyi</h2>
-      <img src='laevitas/btc_proxy_hedge_impact.png?v=20260523065549' alt='Proxy hedge impact surface'>
+      <img src='laevitas/btc_proxy_hedge_impact.png?v=20260525070733' alt='Proxy hedge impact surface'>
       <p>Bu chart true dealer inventory kullanmaz; strike OI, proxy pressure ve GEX ile spot farkli seviyelere giderse hedge etkisinin daha dengeleyici mi daha kirilgan mi calisabilecegini idealize eder.</p>
-      <div class='delta-row'><span class='delta-badge delta-down'>Mevcut proxy skor: -2276</span><span class='delta-badge delta-down'>Rejim: Kirilgan / short-gamma-benzeri</span><span class='delta-badge delta-neutral'>Dengeleyici pocket: 80,851</span><span class='delta-badge delta-neutral'>Kirilgan pocket: 74,851</span></div>
-      <p><strong>Headline:</strong> Proxy model, spotun hala kirilgan bir pocket'ta oldugunu soyluyor; hareketler emilmekten cok buyumeye daha yatkin olabilir.</p>
-      <p><strong>Tek satir:</strong> Spot cevresindeki yerel gamma tonu negatif (-2.58); bu, idealize edilmis hedge etkisinin hareketi buyutme yonune kayabildigini ima ediyor.</p>
-      <img src='laevitas/btc_proxy_hedge_impact_trend.png?v=20260523065549' alt='Proxy hedge impact trend'>
-      <p class='small-muted'>2026-05-22 -> 2026-05-23</p>
-      <div class='delta-row'><span class='delta-badge delta-down'>Skor degisimi: -2436</span><span class='delta-badge delta-up'>Dengeleyici pocket kaymasi: +400</span><span class='delta-badge delta-up'>Kirilgan pocket kaymasi: +400</span></div>
-      <p><strong>Dunden bugune:</strong> Proxy hedge-impact skoru dunden bugune zayifladi; hedge etkisi daha kirilgan bir rejime kayiyor olabilir.</p>
+      <div class='delta-row'><span class='delta-badge delta-up'>Mevcut proxy skor: +101</span><span class='delta-badge delta-down'>Rejim: Dengeleyici / long-gamma-benzeri</span><span class='delta-badge delta-down'>Long-gamma alani: 76,849-91,849</span><span class='delta-badge delta-neutral'>Dengeleyici pocket: 80,349</span><span class='delta-badge delta-neutral'>Kirilgan pocket: 74,349</span></div>
+      <p><strong>Headline:</strong> Proxy model, spotun 76,849-91,849 civarinda daha dengeleyici bir hedge rejimine yaklastigini soyluyor; hareketler emilmeye daha yatkin olabilir.</p>
+      <p><strong>Tek satir:</strong> Spot cevresindeki yerel gamma tonu pozitif (+0.10); bu, idealize edilmis hedge etkisinin hareketi bastirma yonune kaydigini ima ediyor.</p>
+      <img src='laevitas/btc_proxy_hedge_impact_trend.png?v=20260525070733' alt='Proxy hedge impact trend'>
+      <p class='small-muted'>2026-05-24 -> 2026-05-25</p>
+      <div class='delta-row'><span class='delta-badge delta-up'>Skor degisimi: +21</span><span class='delta-badge delta-up'>Dengeleyici pocket kaymasi: +0</span><span class='delta-badge delta-up'>Kirilgan pocket kaymasi: +0</span></div>
+      <p><strong>Dunden bugune:</strong> Proxy hedge-impact skoru dunden bugune sinirli degisti; temel rejim ayni kalsa da pocket seviyeleri hafif yer degistirmis olabilir.</p>
     </div>
     <div>
       <h2>Nasil Okunur?</h2>
-      <p><span class='delta-badge delta-down'>Kirilgan / short-gamma-benzeri</span></p>
+      <p><span class='delta-badge delta-up'>Dengeleyici / long-gamma-benzeri</span></p>
       <div class='grid'>
-        <div class='metric'><div class='label'>Spot</div><div class='value'>75,351</div></div>
-        <div class='metric'><div class='label'>Mevcut Skor</div><div class='value'>-2276</div></div>
-        <div class='metric'><div class='label'>Stabilizing Pocket</div><div class='value'>80,851</div></div>
-        <div class='metric'><div class='label'>Fragile Pocket</div><div class='value'>74,851</div></div>
+        <div class='metric'><div class='label'>Spot</div><div class='value'>76,849</div></div>
+        <div class='metric'><div class='label'>Mevcut Skor</div><div class='value'>+101</div></div>
+        <div class='metric'><div class='label'>Stabilizing Pocket</div><div class='value'>80,349</div></div>
+        <div class='metric'><div class='label'>Fragile Pocket</div><div class='value'>74,349</div></div>
       </div>
-      <ul><li>Bu bolum true dealer position degil; strike OI, proxy pressure ve GEX'ten turetilen senaryo bazli bir hedge-impact egzersizidir.</li><li>Pozitif skor, dealerlarin hareketi emmeye daha yakin oldugu long-gamma-benzeri bir pocket'i; negatif skor ise daha kirilgan short-gamma-benzeri davranisi ima eder.</li><li>En guclu stabilizing pocket 80,851 civarinda, en kirilgan pocket ise 74,851 civarinda gorunuyor.</li><li>Spot cevresindeki yerel gamma tonu negatif (-2.58); bu, idealize edilmis hedge etkisinin hareketi buyutme yonune kayabildigini ima ediyor.</li></ul>
-      <ul><li>Bu trend true dealer pozisyonu degil; gunluk snapshot'lardan uretilen proxy hedge-impact skorunun zaman serisini gosterir.</li><li>Son gunluk kaymada dengeleyici pocket +400, kirilgan pocket ise +400 puan yer degistirdi.</li></ul>
+      <ul><li>Bu bolum true dealer position degil; strike OI, proxy pressure ve GEX'ten turetilen senaryo bazli bir hedge-impact egzersizidir.</li><li>Pozitif skor, dealerlarin hareketi emmeye daha yakin oldugu long-gamma-benzeri bir pocket'i; negatif skor ise daha kirilgan short-gamma-benzeri davranisi ima eder.</li><li>En guclu stabilizing pocket 80,349 civarinda, en kirilgan pocket ise 74,349 civarinda gorunuyor.</li><li>Spot cevresindeki yerel gamma tonu pozitif (+0.10); bu, idealize edilmis hedge etkisinin hareketi bastirma yonune kaydigini ima ediyor.</li></ul>
+      <ul><li>Bu trend true dealer pozisyonu degil; gunluk snapshot'lardan uretilen proxy hedge-impact skorunun zaman serisini gosterir.</li><li>Son gunluk kaymada dengeleyici pocket +0, kirilgan pocket ise +0 puan yer degistirdi.</li></ul>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Gamma Haritasi</h2>
-      <img src='laevitas/btc_gex.png?v=20260523065549' alt='GEX chart'>
+      <img src='laevitas/btc_gex.png?v=20260525070733' alt='GEX chart'>
     </div>
     <div>
       <h2>Kritik Gamma Dugumleri</h2>
       <h3>Pozitif</h3>
-      <table><tr><th>Strike</th><th>Net</th><th>Call</th><th>Put</th></tr><tr><td>80000</td><td>0.555</td><td>0.780</td><td>-0.225</td></tr><tr><td>82000</td><td>0.245</td><td>0.270</td><td>-0.025</td></tr><tr><td>85000</td><td>0.142</td><td>0.249</td><td>-0.107</td></tr><tr><td>90000</td><td>0.121</td><td>0.162</td><td>-0.041</td></tr><tr><td>88000</td><td>0.091</td><td>0.092</td><td>-0.000</td></tr></table>
+      <table><tr><th>Strike</th><th>Net</th><th>Call</th><th>Put</th></tr><tr><td>80000</td><td>0.799</td><td>1.079</td><td>-0.280</td></tr><tr><td>82000</td><td>0.309</td><td>0.340</td><td>-0.030</td></tr><tr><td>78000</td><td>0.165</td><td>0.491</td><td>-0.326</td></tr><tr><td>90000</td><td>0.161</td><td>0.219</td><td>-0.058</td></tr><tr><td>77000</td><td>0.160</td><td>0.561</td><td>-0.401</td></tr></table>
       <h3>Negatif</h3>
-      <table><tr><th>Strike</th><th>Net</th><th>Call</th><th>Put</th></tr><tr><td>75000</td><td>-1.065</td><td>0.360</td><td>-1.425</td></tr><tr><td>75500</td><td>-1.059</td><td>0.053</td><td>-1.112</td></tr><tr><td>74000</td><td>-0.267</td><td>0.169</td><td>-0.436</td></tr><tr><td>73000</td><td>-0.223</td><td>0.033</td><td>-0.256</td></tr><tr><td>76000</td><td>-0.205</td><td>0.390</td><td>-0.594</td></tr></table>
+      <table><tr><th>Strike</th><th>Net</th><th>Call</th><th>Put</th></tr><tr><td>75000</td><td>-0.517</td><td>0.330</td><td>-0.847</td></tr><tr><td>74000</td><td>-0.164</td><td>0.128</td><td>-0.292</td></tr><tr><td>76000</td><td>-0.141</td><td>0.359</td><td>-0.499</td></tr><tr><td>60000</td><td>-0.137</td><td>0.008</td><td>-0.145</td></tr><tr><td>73000</td><td>-0.118</td><td>0.022</td><td>-0.140</td></tr></table>
       <div class='metric' style='margin-top:14px;'>
         <div class='label'>Gamma Rejim Okumasi</div>
-        <div class='delta-row'><span class='delta-badge delta-down'>Negative Gamma Risk Active</span></div>
+        <div class='delta-row'><span class='delta-badge delta-neutral'>Transition / Fragile</span></div>
         <p><strong>Spotun Yeri:</strong> Spot su an pozitif gamma denge bandinin altinda; 77,000 alti artik gecis / zayiflama bolgesi.</p>
-        <p><strong>Bu Bolgede Davranis:</strong> Bu bolgede hareket emilmek yerine daha yonlu ve kirilgan olmaya baslar; 75,000 ve 75,500 civarindaki negatif gamma cepleri daha kolay aktive olabilir.</p>
+        <p><strong>Bu Bolgede Davranis:</strong> Bu bolgede hareket emilmek yerine daha yonlu ve kirilgan olmaya baslar; 75,000 ve 74,000 civarindaki negatif gamma cepleri daha kolay aktive olabilir.</p>
         <p><strong>Pozitifte Davranis:</strong> Pozitif gamma tarafinda (77,000-80,000) fiyat davranisi daha kontrollu, geri cekilmeye yatkin ve hedge akisiyla bastirilmaya acik.</p>
         <p><strong>Gecis Bolgesi:</strong> Gecis bolgesi 77,000 civari. Spot bu seviyenin ustunde kaldikca pin mantigi korunur; alti kabul gorurse piyasa hareketi emen degil, buyuten tarafa gecmeye baslar.</p>
-        <p><strong>Negatifte Davranis:</strong> Negatif gamma / hedge hizlanma bolgeleri asagida 75,000 ve 75,500. Bu cepler acilirse dealer akisi downside'i buyutebilir.</p>
-        <p><strong>Short Nerde Aranir?:</strong> Short aramasi icin ana bolge 77,000 alti acceptance. Yani fiyat sadece sarkmakla kalmayip bu seviye altinda tutulmali; o durumda 75,000 ve 75,500 ceplerine dogru hizlanma daha olasi.</p>
+        <p><strong>Negatifte Davranis:</strong> Negatif gamma / hedge hizlanma bolgeleri asagida 75,000 ve 74,000. Bu cepler acilirse dealer akisi downside'i buyutebilir.</p>
+        <p><strong>Short Nerde Aranir?:</strong> Short aramasi icin ana bolge 77,000 alti acceptance. Yani fiyat sadece sarkmakla kalmayip bu seviye altinda tutulmali; o durumda 75,000 ve 74,000 ceplerine dogru hizlanma daha olasi.</p>
         <p><strong>Long Nerde Aranir?:</strong> Long ancak 77,000 geri alinir ve spot tekrar denge bandina yerlesirse aranir; aksi halde yukari denemeler daha cok relief / counter-trend kalir.</p>
         <p><strong>No-Trade / Teyitsiz Bolge:</strong> 77,000 alti reject olup hizli geri alim gelirse bu bolge stop-hunt olabilir; o durumda short kovalamak yerine yeniden acceptance beklenmeli.</p>
-        <p><strong>Base Case:</strong> Base case: net gamma destegi zayif ve spot artik denge bandinin altinda. Davranis daha yonlu ve tetik-bagli okunmali; 75,000 ve 75,500 cepleri daha hizli aktive olabilir.</p>
+        <p><strong>Base Case:</strong> Base case: toplam gamma tamamen bozulmus degil ama spot zayif tarafta. 77,000 geri alinmadan pozitif gamma konforu geri gelmez.</p>
       </div>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Taze Konumlanma</h2>
-      <table><tr><th>Vade</th><th>24s OI Degisimi</th><th>BTC Degisimi</th></tr><tr><td>23MAY26</td><td>$420,928,485</td><td>5,701</td></tr><tr><td>24MAY26</td><td>$192,819,820</td><td>2,607</td></tr><tr><td>25MAY26</td><td>$153,666,631</td><td>2,183</td></tr><tr><td>26MAY26</td><td>$97,407,357</td><td>1,293</td></tr><tr><td>29MAY26</td><td>$44,188,515</td><td>3,491</td></tr><tr><td>05JUN26</td><td>$129,323,539</td><td>1,989</td></tr></table>
+      <table><tr><th>Vade</th><th>24s OI Degisimi</th><th>BTC Degisimi</th></tr><tr><td>25MAY26</td><td>$196,292,268</td><td>2,482</td></tr><tr><td>26MAY26</td><td>$130,774,465</td><td>1,668</td></tr><tr><td>27MAY26</td><td>$84,753,211</td><td>1,090</td></tr><tr><td>28MAY26</td><td>$38,457,826</td><td>497</td></tr><tr><td>29MAY26</td><td>$180,152,693</td><td>1,601</td></tr><tr><td>05JUN26</td><td>$82,374,434</td><td>980</td></tr></table>
     </div>
     <div>
       <h2>Volatilite Baglami</h2>
       <p><strong>Referans vade:</strong> 25SEP26</p>
-      <p><strong>Forward:</strong> 75,819.83</p>
-      <p><strong>ATM spot IV:</strong> 38.86</p>
-      <p><strong>25d skew:</strong> 12.39</p>
-      <p><strong>25d RR:</strong> -4.82</p>
+      <p><strong>Forward:</strong> 78,013.44</p>
+      <p><strong>ATM spot IV:</strong> 38.01</p>
+      <p><strong>25d skew:</strong> 12.75</p>
+      <p><strong>25d RR:</strong> -4.85</p>
       <p><strong>10d fly:</strong> 4.33</p>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Dealer Envanter Yaklasigi</h2>
-      <img src='laevitas/btc_inventory_proxy.png?v=20260523065549' alt='Dealer inventory proxy chart'>
-      <p><strong>Net ton:</strong> MM neutral to mixed (-0.57)</p>
+      <img src='laevitas/btc_inventory_proxy.png?v=20260525070733' alt='Dealer inventory proxy chart'>
+      <p><strong>Net ton:</strong> MM long gamma / stabilizing (+1.69)</p>
       <p>Bu chart gercek MM inventory degil; gamma, flow, skew, IV-RV ve strategy tape uzerinden uretilen bir proxy skorudur.</p>
-      <img src='laevitas/btc_inventory_proxy_trend.png?v=20260523065549' alt='Dealer inventory proxy trend'>
+      <img src='laevitas/btc_inventory_proxy_trend.png?v=20260525070733' alt='Dealer inventory proxy trend'>
       <p>Yerel arsiv buyudukce bu grafik MM/dealer tonunun zaman icinde daha net izlenmesini saglar.</p>
     </div>
     <div>
       <h2>Tetik Kurallari</h2>
-      <ul><li>Accept above 82,000: spot bu seviye ustunde kalir ve yeni call akisiyla desteklenirse yukari test aktif olur.</li><li>Reject above 81,000: fiyat bu bolgeyi sadece igneleyip geri donerse ralliye guvenme; pin/range mantigi calisiyor demektir.</li><li>Accept below 77,000: spot bu seviye altinda kalirsa downside hedge akisi kuvvetlenir ve 75,000 ikinci hedef olur.</li><li>Reject below 77,000: fiyat altina sarkip hizla geri aliniyorsa asagi kirilim degil stop-hunt / range return okunmali.</li></ul>
+      <ul><li>Accept above 85,000: spot bu seviye ustunde kalir ve yeni call akisiyla desteklenirse yukari test aktif olur.</li><li>Reject above 82,000: fiyat bu bolgeyi sadece igneleyip geri donerse ralliye guvenme; pin/range mantigi calisiyor demektir.</li><li>Accept below 77,000: spot bu seviye altinda kalirsa downside hedge akisi kuvvetlenir ve 75,000 ikinci hedef olur.</li><li>Reject below 77,000: fiyat altina sarkip hizla geri aliniyorsa asagi kirilim degil stop-hunt / range return okunmali.</li></ul>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Dealer Okumasi</h2>
-      <ul><li>Dealer tarafinda yonlu devam hareketini bastiracak kadar pozitif gamma yok.</li><li>En yogun pozitif GEX dugumleri 80,000, 82,000, 85,000 seviyelerinde; bu alanlar ani squeeze'ten cok yukari yonlu miknatis etkisi yaratir.</li><li>Asagi yonlu en hassas hedge cepleri 75,000 ve 75,500 seviyelerinde kaliyor; bu bolgenin kirilmasi hedge talebini hizlandirabilir.</li></ul>
+      <ul><li>Dealerlar toplamda hala net long gamma tasiyor; bu nedenle hedge akislarinin spotun bulundugu bolgede gun ici hareket araligini bastirmasi beklenir.</li><li>En yogun pozitif GEX dugumleri 80,000, 82,000, 78,000 seviyelerinde; bu alanlar ani squeeze'ten cok yukari yonlu miknatis etkisi yaratir.</li><li>Asagi yonlu en hassas hedge cepleri 75,000 ve 74,000 seviyelerinde kaliyor; bu bolgenin kirilmasi hedge talebini hizlandirabilir.</li></ul>
     </div>
     <div>
       <h2>Kalabaliklasma Okumasi</h2>
-      <ul><li>Call notional hala put notional'in 1.42 kati, open interest adedi de call lehine 1.42 kat. Bu panic hedge degil, yapici bir konumlanma.</li><li>Spota yakin en buyuk call yigilmalari 80,000, 90,000, 85,000; en buyuk put yigilmalari ise 75,000, 70,000, 65,000.</li><li>Ertesi gun vadesi olan 12JUN26 tum gorunen expiry OI'nin yalnizca 0.6%'i kadar; bu nedenle spot dogrudan kalabalik strike'lara gitmedikce tek basina tum bandi suruklemesi zor.</li></ul>
+      <ul><li>Call notional hala put notional'in 1.44 kati, open interest adedi de call lehine 1.44 kat. Bu panic hedge degil, yapici bir konumlanma.</li><li>Spota yakin en buyuk call yigilmalari 80,000, 90,000, 85,000; en buyuk put yigilmalari ise 75,000, 70,000, 65,000.</li><li>Ertesi gun vadesi olan 12JUN26 tum gorunen expiry OI'nin yalnizca 0.8%'i kadar; bu nedenle spot dogrudan kalabalik strike'lara gitmedikce tek basina tum bandi suruklemesi zor.</li></ul>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Piyasanin Fiyatladigi Sey</h2>
-      <ul><li>Piyasa crash paniginden cok duzenli bir asagi yon korumasi fiyatliyor: 25SEP26 vol baglaminda 25-delta risk reversal -4.82, 25-delta skew ise 12.39.</li><li>ATM spot IV 38.86 civarinda; riskin ciddiye alindigini gosteriyor ama tek basina duzensizlik sinyali vermiyor.</li><li>Vade egirisinin on tarafina hala taze risk ekleniyor: ertesi gun vadesine son 24 saatte yaklasik $131,859,767 eklendi.</li></ul>
+      <ul><li>Piyasa crash paniginden cok duzenli bir asagi yon korumasi fiyatliyor: 25SEP26 vol baglaminda 25-delta risk reversal -4.85, 25-delta skew ise 12.75.</li><li>ATM spot IV 38.01 civarinda; riskin ciddiye alindigini gosteriyor ama tek basina duzensizlik sinyali vermiyor.</li><li>Vade egirisinin on tarafina hala taze risk ekleniyor: ertesi gun vadesine son 24 saatte yaklasik $20,728,766 eklendi.</li></ul>
     </div>
     <div>
       <h2>Piyasanin Iskalayabilecegi Sey</h2>
@@ -585,46 +541,46 @@ small { opacity:0.82; font-size:12px; }
       <p><span class='delta-badge delta-down'>Weak</span></p>
       <p><strong>Karar:</strong> Decay flow etkisi zayif; bu bolum tek basina vol compression beklemek icin yeterli sinyal vermiyor.</p>
       <div class='grid'>
-        <div class='metric'><div class='label'>Charm Proxy</div><div class='value'>26</div></div>
-        <div class='metric'><div class='label'>Vanna Proxy</div><div class='value'>30</div></div>
-        <div class='metric'><div class='label'>Compression</div><div class='value'>18</div></div>
-        <div class='metric'><div class='label'>Front DTE</div><div class='value'>20</div></div>
+        <div class='metric'><div class='label'>Charm Proxy</div><div class='value'>34</div></div>
+        <div class='metric'><div class='label'>Vanna Proxy</div><div class='value'>27</div></div>
+        <div class='metric'><div class='label'>Compression</div><div class='value'>25</div></div>
+        <div class='metric'><div class='label'>Front DTE</div><div class='value'>18</div></div>
       </div>
-      <ul><li>Bu bolum dogrudan vanna/charm greeklerini hesaplamaz; yakin vade OI yogunlugu, pozitif gamma, pin merkezine yakinlik ve IV priminden turetilen bir proxy'dir.</li><li>Front expiry 12JUN26 ve kalan sure yaklasik 20 gun. 3 gun icinde vadesi dolacak OI payi %3.6, 7 gun icinde %24.2.</li><li>Yakin 7 gunde belirgin quarterly expiry yogunlugu yok.</li><li>Charm proxy 26: yakin vade OI yogunlugu dusuk ve dealer gamma ile birlikte spotta zaman-decay kaynakli pin baskisi sinirli.</li><li>Vanna proxy 30: front IV'nin realized vola gore primi (+12.60) ve gamma tonu, vol geri cekilirse hedge akislarinin spota dengeleyici etki verme potansiyelini sinirli tutuyor.</li><li>Net okuma Dusuk compression / daha serbest fiyat kesfi. Spot pin merkezine yakinlik skoru %7, gamma destegi %0.</li></ul>
+      <ul><li>Bu bolum dogrudan vanna/charm greeklerini hesaplamaz; yakin vade OI yogunlugu, pozitif gamma, pin merkezine yakinlik ve IV priminden turetilen bir proxy'dir.</li><li>Front expiry 12JUN26 ve kalan sure yaklasik 18 gun. 3 gun icinde vadesi dolacak OI payi %1.8, 7 gun icinde %22.6.</li><li>Yakin 7 gunde belirgin quarterly expiry yogunlugu yok.</li><li>Charm proxy 34: yakin vade OI yogunlugu dusuk ve dealer gamma ile birlikte spotta zaman-decay kaynakli pin baskisi sinirli.</li><li>Vanna proxy 27: front IV'nin realized vola gore primi (+5.10) ve gamma tonu, vol geri cekilirse hedge akislarinin spota dengeleyici etki verme potansiyelini sinirli tutuyor.</li><li>Net okuma Dusuk compression / daha serbest fiyat kesfi. Spot pin merkezine yakinlik skoru %37, gamma destegi %42.</li></ul>
     </div>
     <div>
-      <img src='laevitas/btc_vanna_charm_proxy.png?v=20260523065549' alt='Vanna charm proxy'>
+      <img src='laevitas/btc_vanna_charm_proxy.png?v=20260525070733' alt='Vanna charm proxy'>
       <p>Bu chart gercek greeks degil; yakin vade expiry yogunlugu, quarterly baski, gamma destegi, pin merkezine yakinlik ve IV primini tek panelde toplar.</p>
       <p><strong>Kontrol listesi:</strong></p>
-      <ul><li>Spot 77,000-81,000 bandinda kaldikca compression proxy daha anlamli calisir.</li><li>80,000 ustu acceptance gelirse pin baskisi zayiflar, proxy'nin yonlendiriciligi duser.</li><li>IV-RV spread hizla kapanirsa vanna bileseni zayiflar; +12.60 seviyesinden geriye bak.</li></ul>
+      <ul><li>Spot 77,000-82,000 bandinda kaldikca compression proxy daha anlamli calisir.</li><li>80,000 ustu acceptance gelirse pin baskisi zayiflar, proxy'nin yonlendiriciligi duser.</li><li>IV-RV spread hizla kapanirsa vanna bileseni zayiflar; +5.10 seviyesinden geriye bak.</li></ul>
     </div>
   </section>
   <section>
     <h2>Vade Yapisi</h2>
-    <img src='laevitas/btc_expiry_oi.png?v=20260523065549' alt='Expiry OI chart'>
-    <table><tr><th>Vade</th><th>Acik Pozisyon</th><th>Call OI (BTC)</th><th>Put OI (BTC)</th><th>Call Notional</th><th>Put Notional</th><th>24s OI Degisimi</th></tr><tr><td>26JUN26</td><td>$9,187,452,236</td><td>70,666</td><td>51,133</td><td>$5,330,412,480</td><td>$3,857,039,756</td><td>$0</td></tr><tr><td>29MAY26</td><td>$6,372,532,241</td><td>45,724</td><td>38,847</td><td>$3,445,346,044</td><td>$2,927,186,196</td><td>$0</td></tr><tr><td>25DEC26</td><td>$5,805,141,548</td><td>48,961</td><td>26,875</td><td>$3,747,911,219</td><td>$2,057,230,329</td><td>$0</td></tr><tr><td>25SEP26</td><td>$5,326,011,514</td><td>43,493</td><td>26,753</td><td>$3,297,598,595</td><td>$2,028,412,920</td><td>$0</td></tr><tr><td>31JUL26</td><td>$1,249,995,390</td><td>11,089</td><td>5,462</td><td>$837,494,166</td><td>$412,501,224</td><td>$0</td></tr><tr><td>26MAR27</td><td>$985,497,542</td><td>7,386</td><td>5,378</td><td>$570,272,838</td><td>$415,224,704</td><td>$0</td></tr><tr><td>05JUN26</td><td>$680,009,446</td><td>5,089</td><td>3,936</td><td>$383,463,630</td><td>$296,545,816</td><td>$0</td></tr><tr><td>25MAY26</td><td>$488,823,956</td><td>968</td><td>5,521</td><td>$72,948,092</td><td>$415,875,864</td><td>$0</td></tr></table>
+    <img src='laevitas/btc_expiry_oi.png?v=20260525070733' alt='Expiry OI chart'>
+    <table><tr><th>Vade</th><th>Acik Pozisyon</th><th>Call OI (BTC)</th><th>Put OI (BTC)</th><th>Call Notional</th><th>Put Notional</th><th>24s OI Degisimi</th></tr><tr><td>26JUN26</td><td>$9,382,551,176</td><td>70,617</td><td>51,347</td><td>$5,432,473,311</td><td>$3,950,077,865</td><td>$0</td></tr><tr><td>29MAY26</td><td>$6,500,270,202</td><td>45,278</td><td>39,311</td><td>$3,479,371,428</td><td>$3,020,898,775</td><td>$0</td></tr><tr><td>25DEC26</td><td>$5,925,613,012</td><td>48,957</td><td>26,900</td><td>$3,824,292,299</td><td>$2,101,320,712</td><td>$0</td></tr><tr><td>25SEP26</td><td>$5,463,025,486</td><td>43,730</td><td>26,871</td><td>$3,383,785,279</td><td>$2,079,240,207</td><td>$0</td></tr><tr><td>31JUL26</td><td>$1,280,850,115</td><td>11,115</td><td>5,506</td><td>$856,519,817</td><td>$424,330,298</td><td>$0</td></tr><tr><td>26MAR27</td><td>$1,006,616,616</td><td>7,392</td><td>5,385</td><td>$582,378,658</td><td>$424,237,958</td><td>$0</td></tr><tr><td>05JUN26</td><td>$745,464,431</td><td>5,476</td><td>4,224</td><td>$420,839,229</td><td>$324,625,202</td><td>$0</td></tr><tr><td>25MAY26</td><td>$387,845,313</td><td>1,347</td><td>3,700</td><td>$103,516,642</td><td>$284,328,672</td><td>$0</td></tr></table>
   </section>
   <section class='two'>
     <div>
       <h2>En Yakin Vade Detayi</h2>
-      <p><strong>On Vade Karari:</strong> On vade put-agir ve koruma maliyeti belirgin.</p>
+      <p><strong>On Vade Karari:</strong> On vade karisik; call/put dagilimi dengeliye yakin.</p>
       <div class='grid'>
-        <div class='metric'><div class='label'>Vade</div><div class='value'>23MAY26</div></div>
-        <div class='metric'><div class='label'>Call OI</div><div class='value'>2,861</div></div>
-        <div class='metric'><div class='label'>Put OI</div><div class='value'>2,539</div></div>
-        <div class='metric'><div class='label'>Put Premium</div><div class='value'>$1,789,672</div></div>
+        <div class='metric'><div class='label'>Vade</div><div class='value'>24MAY26</div></div>
+        <div class='metric'><div class='label'>Call OI</div><div class='value'>1,226</div></div>
+        <div class='metric'><div class='label'>Put OI</div><div class='value'>1,413</div></div>
+        <div class='metric'><div class='label'>Put Premium</div><div class='value'>$34,388</div></div>
       </div>
-      <ul><li>En yakin vade 23MAY26; toplam notional $406,679,032 ve toplam OI yaklasik 5,399 BTC.</li><li>Call OI 2,861 BTC, put OI 2,539 BTC; put OI payi %47.0.</li><li>Call notional $215,469,898, put notional $191,209,134; put notional payi %47.0.</li><li>Call premium $1,058, put premium $1,789,672; put premium payi %99.9.</li></ul>
+      <ul><li>En yakin vade 24MAY26; toplam notional $202,759,181 ve toplam OI yaklasik 2,639 BTC.</li><li>Call OI 1,226 BTC, put OI 1,413 BTC; put OI payi %53.5.</li><li>Call notional $94,194,702, put notional $108,564,479; put notional payi %53.5.</li><li>Call premium $556,032, put premium $34,388; put premium payi %5.8.</li></ul>
     </div>
     <div>
       <h2>Expiry Kapanis Okumasi</h2>
       <ul>
         <li><strong>Pozisyonlama:</strong> On vade karisik.</li>
-        <li><strong>Premium:</strong> Premium okuması savunmaci; odemenin buyuk kismi put tarafinda.</li>
+        <li><strong>Premium:</strong> Premium okuması yapici; odemenin buyuk kismi call tarafinda.</li>
         <li><strong>Expiry Sonrasi Etki:</strong> Expiry kapanisi tek basina yon vermez; asil okuma spotun kilit seviyelere gore nerede tutuldugudur.</li>
-        <li><strong>Beklenen Ilk Etki:</strong> Baz senaryo relief degil, savunmaci tonun surmesi; expiry gecse bile downside baskisi hemen kaybolmayabilir.</li>
-        <li><strong>Teyit Sarti:</strong> Tersine donus teyidi icin spotun en az 77,000 ustune geri yerlesmesi ve flow tonunun savunmadan karisiga donmesi gerekir.</li>
-        <li><strong>Negatif Tetik:</strong> Negatif tetik: 77,000 alti yeni kabul, expiry sonrasi bile hedge baskisini hizlandirabilir.</li>
+        <li><strong>Beklenen Ilk Etki:</strong> Baz senaryo hafif relief; expiry sonrasi put primi cozulerek ilk tepki yukari olabilir, ancak bunun kalici bullish devama donmesi otomatik degil.</li>
+        <li><strong>Teyit Sarti:</strong> Teyit sarti: spotun once 80,000, ideal olarak 80,000 ustunde acceptance gormesi ve call akisinin dagilmamasi.</li>
+        <li><strong>Negatif Tetik:</strong> Negatif tetik: 77,000 alti kalicilik hedge cozulmesi yerine yeniden savunma ve downside baskisi uretebilir.</li>
       </ul>
       <h2>Yakin Vade Nasil Okunur?</h2>
       <ul>
@@ -640,16 +596,16 @@ small { opacity:0.82; font-size:12px; }
       <h2>IV Yuzdelik ve Sira</h2>
       <p><span class='delta-badge delta-neutral'>Neutral / selective vol</span></p>
       <p>Vol ne net ucuz ne net pahali; secici olmak ve yon/olay baglamiyla birlikte okumak daha dogru.</p>
-      <ul><li>Front ATM IV percentile 16; bugunku implied vol yerel serideki gunlerin yaklasik %16'inden daha pahali.</li><li>Front ATM IV rank 43; ham min-max araligina gore vol rejimi orta-alt bolgede.</li><li>Outlier-adjusted rank 20; tekil spike gunlerinin skala etkisini azaltmak icin winsorized rank kullaniyoruz.</li><li>Percentile'i alim/satim filtresi, rank'i ise ne kadar ekstrem bolgedeyiz filtresi olarak okuyun.</li></ul>
+      <ul><li>Front ATM IV percentile 9; bugunku implied vol yerel serideki gunlerin yaklasik %9'inden daha pahali.</li><li>Front ATM IV rank 35; ham min-max araligina gore vol rejimi orta-alt bolgede.</li><li>Outlier-adjusted rank 8; tekil spike gunlerinin skala etkisini azaltmak icin winsorized rank kullaniyoruz.</li><li>Percentile'i alim/satim filtresi, rank'i ise ne kadar ekstrem bolgedeyiz filtresi olarak okuyun.</li></ul>
     </div>
     <div>
       <div class='grid'>
-        <div class='metric'><div class='label'>IV Percentile</div><div class='value'>16</div></div>
-        <div class='metric'><div class='label'>IV Rank</div><div class='value'>43</div></div>
-        <div class='metric'><div class='label'>Adj. IV Rank</div><div class='value'>20</div></div>
-        <div class='metric'><div class='label'>Orneklem</div><div class='value'>79</div></div>
+        <div class='metric'><div class='label'>IV Percentile</div><div class='value'>9</div></div>
+        <div class='metric'><div class='label'>IV Rank</div><div class='value'>35</div></div>
+        <div class='metric'><div class='label'>Adj. IV Rank</div><div class='value'>8</div></div>
+        <div class='metric'><div class='label'>Orneklem</div><div class='value'>81</div></div>
       </div>
-      <img src='laevitas/btc_iv_regime.png?v=20260523065549' alt='IV rejim trendi'>
+      <img src='laevitas/btc_iv_regime.png?v=20260525070733' alt='IV rejim trendi'>
       <p>Percentile, bugunku implied volun yerel seriye gore ne kadar sik pahali bolgede oldugunu; rank ise min-max araligi icinde ne kadar yukarida oldugunu gosterir.</p>
       <p><strong>Vol checklist:</strong></p>
       <ul><li>Vol tek basina edge vermiyor; yon/olay filtresi ekle.</li><li>Percentile ile rank ayni hikayeyi mi anlatiyor?</li><li>Stratejiyi tekli vol gorusu yerine secici yapi olarak kur.</li></ul>
@@ -658,25 +614,25 @@ small { opacity:0.82; font-size:12px; }
   <section class='two'>
     <div>
       <h2>Normalize Edilmis 25D Skew</h2>
-      <img src='laevitas/btc_normalized_skew.png?v=20260523065549' alt='Normalize edilmis 25D skew'>
-      <p><strong>Mevcut oran:</strong> 0.137</p>
+      <img src='laevitas/btc_normalized_skew.png?v=20260525070733' alt='Normalize edilmis 25D skew'>
+      <p><strong>Mevcut oran:</strong> 0.142</p>
       <p>Bu metrik, 25 delta put vol ile 25 delta call vol farkinin ATM IV'ye oranidir. Oran yukselirse piyasa putlari call'lara gore daha pahali fiyatliyor demektir.</p>
     </div>
     <div>
       <h2>Skew Okumasi</h2>
-      <ul><li>Front 25D RR: -4.66</li><li>Front ATM IV: 34.12</li><li>Normalize oran yuksek kaldikca downside korumasi call talebine gore daha pahali kalir.</li></ul>
+      <ul><li>Front 25D RR: -4.41</li><li>Front ATM IV: 31.16</li><li>Normalize oran yuksek kaldikca downside korumasi call talebine gore daha pahali kalir.</li></ul>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Pain Drift</h2>
-      <img src='laevitas/btc_pain_drift.png?v=20260523065549' alt='Pain drift chart'>
-      <ul><li>Bugunun aggregate max pain seviyesi 76,000.</li><li>Spot ile max pain arasi fark -649 puan.</li><li>Dunden bugune pain kaymasi +0 puan; spot-pain fark degisimi -2,100 puan.</li><li>5 gunluk pain kaymasi +0 puan.</li></ul>
+      <img src='laevitas/btc_pain_drift.png?v=20260525070733' alt='Pain drift chart'>
+      <ul><li>Bugunun aggregate max pain seviyesi 76,000.</li><li>Spot ile max pain arasi fark +849 puan.</li><li>Dunden bugune pain kaymasi +0 puan; spot-pain fark degisimi +0 puan.</li><li>5 gunluk pain kaymasi +0 puan.</li></ul>
     </div>
     <div>
       <div class='grid'>
         <div class='metric'><div class='label'>Max Pain</div><div class='value'>76,000</div></div>
-        <div class='metric'><div class='label'>Spot - Pain</div><div class='value'>-649</div></div>
+        <div class='metric'><div class='label'>Spot - Pain</div><div class='value'>+849</div></div>
         <div class='metric'><div class='label'>Gunluk Pain Kaymasi</div><div class='value'>+0</div></div>
         <div class='metric'><div class='label'>5 Gunluk Pain Kaymasi</div><div class='value'>+0</div></div>
       </div>
@@ -685,23 +641,23 @@ small { opacity:0.82; font-size:12px; }
   <section class='two'>
     <div>
       <h2>En Guclu Instrument OI Eklemeleri</h2>
-      <table><tr><th>Instrument</th><th>OI Degisimi</th><th>Toplam Notional</th><th>Acik Pozisyon</th></tr><tr><td>BTC-29MAY26-80000-C</td><td>$60,650,282</td><td>$86,752,044</td><td>995</td></tr><tr><td>BTC-23MAY26-75500-P</td><td>$51,316,101</td><td>$57,394,366</td><td>683</td></tr><tr><td>BTC-23MAY26-76500-P</td><td>$51,137,204</td><td>$54,803,334</td><td>680</td></tr><tr><td>BTC-23MAY26-76500-C</td><td>$50,831,874</td><td>$53,711,184</td><td>675</td></tr><tr><td>BTC-12JUN26-90000-C</td><td>$38,678,772</td><td>$38,732,694</td><td>514</td></tr><tr><td>BTC-12JUN26-85000-C</td><td>$38,411,992</td><td>$38,710,345</td><td>510</td></tr><tr><td>BTC-25MAY26-75000-P</td><td>$36,548,978</td><td>$82,069,424</td><td>515</td></tr><tr><td>BTC-29MAY26-69000-P</td><td>$34,918,190</td><td>$43,922,319</td><td>487</td></tr></table>
+      <table><tr><th>Instrument</th><th>OI Degisimi</th><th>Toplam Notional</th><th>Acik Pozisyon</th></tr><tr><td>BTC-5JUN26-79000-C</td><td>$14,580,702</td><td>$16,108,226</td><td>186</td></tr><tr><td>BTC-29MAY26-73000-P</td><td>$9,366,805</td><td>$9,187,370</td><td>108</td></tr><tr><td>BTC-31JUL26-80000-C</td><td>$8,682,290</td><td>$8,123,536</td><td>104</td></tr><tr><td>BTC-25MAY26-75500-P</td><td>$6,113,838</td><td>$8,914,537</td><td>78</td></tr><tr><td>BTC-25MAY26-76000-P</td><td>$5,785,656</td><td>$13,580,739</td><td>73</td></tr><tr><td>BTC-5JUN26-84000-C</td><td>$5,504,716</td><td>$5,937,183</td><td>70</td></tr><tr><td>BTC-5JUN26-78000-C</td><td>$4,908,263</td><td>$5,704,897</td><td>62</td></tr><tr><td>BTC-29MAY26-83000-C</td><td>$4,782,681</td><td>$4,543,526</td><td>52</td></tr></table>
       
     </div>
     <div>
       <h2>En Guclu Instrument OI Bosalmalari</h2>
-      <table><tr><th>Instrument</th><th>OI Degisimi</th><th>Toplam Notional</th><th>Acik Pozisyon</th></tr><tr><td>BTC-29MAY26-75000-P</td><td>$-10,858,176</td><td>$59,866,671</td><td>-5</td></tr><tr><td>BTC-29MAY26-71000-P</td><td>$4,013,637</td><td>$98,589,746</td><td>107</td></tr><tr><td>BTC-23MAY26-77000-C</td><td>$11,030,770</td><td>$20,848,767</td><td>148</td></tr><tr><td>BTC-26JUN26-76000-P</td><td>$11,312,546</td><td>$17,907,338</td><td>197</td></tr><tr><td>BTC-29MAY26-76000-C</td><td>$11,452,515</td><td>$19,508,472</td><td>203</td></tr><tr><td>BTC-23MAY26-75000-P</td><td>$12,432,610</td><td>$17,173,149</td><td>166</td></tr><tr><td>BTC-23MAY26-77000-P</td><td>$12,467,113</td><td>$15,124,395</td><td>166</td></tr><tr><td>BTC-25MAY26-74000-P</td><td>$12,570,884</td><td>$23,372,054</td><td>168</td></tr></table>
+      <table><tr><th>Instrument</th><th>OI Degisimi</th><th>Toplam Notional</th><th>Acik Pozisyon</th></tr><tr><td>BTC-26JUN26-80000-C</td><td>$-5,383,497</td><td>$8,053,165</td><td>-98</td></tr><tr><td>BTC-29MAY26-81000-C</td><td>$-2,845,458</td><td>$7,949,577</td><td>-49</td></tr><tr><td>BTC-29MAY26-78000-C</td><td>$-1,131,184</td><td>$12,383,712</td><td>-27</td></tr><tr><td>BTC-26JUN26-76000-P</td><td>$97,645</td><td>$10,099,428</td><td>-13</td></tr><tr><td>BTC-29MAY26-76000-P</td><td>$1,784,957</td><td>$22,871,422</td><td>9</td></tr><tr><td>BTC-26MAY26-76500-P</td><td>$3,271,104</td><td>$6,430,538</td><td>42</td></tr><tr><td>BTC-28MAY26-73000-P</td><td>$3,397,228</td><td>$3,397,228</td><td>44</td></tr><tr><td>BTC-27MAY26-76500-C</td><td>$3,489,718</td><td>$3,814,947</td><td>45</td></tr></table>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Strike Heatmap Benzeri Eklemeler</h2>
-      <table><tr><th>Strike</th><th>Call Degisimi</th><th>Put Degisimi</th><th>Net</th></tr><tr><td>76500</td><td>$57,830,103</td><td>$54,754,907</td><td>$112,585,011</td></tr><tr><td>75500</td><td>$6,645,849</td><td>$69,990,627</td><td>$76,636,476</td></tr><tr><td>76000</td><td>$23,183,287</td><td>$21,470,784</td><td>$44,654,071</td></tr><tr><td>77500</td><td>$47,070,455</td><td>$-5,574,338</td><td>$41,496,116</td></tr><tr><td>69000</td><td>$-1,131,456</td><td>$35,536,369</td><td>$34,404,913</td></tr><tr><td>74500</td><td>$150,642</td><td>$14,789,984</td><td>$14,940,625</td></tr><tr><td>79500</td><td>$10,503,384</td><td>$-412</td><td>$10,502,972</td></tr><tr><td>77000</td><td>$16,872,248</td><td>$-10,012,067</td><td>$6,860,181</td></tr></table>
+      <table><tr><th>Strike</th><th>Call Degisimi</th><th>Put Degisimi</th><th>Net</th></tr><tr><td>80000</td><td>$18,847,380</td><td>$3,576,445</td><td>$22,423,825</td></tr><tr><td>70000</td><td>$4,702,482</td><td>$11,248,516</td><td>$15,950,998</td></tr><tr><td>79000</td><td>$14,266,487</td><td>$602,220</td><td>$14,868,707</td></tr><tr><td>60000</td><td>$571,589</td><td>$11,667,054</td><td>$12,238,643</td></tr><tr><td>90000</td><td>$10,139,488</td><td>$1,691,009</td><td>$11,830,497</td></tr><tr><td>78000</td><td>$5,712,247</td><td>$4,976,436</td><td>$10,688,683</td></tr><tr><td>85000</td><td>$6,911,303</td><td>$2,290,865</td><td>$9,202,167</td></tr><tr><td>84000</td><td>$8,737,369</td><td>$136,925</td><td>$8,874,294</td></tr></table>
       
     </div>
     <div>
       <h2>Strike Heatmap Benzeri Bosalmalar</h2>
-      <table><tr><th>Strike</th><th>Call Degisimi</th><th>Put Degisimi</th><th>Net</th></tr><tr><td>90000</td><td>$-142,014,242</td><td>$-6,201,406</td><td>$-148,215,648</td></tr><tr><td>70000</td><td>$-17,069,661</td><td>$-125,434,523</td><td>$-142,504,183</td></tr><tr><td>81000</td><td>$-77,323,472</td><td>$-35,141,505</td><td>$-112,464,977</td></tr><tr><td>92000</td><td>$-110,003,574</td><td>$-77,510</td><td>$-110,081,084</td></tr><tr><td>79000</td><td>$-35,972,709</td><td>$-40,812,199</td><td>$-76,784,908</td></tr><tr><td>85000</td><td>$-64,769,432</td><td>$-9,083,046</td><td>$-73,852,478</td></tr><tr><td>74000</td><td>$-4,466,992</td><td>$-65,002,800</td><td>$-69,469,792</td></tr><tr><td>78000</td><td>$-1,184,562</td><td>$-66,301,716</td><td>$-67,486,278</td></tr></table>
+      <table><tr><th>Strike</th><th>Call Degisimi</th><th>Put Degisimi</th><th>Net</th></tr><tr><td>76000</td><td>$-6,942,145</td><td>$-6,291,611</td><td>$-13,233,755</td></tr><tr><td>75500</td><td>$-6,145,880</td><td>$-4,653,818</td><td>$-10,799,699</td></tr><tr><td>77500</td><td>$-9,284,689</td><td>$1,341,584</td><td>$-7,943,106</td></tr><tr><td>74500</td><td>$-4,000,985</td><td>$-1,184,957</td><td>$-5,185,943</td></tr><tr><td>77000</td><td>$-6,073,454</td><td>$2,891,322</td><td>$-3,182,132</td></tr><tr><td>75000</td><td>$-1,952,245</td><td>$-762,476</td><td>$-2,714,721</td></tr><tr><td>80500</td><td>$-2,091,231</td><td>$0</td><td>$-2,091,231</td></tr><tr><td>74000</td><td>$422,011</td><td>$-1,782,428</td><td>$-1,360,417</td></tr></table>
     </div>
   </section>
 </main>
