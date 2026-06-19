@@ -1231,7 +1231,9 @@ details.detail-block[open] > summary:after { content:"kapat"; }
 .fedwatch-reality-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
 .fedwatch-reality-cards article { background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.10); border-radius:8px; padding:10px; }
 .fedwatch-reality-cards b { display:block; color:#f3efe7; font-size:24px; margin-top:4px; }
-.fedwatch-reality-cards em { display:block; color:var(--muted); font-size:11px; font-style:normal; line-height:1.25; }
+.fedwatch-reality-cards strong { display:block; color:#f3efe7; font-size:12px; margin-top:4px; line-height:1.2; }
+.fedwatch-reality-cards em { display:inline-block; color:#111; background:var(--gold); border-radius:999px; padding:2px 7px; font-size:10px; font-style:normal; font-weight:900; line-height:1.2; margin-top:5px; }
+.fedwatch-reality-cards small { display:block; color:var(--muted); font-size:10px; line-height:1.35; margin-top:6px; }
 .fedwatch-reality-cards article.risk b { color:#ff8a65; }
 .fedwatch-reality-cards article.watch b { color:#f0c75b; }
 .fedwatch-reality-cards article.good b { color:#45d483; }
@@ -1301,7 +1303,7 @@ details.detail-block[open] > summary:after { content:"kapat"; }
 </style>
 </head>
 <body>
-<header class="top"><div class="top-inner"><div class="brand">Market Kokpit</div><div class="meta">Üretim: 2026-06-19T17:53:37 | Evren: ind_stocksonly</div></div></header>
+<header class="top"><div class="top-inner"><div class="brand">Market Kokpit</div><div class="meta">Üretim: 2026-06-19T18:03:58 | Evren: ind_stocksonly</div></div></header>
 <nav class="side-nav" aria-label="Kokpit menüsü">
   <a href="#gunluk-komuta">Komuta Merkezi</a>
   <a href="#nasil-okunur">Nasıl Okunur?</a>
@@ -3710,10 +3712,10 @@ details.detail-block[open] > summary:after { content:"kapat"; }
           <small>Hike Reality Regime: Hike fiyatlaması önden alındı / teyit bekliyor · FedWatch Hike +42.00% / Hold +58.00%</small>
         </div>
         <div class="fedwatch-reality-cards">
-          <article class="watch"><span>Hike Pricing</span><b>65</b><em>Piyasa ne kadar hike fiyatlıyor?</em></article>
-          <article class="watch"><span>Macro Validation</span><b>48</b><em>Veri bunu haklı çıkarıyor mu?</em></article>
-          <article class="good"><span>Market Stress</span><b>26</b><em>Piyasa Fed&#x27;e hike alanı bırakıyor mu?</em></article>
-          <article class="watch"><span>Funding Constraint</span><b>40</b><em>Repo / likidite tarafı sıkılığı taşıyor mu?</em></article>
+          <article class="watch"><span>Hike Pricing</span><b>65</b><strong>Piyasa hike riskini fiyatlıyor</strong><em>güçlü</em><small>Faiz artışı ihtimali artık piyasa fiyatlamasına ciddi şekilde girmiş durumda.</small></article>
+          <article class="watch"><span>Macro Validation</span><b>48</b><strong>Veri kısmen destekliyor</strong><em>izleme</em><small>Enflasyon veya işgücü tarafında baskı var ama veri henüz net hike teyidi vermiyor.</small></article>
+          <article class="watch"><span>Market Stress</span><b>26</b><strong>Piyasa sakin ama izlenmeli</strong><em>izleme</em><small>Stres düşük ama piyasa fiyatlaması takip edilmeli. Fed&#x27;in bekleme alanı hâlâ var.</small></article>
+          <article class="watch"><span>Funding Constraint</span><b>40</b><strong>Likidite izleme bölgesinde</strong><em>izleme</em><small>Funding tarafı tamamen rahat değil. Repo, rezerv ve net likidite hassasiyeti artıyor.</small></article>
         </div>
         <div class="fedwatch-reality-break"><b>Bir sonraki kırılım eşiği</b><span>Yeni fiyatlama için Macro Pressure &gt; 35 veya Macro Validation &gt; 60 gerekir.</span></div>
       </section>
@@ -6877,8 +6879,8 @@ QQQ-SPY: 1.61%</title></rect>
         <div><span>IWM</span><b>+1.97%</b></div>
       </div>
       <article class="session-summary">
-        <div class="panel-title"><h3>Market Summary - Gün İçi</h3><span>2026-06-19</span></div>
-        <p>Gün İçi — 2026-06-19: seans karışık / seçici seans şeklinde okunuyor. Hisse genişliği 57.82%, ortalama hareket +0.65%. SPY +0.78%, QQQ +2.39%, IWM +1.97%. Bu tablo geniş ama sığ bir katılım mı, yoksa dar liderlik mi olduğunu ayırmak için okunmalı.</p>
+        <div class="panel-title"><h3>Market Summary - Kapanış</h3><span>2026-06-19</span></div>
+        <p>Kapanış — 2026-06-19: seans karışık / seçici seans şeklinde okunuyor. Hisse genişliği 57.82%, ortalama hareket +0.65%. SPY +0.78%, QQQ +2.39%, IWM +1.97%. Bu tablo geniş ama sığ bir katılım mı, yoksa dar liderlik mi olduğunu ayırmak için okunmalı.</p>
         <p>Faktör tarafında ana bid AI Altyapısı üzerinde; baskı tarafında Güvenlik ve Savunma öne çıkıyor. Ülke rotasyonunda günün güçlü tarafı EWY - Güney Kore; emtia tarafında TAN - Güneş takip ediliyor. Dolar +0.43%, altın -0.38%, petrol +0.56%, geniş emtia -0.29%.</p>
         <p>Spread okuması: QQQ-SPY +1.61%, HYG-LQD +0.07%, TLT-SHY +0.32%, EEM-SPY +2.47%. Haber anlatısında Bilanço / Rehberlik (10 başlık), Genel Haber (9 başlık), AI / Çip / Veri Merkezi (8 başlık). Bu kombinasyon yarın için liderliğin korunup korunmadığını ve riskin ülke/emtia tarafına yayılıp yayılmadığını izlemeyi gerektiriyor.</p>
         <ol>
@@ -7883,7 +7885,7 @@ BTC hazine değeri: 53454360724.00</title></rect>
       <article>
         <h4>Temettü ve Bilanço Takibi</h4>
         <p>Nakit, borç, bilanço dönemi ve temettü alanları her günlük çalışmada yeniden hesaplanır; yükümlülük takvimi girilirse runway otomatik risk bandına bağlanır.</p>
-        <ul class="mstr-facts"><li class="neutral"><span>Güncelleme</span><b>2026-06-19T17:53:37</b></li><li class="neutral"><span>Son bilanço tarihi</span><b>5/5/2026 4:30:00 PM</b></li><li class="neutral"><span>SEC dönem sonu</span><b>2026-03-31</b></li><li class="neutral"><span>SEC dosyalama</span><b>2026-05-06</b></li><li class="neutral"><span>Common temettü</span><b>Common temettü görünmüyor.</b></li><li class="bad"><span>Preferred yükümlülük</span><b>Preferred/finansman yükümlülüğü yıllık $1.6B olarak izleniyor.</b></li><li class="neutral"><span>Nakit</span><b>$1.1B</b></li><li class="neutral"><span>Toplam borç</span><b>$7.1B</b></li><li class="warn"><span>Net borç</span><b>$6.0B</b></li><li class="neutral"><span>FCF / Capex</span><b>$13.0M / $952.0K</b></li></ul>
+        <ul class="mstr-facts"><li class="neutral"><span>Güncelleme</span><b>2026-06-19T18:03:58</b></li><li class="neutral"><span>Son bilanço tarihi</span><b>5/5/2026 4:30:00 PM</b></li><li class="neutral"><span>SEC dönem sonu</span><b>2026-03-31</b></li><li class="neutral"><span>SEC dosyalama</span><b>2026-05-06</b></li><li class="neutral"><span>Common temettü</span><b>Common temettü görünmüyor.</b></li><li class="bad"><span>Preferred yükümlülük</span><b>Preferred/finansman yükümlülüğü yıllık $1.6B olarak izleniyor.</b></li><li class="neutral"><span>Nakit</span><b>$1.1B</b></li><li class="neutral"><span>Toplam borç</span><b>$7.1B</b></li><li class="warn"><span>Net borç</span><b>$6.0B</b></li><li class="neutral"><span>FCF / Capex</span><b>$13.0M / $952.0K</b></li></ul>
         <table class="mini-table"><thead><tr><th>Seri</th><th>Oran</th><th>Yıllık nakit</th><th>Record</th><th>Ödeme</th></tr></thead><tbody><tr><td>STRK</td><td>8.00%</td><td>$112.2M</td><td>6/15/2026</td><td>6/30/2026</td></tr><tr><td>STRF</td><td>10.00%</td><td>$128.4M</td><td>6/15/2026</td><td>6/30/2026</td></tr><tr><td>STRD</td><td>10.00%</td><td>$140.2M</td><td>6/15/2026</td><td>6/30/2026</td></tr><tr><td>STRC</td><td>11.50%</td><td>$1.2B</td><td>6/15/2026</td><td>6/30/2026</td></tr></tbody></table>
       </article>
       <article>
@@ -16129,7 +16131,7 @@ Stres: 25.75</title></rect>
       
     <div class="live-strip">
       <span>Canlı Akış</span>
-      <b>2026-06-19T17:53:37</b>
+      <b>2026-06-19T18:03:58</b>
       <i>18 aktif faktör</i>
       <i>13/18 faktör aylık pozitif</i>
       <i>En güçlü: Kalabalık Pahalı Liderler</i>
