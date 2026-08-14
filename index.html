@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Piyasa Raporları</title>
 <style>
-:root { --bg:#0f1115; --panel:#181c23; --panel2:#202631; --ink:#f3efe7; --muted:#aaa398; --line:rgba(255,255,255,.12); --gold:#f0c75b; }
+:root { --bg:#0f1115; --panel:#181c23; --ink:#f3efe7; --muted:#aaa398; --line:rgba(255,255,255,.12); --gold:#f0c75b; }
 * { box-sizing:border-box; }
 body { margin:0; min-height:100vh; font-family:Inter,Segoe UI,Arial,sans-serif; background:linear-gradient(145deg,#0f1115,#151b25 50%,#101217); color:var(--ink); }
 main { max-width:1120px; margin:0 auto; padding:34px 20px 70px; }
@@ -47,7 +47,7 @@ p { color:var(--muted); line-height:1.55; }
       <h1>Piyasa Raporları</h1>
       <p>BTC opsiyon notları ve Makro Rejim Haritası için günlük erişim kapısı.</p>
     </div>
-    <div class="status">Son güncelleme: 2026-08-13<br>Günlük şifre gerekir</div>
+    <div class="status">Son güncelleme: 2026-08-09<br>Günlük şifre gerekir</div>
   </div>
 
   <form class="gate" id="gate">
@@ -66,51 +66,37 @@ p { color:var(--muted); line-height:1.55; }
     </div>
 
     <div class="panel active" id="tab-btc">
-      <div class="cards">
-        <article class="card">
-          <div>
-            <h2>Türkçe BTC Opsiyon Notu</h2>
-            <p>Güncel sabah opsiyon raporu, volatilite, risk reversal, positioning ve desk note özeti.</p>
-            <p class="meta">Ana rapor</p>
-          </div>
-          <div class="actions"><a class="button" href="btc_morning_report.html?v=202608131022">Raporu Aç</a></div>
-        </article>
-      </div>
+      <div class="cards"><article class="card"><div>
+        <h2>Türkçe BTC Opsiyon Notu</h2>
+        <p>Güncel sabah opsiyon raporu, volatilite, risk reversal, positioning ve desk note özeti.</p>
+        <p class="meta">Ana rapor</p>
+      </div><div class="actions"><a class="button" href="btc_morning_report.html">Raporu Aç</a></div></article></div>
     </div>
 
     <div class="panel" id="tab-macro">
-      <div class="cards">
-        <article class="card">
-          <div>
-            <h2>Makro Rejim Haritası</h2>
-            <p>Makro rejim, portföy rejimi, yıl içi geri test, risk genişlemesi, AI/capex, enerji-sanayi ve defansif-stres okumaları.</p>
-            <p class="meta">Ana kokpit</p>
-          </div>
-          <div class="actions"><a class="button" href="market_cockpit.html?v=202608131022">Kokpiti Aç</a></div>
-        </article>
-      </div>
+      <div class="cards"><article class="card"><div>
+        <h2>Makro Rejim Haritası</h2>
+        <p>Makro rejim, portföy rejimi, yıl içi geri test, risk genişlemesi, AI/capex, enerji-sanayi ve defansif-stres okumaları.</p>
+        <p class="meta">Ana kokpit</p>
+      </div><div class="actions"><a class="button" href="market_cockpit.html">Kokpiti Aç</a></div></article></div>
     </div>
 
-    <p class="note">Not: GitHub Pages statik yayın yaptığı için bu günlük şifre kapısı hafif erişim kontrolüdür. Gerçek kullanıcı bazlı güvenlik için Cloudflare Access, Vercel/Netlify auth veya benzeri bir giriş katmanı gerekir.</p>
+    <p class="note">Not: GitHub Pages statik yayın yaptığı için bu günlük şifre kapısı hafif erişim kontrolüdür. Gerçek kullanıcı bazlı güvenlik için ayrı bir kimlik doğrulama katmanı gerekir.</p>
   </section>
 </main>
-
 <script>
 const DAILY_HASHES = {
   "2026-08-08": "7bf273a1bab6097b37ed60eb25479ab749028cdcb538982e8f79fd1e380b871b"
 };
 const ACCESS_STORAGE_KEY = "report_access_2026_08_08_v1";
-
 async function sha256(text) {
   const bytes = new TextEncoder().encode(text);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
-
 async function unlock(password) {
   const hash = await sha256(password);
-  const allowed = Object.values(DAILY_HASHES);
-  if (allowed.includes(hash)) {
+  if (Object.values(DAILY_HASHES).includes(hash)) {
     sessionStorage.setItem(ACCESS_STORAGE_KEY, hash);
     document.body.classList.remove("locked");
     document.body.classList.add("unlocked");
@@ -118,21 +104,18 @@ async function unlock(password) {
   }
   return false;
 }
-
-document.getElementById("gate").addEventListener("submit", async (event) => {
+document.getElementById("gate").addEventListener("submit", async event => {
   event.preventDefault();
   const input = document.getElementById("password");
   const ok = await unlock(input.value.trim());
   document.getElementById("error").style.display = ok ? "none" : "block";
   if (ok) input.value = "";
 });
-
 const saved = sessionStorage.getItem(ACCESS_STORAGE_KEY);
 if (saved && Object.values(DAILY_HASHES).includes(saved)) {
   document.body.classList.remove("locked");
   document.body.classList.add("unlocked");
 }
-
 document.querySelectorAll("[data-tab]").forEach(button => {
   button.addEventListener("click", () => {
     document.querySelectorAll("[data-tab]").forEach(x => x.classList.remove("active"));
@@ -144,8 +127,3 @@ document.querySelectorAll("[data-tab]").forEach(button => {
 </script>
 </body>
 </html>
-
-
-
-
-
