@@ -81,18 +81,30 @@ small { opacity:0.82; font-size:12px; }
   .opex-card .value { font-size:25px; }
 }
 </style>
-</head>
+<style id="btc-quality-style">
+    *, *::before, *::after {box-sizing:border-box}
+    main, section, .two>*, .grid>* {min-width:0}
+    h1,h2,h3,p,li,td,.value {overflow-wrap:anywhere;letter-spacing:0}
+    img {height:auto;max-width:100%}
+    .btc-table-scroll {max-width:100%;overflow-x:auto;margin:12px 0}
+    .btc-table-scroll table {min-width:680px}
+    .btc-research {margin:20px 0}
+    .btc-research>summary {padding:16px 0;cursor:pointer;font-size:22px;font-weight:bold}
+    .btc-quality-notice {border-left:4px solid #aa6900;padding:12px;line-height:1.6}
+    @media(max-width:560px){main{padding:14px 10px}.grid{grid-template-columns:minmax(0,1fr)}
+    .hero,.takeaway-shell,.takeaway-card{padding:16px}h1{font-size:30px}.signal-grid{grid-template-columns:1fr}}
+    </style></head>
 <body>
 <main>
   <section class='hero'>
     <h1>BTC Morning Options Note</h1>
     <p><strong>Today's regime:</strong> Kontrollu. Genel gamma yapisi dengeleyici kalmaya devam ediyor and fiyat davranisi simdilik daha cok pin/range karakteri tasiyor.</p>
-    <p><strong>Risk asymmetry:</strong> Downside can accelerate more easily. Upside continuation requires 90,000 above for clean acceptance, while a break below 78,000 can expand hedge flows more quickly.</p>
-    <p><strong>Upside confirmation:</strong> 90,000 ustunde kalici acceptance and belirgin yeni call eklenmesi.</p>
-    <p><strong>Downside trigger:</strong> 78,000 acceptance below. Under that zone, moves can shift from being absorbed to being amplified.</p>
-    <p><strong>One-line desk note:</strong> The options structure remains constructive, but without acceptance it is still hard to call upside momentum durable.</p>
+    <p><strong>Risk asymmetry:</strong> Yalniz bu stok verilerinden bir yonun daha kolay gerceklesecegi kanitlanamaz.</p>
+    <p><strong>Upside confirmation:</strong> Yukari kaynak dugumleri: 85,000 -> 90,000. If price accepts above hedefi garantisi yok.</p>
+    <p><strong>Downside trigger:</strong> Asagi kaynak dugumleri: 78,000 -> 77,000. Bant siniri bir gamma-flip hesabi degildir.</p>
+    <p><strong>One-line desk note:</strong> 78,000-85,000 pozitif dugum yogunlugu; merkez 82,000. Ic negatif dugumler bulunabilir. 08SEP26 RR (call IV - put IV) +1.02. Call IV put IV uzerinde. Seviye and zaman icindeki degisim ayridir.</p>
     <p><span class='badge'>Expiry source: deribit</span><span class='badge'>GEX source: deribit</span><span class='badge'>Laevitas API: 13</span><span class='badge'>Public data: 1</span></p>
-    <small>Generated at 2026-09-06T06:36:25.270991+00:00</small>
+    <small>Generated at 2026-09-07T06:14:42.270481+00:00</small>
   </section>
   <section class='summary-strip'>
     <h2>Core Report</h2>
@@ -100,20 +112,20 @@ small { opacity:0.82; font-size:12px; }
   </section>
   <section class='playbook-strip'>
     <h2>Daily Playbook</h2>
-    <ul><li>Base case: 78,000-85,000 range with pin behavior. The first expectation is mean reversion back toward 82,000.</li><li>Bull case: 90,000 acceptance above opens a test toward 90,000. This scenario is conditional; it still needs fresh call adding and a clear improvement in flow tone for a clean trend.</li><li>Bear case: 78,000 acceptance below should accelerate downside hedge flows; 77,000 is the next acceleration zone. Downside can still activate with less confirmation for now.</li></ul>
+    <ul><li>Denge senaryosu: 78,000-85,000 yogunluk bolgesi; 82,000 merkezine yaklasma izlenir.</li><li>Yukari senaryo: 90,000 ilk ust dugum; sonraki kaynak seviyesi veri yok. OI artisi tek basina alis teyidi degildir.</li><li>Asagi senaryo: 78,000 altinda sonraki negatif dugum 77,000. Bant kirilimi tek basina dealer rejimi degistirmez.</li></ul>
     <p><strong>Yesterday vs Today:</strong></p>
-    <div class='delta-row'><span class='delta-badge delta-up'>Spot +294</span><span class='delta-badge delta-up'>Front IV +11.07</span><span class='delta-badge delta-down'>IV-RV +11.86</span><span class='delta-badge delta-up'>Net gamma +0.374</span><span class='delta-badge delta-down'>Next-day OI -21.7mn USD</span></div>
+    <div class='delta-row'><span class='delta-badge delta-down'>Spot -4</span><span class='delta-badge delta-up'>Front IV +3.99</span><span class='delta-badge delta-down'>IV-RV +3.84</span><span class='delta-badge delta-down'>Net gamma -0.150</span><span class='delta-badge delta-neutral'>On vade degisti; OI stoklari dogrudan karsilastirilmadi</span></div>
   </section>
   <section class='two'>
     <div class='takeaway-shell'>
       <div class='takeaway-card'>
         <h2>KEY LEVELS + TAKEAWAYS</h2>
-        <p class='takeaway-red'>Gamma is positive inside the 78,000-85,000 band. As long as spot remains in the band, MM hedging is inclined to suppress moves.</p>
+        <p class='takeaway-red'>Positive GEX yogunluk bolgesi 78,000-85,000. Bolgenin icinde negatif dugumler bulunabilir; bu bir kesintisiz pozitif gamma veya gamma-flip hesabi degildir.</p>
         <p class='takeaway-strong'>Balance: 82,000 (strong)</p>
-        <p class='takeaway-strong'>UPSIDE TEST: 85,000 -> 90,000 -> 90,000</p>
-        <div class='takeaway-box'>Do not trust the first rally impulse; clean acceptance requires at least 90,000 to hold above.</div>
+        <p class='takeaway-strong'>UPSIDE TEST: 85,000 -> 90,000</p>
+        <div class='takeaway-box'>OI stok degisimi alici/satici yonunu gostermez. Kalicilik bu raporda sure/hacim kuraliyla olculmus bir teyit degildir.</div>
         <p><strong>DOWNSIDE TEST:</strong> 78,000 -> 77,000</p>
-        <p>78,000 below increases hedge pressure; the real acceleration risk sits near 77,000.</p>
+        <p>78,000 alti icin sonraki kaynak dugumu: 77,000.</p>
         <div class='signal-grid'>
           <div class='signal-card accept-card'>
             <strong>ACCEPT ABOVE</strong>
@@ -125,7 +137,7 @@ small { opacity:0.82; font-size:12px; }
           </div>
           <div class='signal-card accept-card'>
             <strong>ACCEPT BELOW</strong>
-            78,000 below should increase downside hedge flow.
+            78,000 alti kalicilik izlenir; gercek hedge akisi bu veriden dogrulanmaz.
           </div>
           <div class='signal-card reject-card'>
             <strong>REJECT BELOW</strong>
@@ -137,40 +149,49 @@ small { opacity:0.82; font-size:12px; }
     <div>
       <h2>Trigger Map</h2>
       <p><strong>Squeeze trigger:</strong> 90,000</p>
-      <p><strong>Breakout confirm:</strong> 90,000</p>
+      <p><strong>Sonraki yukari dugum:</strong> veri yok</p>
       <p><strong>Breakdown trigger:</strong> 78,000</p>
-      <p><strong>Acceleration trigger:</strong> 77,000</p>
+      <p><strong>Sonraki asagi dugum:</strong> 77,000</p>
       <p><strong>Reject above:</strong> 85,000</p>
       <p><strong>Reject below:</strong> 78,000</p>
     </div>
   </section>
+  <details class='btc-research'><summary>Analitik kanitlar and arastirma detaylari</summary><aside class="btc-quality-notice">
+    OI vadesi: 07SEP26; IV/skew vadesi: 08SEP26;
+    egri karsilastirmasi: 11SEP26; diger IV referansi: 18SEP26.
+    <br>En yakin vade sonu: 2026-09-07T08:00:00+00:00 (08:00 UTC / 11:00 TSI).
+    <strong id="btc-expiry-warning">Bu saatin sonrasinda bu snapshot yakin-vade destegi icin guncel degildir.</strong>
+    <br>Max pain: vadeler toplami icin hesaplanan teorik referans; tek vadenin settlement hedefi degildir.
+    GEX strike ve expiry serileri farkli kaynak olcekleridir; dogrudan toplanmaz.
+    IV percentile degisen yakin-vade/DTE dagilimidir; sabit-tenor percentile degildir.
+    </aside>
   <section class='two'>
     <div>
       <h2>Behavioral Flow Edge</h2>
-      <p><strong>Crowd signal:</strong> Late retail-style put panic</p>
-      <p><strong>Fade or Follow?:</strong> Fade downside panic unless spot is accepted below the breakdown trigger</p>
+      <p><strong>Crowd signal:</strong> Smart-money-style constructive flow</p>
+      <p><strong>Fade or Follow?:</strong> Only follow upside if there is clean acceptance</p>
       <p><strong>Confidence:</strong> Moderate</p>
-      <ul><li>Kalabalik kovalama skoru -4: Late retail-style put panic.</li><li>Fade or Follow?: Fade downside panic unless spot is accepted below the breakdown trigger.</li><li>Kisa vadeli put talebi dususun arkasindan geliyor gibi duruyor. Bu akisin buyuk kismi gec hedge ise, 78,000 alti kalici acceptance gelmeden asagi follow-through sinyali tek basina strong sayilmaz.</li></ul>
+      <ul><li>Crowd chase score +0: smart-money-style constructive flow.</li><li>Fade or Follow?: Only follow upside if there is clean acceptance.</li><li>Call flow does not look euphoric on its own; still, for it to gain predictive power, 90,000 needs acceptance above and continued call adding.</li></ul>
       <p><strong>Why the score looks like this:</strong></p>
-      <ul><li>Put/Call imbalance (-2): put adding is clearly stronger than call adding.</li><li>Strike location vs spot (-2): Dominant new risk is clustering in put strikes below spot.</li><li>Premium stress (+0): The IV-RV spread does not materially amplify this signal.</li><li>Skew stress (+0): There is no extreme one-way pressure in skew.</li></ul>
+      <ul><li>Put/Call imbalance (+2): Call adding is clearly stronger than put adding.</li><li>Strike location vs spot (-2): Dominant new risk is clustering in put strikes below spot.</li><li>Premium stress (+0): The IV-RV spread does not materially amplify this signal.</li><li>Skew stress (+0): There is no extreme one-way pressure in skew.</li></ul>
     </div>
     <div>
       <div class='grid'>
-        <div class='metric'><div class='label'>Crowd Chase Score</div><div class='value'>-4</div></div>
-        <div class='metric'><div class='label'>Flow Score</div><div class='value'>-2</div></div>
-        <div class='metric'><div class='label'>Skew Gauge</div><div class='value'>2.63</div></div>
-        <div class='metric'><div class='label'>IV-RV</div><div class='value'>-16.74</div></div>
+        <div class='metric'><div class='label'>Crowd Chase Score</div><div class='value'>+0</div></div>
+        <div class='metric'><div class='label'>Flow Score</div><div class='value'>+2</div></div>
+        <div class='metric'><div class='label'>Skew Gauge</div><div class='value'>1.02</div></div>
+        <div class='metric'><div class='label'>IV-RV</div><div class='value'>-12.90</div></div>
       </div>
-      <img src='laevitas/btc_behavioral_components_en.png?v=20260906063625' alt='Behavioral components'>
+      <img src='laevitas/btc_behavioral_components_en.png?v=20260907061442' alt='Behavioral components' width="1344" height="736" loading="lazy" decoding="async">
       <p>This chart shows which components are driving the score, so the signal is not reduced to a single label.</p>
-      <img src='laevitas/btc_behavioral_trend_en.png?v=20260906063625' alt='Behavioral flow score trend'>
+      <img src='laevitas/btc_behavioral_trend_en.png?v=20260907061442' alt='Behavioral flow score trend' width="1600" height="768" loading="lazy" decoding="async">
       <p>This chart helps distinguish whether the crowd has been in late put panic or late call chasing over time.</p>
     </div>
   </section>
   <section>
     <h2>Morning Desk Note</h2>
-    <div class='delta-row'><span class='delta-badge delta-neutral'>Regime: Controlled</span><span class='delta-badge delta-neutral'>Asymmetry: Downside acceleration</span><span class='delta-badge delta-neutral'>Transition point: 80,000</span><span class='delta-badge delta-up'>Upside confirmation: 90,000+</span><span class='delta-badge delta-down'>Downside trigger: 78,000-</span></div>
-    <p>The options structure remains constructive, but without acceptance it is still hard to call upside momentum durable.</p>
+    <div class='delta-row'><span class='delta-badge delta-up'>GEX: +4.151</span><span class='delta-badge delta-neutral'>IV vadesi: 08SEP26</span><span class='delta-badge delta-neutral'>Arastirma / kosullu okuma</span></div>
+    <p>78,000-85,000 pozitif dugum yogunlugu; merkez 82,000. Ic negatif dugumler bulunabilir. 08SEP26 RR (call IV - put IV) +1.02. Call IV put IV uzerinde. Seviye and zaman icindeki degisim ayridir.</p>
   </section>
   <section class='two'>
     <div>
@@ -179,40 +200,40 @@ small { opacity:0.82; font-size:12px; }
       <div class='grid'>
         <div class='metric'><div class='label'>Bias</div><div class='value'>Long candidate</div></div>
         <div class='metric'><div class='label'>Trade Gate</div><div class='value'>Wait for confirmation</div></div>
-        <div class='metric'><div class='label'>Long Score</div><div class='value'>3</div></div>
-        <div class='metric'><div class='label'>Short Score</div><div class='value'>0</div></div>
-        <div class='metric'><div class='label'>RSI(14)</div><div class='value'>57.1</div></div>
-        <div class='metric'><div class='label'>20d Z-Score</div><div class='value'>+0.67</div></div>
+        <div class='metric'><div class='label'>Long Score</div><div class='value'>2</div></div>
+        <div class='metric'><div class='label'>Short Score</div><div class='value'>1</div></div>
+        <div class='metric'><div class='label'>RSI(14)</div><div class='value'>52.8</div></div>
+        <div class='metric'><div class='label'>20d Z-Score</div><div class='value'>+0.69</div></div>
       </div>
-      <p><strong>Expected action:</strong> Long-side conviction is higher, but do not add size without level confirmation.</p>
-      <table>
+      <p><strong>Expected action:</strong> Do not size aggressively unless at least three layers line up.</p>
+      <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table>
         <tr><th>Layer</th><th>Long</th><th>Short</th><th>Read</th></tr>
-        <tr><td>Technical extreme</td><td>0</td><td>0</td><td>RSI(14) 57.1: no clear technical extreme.</td></tr><tr><td>Vol reaction</td><td>1</td><td>0</td><td>IV-RV spread -16.74: vol may not be pricing panic despite the drop.</td></tr><tr><td>Skew reaction</td><td>1</td><td>0</td><td>25d RR is easing by +1.41 points; put skew has started to relax.</td></tr><tr><td>Positioning filter</td><td>1</td><td>0</td><td>Spot 78,000 ustunde and gamma rejimi savunmasiz degil; positioning relief denemesine izin veriyor.</td></tr>
-      </table>
+        <tr><td>Technical extreme</td><td>0</td><td>0</td><td>RSI(14) 52.8: no clear technical extreme.</td></tr><tr><td>Vol reaction</td><td>1</td><td>0</td><td>IV-RV spread -12.90: vol may not be pricing panic despite the drop.</td></tr><tr><td>Skew reaction</td><td>0</td><td>1</td><td>25d RR is -0.69 points more defensive; skew is not relaxing.</td></tr><tr><td>Positioning filter</td><td>1</td><td>0</td><td>Spot 78,000 ustunde and gamma rejimi savunmasiz degil; positioning relief denemesine izin veriyor.</td></tr>
+      </table></div>
     </div>
     <div>
-      <img src='laevitas/btc_layered_trade_check_en.png?v=20260906063625' alt='Katmanli teyit matrisi'>
+      <img src='laevitas/btc_layered_trade_check_en.png?v=20260907061442' alt='Katmanli teyit matrisi' width="1728" height="832" loading="lazy" decoding="async">
       <h2>Geçmişte Ne Demişti?</h2>
-      <img src='laevitas/btc_layered_trade_history_en.png?v=20260906063625' alt='Katmanli teyit gecmisi'>
+      <img src='laevitas/btc_layered_trade_history_en.png?v=20260907061442' alt='Katmanli teyit gecmisi' width="2048" height="1056" loading="lazy" decoding="async">
       <p>BTC fiyatı üzerindeki işaretler katmanlı teyidin o gün long, short veya nötr tarafa eğildiğini gösterir. Alt panel long-short skor farkını izler.</p>
-      <h3>Son 7 gün katmanlı teyit</h3><table><tr><th>Tarih</th><th>Bias</th><th>Karar</th><th>Long</th><th>Short</th><th>Net</th></tr><tr><td>2026-08-31</td><td><span class='delta-badge delta-down'>Short adayi</span></td><td>Short/devam setup'i var ama teyit eksik</td><td>1</td><td>3</td><td>-2</td></tr><tr><td>2026-09-01</td><td><span class='delta-badge delta-up'>Long adayi</span></td><td>Long setup var ama teyit eksik</td><td>2</td><td>1</td><td>+1</td></tr><tr><td>2026-09-02</td><td><span class='delta-badge delta-down'>Short adayi</span></td><td>Short/devam setup'i var ama teyit eksik</td><td>1</td><td>3</td><td>-2</td></tr><tr><td>2026-09-03</td><td><span class='delta-badge delta-down'>Short adayi</span></td><td>Short/devam setup'i var ama teyit eksik</td><td>0</td><td>2</td><td>-2</td></tr><tr><td>2026-09-04</td><td><span class='delta-badge delta-up'>Long adayi</span></td><td>Long setup var ama teyit eksik</td><td>2</td><td>0</td><td>+2</td></tr><tr><td>2026-09-05</td><td><span class='delta-badge delta-up'>Long adayi</span></td><td>Long setup var ama teyit eksik</td><td>2</td><td>1</td><td>+1</td></tr><tr><td>2026-09-06</td><td><span class='delta-badge delta-up'>Long adayi</span></td><td>Long setup var ama teyit eksik</td><td>2</td><td>0</td><td>+2</td></tr></table><p>Bu tablo son günleri net gösterir; grafikteki legend tüm tarih aralığında görülen sinyal tiplerini anlatır.</p>
+      <h3>Son 7 gün katmanlı teyit</h3><div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Tarih</th><th>Bias</th><th>Karar</th><th>Long</th><th>Short</th><th>Net</th></tr><tr><td>2026-09-01</td><td><span class='delta-badge delta-up'>Long adayi</span></td><td>Long setup var ama teyit eksik</td><td>2</td><td>1</td><td>+1</td></tr><tr><td>2026-09-02</td><td><span class='delta-badge delta-down'>Short adayi</span></td><td>Short/devam setup'i var ama teyit eksik</td><td>1</td><td>3</td><td>-2</td></tr><tr><td>2026-09-03</td><td><span class='delta-badge delta-down'>Short adayi</span></td><td>Short/devam setup'i var ama teyit eksik</td><td>0</td><td>2</td><td>-2</td></tr><tr><td>2026-09-04</td><td><span class='delta-badge delta-up'>Long adayi</span></td><td>Long setup var ama teyit eksik</td><td>2</td><td>0</td><td>+2</td></tr><tr><td>2026-09-05</td><td><span class='delta-badge delta-up'>Long adayi</span></td><td>Long setup var ama teyit eksik</td><td>2</td><td>1</td><td>+1</td></tr><tr><td>2026-09-06</td><td><span class='delta-badge delta-up'>Long adayi</span></td><td>Long setup var ama teyit eksik</td><td>2</td><td>0</td><td>+2</td></tr><tr><td>2026-09-07</td><td><span class='delta-badge delta-up'>Long adayi</span></td><td>Long setup var ama teyit eksik</td><td>2</td><td>1</td><td>+1</td></tr></table></div><p>Bu tablo son günleri net gösterir; grafikteki legend tüm tarih aralığında görülen sinyal tiplerini anlatır.</p>
       <h2>What Is This Looking For?</h2>
-      <ul><li>RSI(14) 57.1: no clear technical extreme.</li><li>Price sits in the middle zone on Bollinger / z-score; in-band behavior is still more dominant (band 67%).</li><li>IV-RV spread -16.74: vol may not be pricing panic despite the drop.</li><li>25d RR is easing by +1.41 points; put skew has started to relax.</li><li>Spot 78,000 ustunde and gamma rejimi savunmasiz degil; positioning relief denemesine izin veriyor.</li></ul>
-      <p><strong>Technical reference:</strong> Bollinger lower band 69,566, upper band 84,907.</p>
+      <ul><li>RSI(14) 52.8: no clear technical extreme.</li><li>Price sits in the middle zone on Bollinger / z-score; in-band behavior is still more dominant (band 67%).</li><li>IV-RV spread -12.90: vol may not be pricing panic despite the drop.</li><li>25d RR is -0.69 points more defensive; skew is not relaxing.</li><li>Spot 78,000 ustunde and gamma rejimi savunmasiz degil; positioning relief denemesine izin veriyor.</li></ul>
+      <p><strong>Technical reference:</strong> Bollinger lower band 72,819, upper band 83,215.</p>
       <p>This block is not a single signal; it checks whether technical extremes, vol reaction, skew behavior, and the positioning filter line up.</p>
     </div>
   </section>
   <section>
     <div class='grid'>
-      <div class='metric'><div class='label'>Approx Spot</div><div class='value'>79,814</div></div>
+      <div class='metric'><div class='label'>Approx Spot</div><div class='value'>79,810</div></div>
       <div class='metric'><div class='label'>Pin Band</div><div class='value'>78,000 - 85,000</div></div>
-      <div class='metric'><div class='label'>Next-Day Expiry</div><div class='value'>07SEP26</div></div>
-      <div class='metric'><div class='label'>Next-Day OI</div><div class='value'>$136,350,177</div></div>
-      <div class='metric'><div class='label'>24h OI Added</div><div class='value'>$159,397,530</div></div>
+      <div class='metric'><div class='label'>Next-Day Expiry</div><div class='value'>08SEP26</div></div>
+      <div class='metric'><div class='label'>Next-Day OI</div><div class='value'>$120,500,229</div></div>
+      <div class='metric'><div class='label'>24h OI Added</div><div class='value'>$33,719,497</div></div>
       <div class='metric'><div class='label'>Call / Put Notional</div><div class='value'>1.82x</div></div>
-      <div class='metric'><div class='label'>Front ATM IV</div><div class='value'>26.73</div></div>
-      <div class='metric'><div class='label'>7d Realized Vol</div><div class='value'>43.47</div></div>
-      <div class='metric'><div class='label'>IV - RV Spread</div><div class='value'>-16.74</div></div>
+      <div class='metric'><div class='label'>Front ATM IV</div><div class='value'>30.72</div></div>
+      <div class='metric'><div class='label'>7d Realized Vol</div><div class='value'>43.62</div></div>
+      <div class='metric'><div class='label'>IV - RV Spread</div><div class='value'>-12.90</div></div>
       <div class='metric'><div class='label'>Magnet Strike</div><div class='value'>80,000</div></div>
       <div class='metric'><div class='label'>Put Hedge Zone</div><div class='value'>60,000-75,000</div></div>
       <div class='metric'><div class='label'>Call Cluster</div><div class='value'>100,000</div></div>
@@ -221,7 +242,7 @@ small { opacity:0.82; font-size:12px; }
   <section class='two'>
     <div>
       <h2>BTC Options Position Map (Clean)</h2>
-      <img src='laevitas/btc_options_position_map_clean_en.png?v=20260906063625' alt='BTC Options Position Map Clean'>
+      <img src='laevitas/btc_options_position_map_clean_en.png?v=20260907061442' alt='BTC Options Position Map Clean' width="2176" height="1312" loading="lazy" decoding="async">
     </div>
     <div>
       <h2>Position Map Read</h2>
@@ -229,7 +250,7 @@ small { opacity:0.82; font-size:12px; }
       <p><strong>Levels:</strong> Tail Hedge 40,000 | Put Hedge 60,000-75,000 | Magnet 80,000 | Call Cluster 100,000 | Speculation 120,000</p>
       <ul><li>Magnet strike was unchanged at 80,000.</li><li>The put hedge zone did not change and remained at 60,000-75,000.</li></ul>
       <p><strong>What changed today:</strong> magnet unchanged | put zone unchanged | call cluster unchanged</p>
-      <ul><li>Magnet strike was unchanged at 80,000.</li><li>The center of the put hedge zone was unchanged (60,000-75,000).</li><li>The call cluster was unchanged at 100,000.</li><li>The call cluster moved closer to spot (20,480 -> 20,186); near-upside interest increased.</li><li>The speculation level was unchanged at 120,000.</li></ul>
+      <ul><li>Magnet strike was unchanged at 80,000.</li><li>The center of the put hedge zone was unchanged (60,000-75,000).</li><li>The call cluster was unchanged at 100,000.</li><li>The call cluster moved farther from spot (20,186 -> 20,190); nearby upside interest weakened.</li><li>The speculation level was unchanged at 120,000.</li></ul>
     </div>
   </section>
   <section class='two'>
@@ -244,88 +265,88 @@ small { opacity:0.82; font-size:12px; }
       </div>
       <p><strong>Headline:</strong> Passive support is not fully gone, but it is shifting farther out on the calendar.</p>
       <p><strong>Forward Verdict:</strong> Expected path: support does not disappear immediately, but it is spreading out on the calendar; the densest window is SEP26, after which the buffer becomes more selective.</p>
-      <ul><li>Today's passive support score 56/100; day over day -0, versus the last 5-session baseline +2.</li><li>Of the visible expiry OI, 8.8% is concentrated within 14 days, 51.8% within 30 days, and 61.7% within 60 days.</li><li>The densest passive-support window on the calendar is SEP26 (score 44.6); while the thinnest window is NOV26 (score 0.3).</li><li>The structure is not fully emptied, but support is now carried more by a distributed calendar effect than by a single one-day expiry wall.</li></ul>
+      <ul><li>Today's passive support score 56/100; day over day -0, versus the last 5-session baseline -13.</li><li>Of the visible expiry OI, 8.8% is concentrated within 14 days, 51.8% within 30 days, and 61.7% within 60 days.</li><li>The densest passive-support window on the calendar is SEP26 (score 45.0); while the thinnest window is NOV26 (score 0.3).</li><li>The structure is not fully emptied, but support is now carried more by a distributed calendar effect than by a single one-day expiry wall.</li></ul>
     </div>
     <div>
-      <img src='laevitas/btc_gamma_support_monitor_en.png?v=20260906063625' alt='Gamma support monitor'>
+      <img src='laevitas/btc_gamma_support_monitor_en.png?v=20260907061442' alt='Gamma support monitor' width="1856" height="1216" loading="lazy" decoding="async">
       <p>The top panel shows whether passive support has strengthened or weakened recently; the bottom panel shows which future expiry windows concentrate that support across the coming months.</p>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>GEX Expiry Structure</h2>
-      <img src='laevitas/btc_gex_term_structure_en.png?v=20260906063625' alt='GEX term structure by expiry'>
+      <img src='laevitas/btc_gex_term_structure_en.png?v=20260907061442' alt='GEX term structure by expiry' width="1856" height="864" loading="lazy" decoding="async">
       <p>This chart shows the true expiry-by-expiry GEX distribution; it shows which maturities are carrying passive support and where negative-gamma risk is building.</p>
       <p><strong>Tek cumlelik okuma:</strong> Near-dated positive gamma should keep price action more controlled; as spot approaches negative-gamma pockets, moves can become more directional.</p>
-      <h3>Day-over-Day GEX Change by Expiry</h3><img src='laevitas/btc_gex_term_structure_delta_en.png?v=20260906063625' alt='Day-over-day GEX delta by expiry'><p class='small-muted'>2026-09-05 -> 2026-09-06</p><div class='delta-row'><span class='delta-badge delta-down'>Total GEX: -2,285,466</span><span class='delta-badge delta-up'>Front 6SEP26: +5,938,400</span><span class='delta-badge delta-up'>Strongest build: 6SEP26 +5,938,400</span><span class='delta-badge delta-down'>Weakest leg: 11SEP26 -1,688,533</span></div><p><strong>Delta read:</strong> Expiry yapisinda belirgin yeniden dagilim var; bazi tamponlar guclenirken digerleri weakladi.</p>
+      <h3>Day-over-Day GEX Change by Expiry</h3><img src='laevitas/btc_gex_term_structure_delta_en.png?v=20260907061442' alt='Day-over-day GEX delta by expiry' width="1856" height="624" loading="lazy" decoding="async"><p class='small-muted'>2026-09-06 -> 2026-09-07</p><div class='delta-row'><span class='delta-badge delta-down'>Total GEX: -7,880,025</span><span class='delta-badge delta-up'>Front 7SEP26: +2,651,271</span><span class='delta-badge delta-up'>Strongest build: 7SEP26 +2,651,271</span><span class='delta-badge delta-down'>Weakest leg: 9SEP26 -280,283</span></div><p><strong>Delta read:</strong> Expiry yapisinda belirgin yeniden dagilim var; bazi tamponlar guclenirken digerleri weakladi.</p>
     </div>
     <div>
       <h2>Term Structure Read</h2>
       <div class='grid'>
-        <div class='metric'><div class='label'>On Expiry</div><div class='value'>6SEP26</div></div>
-        <div class='metric'><div class='label'>On Expiry GEX</div><div class='value'>11,964,444</div></div>
-        <div class='metric'><div class='label'>Total GEX</div><div class='value'>9,731,734</div></div>
-        <div class='metric'><div class='label'>Spot</div><div class='value'>79,814</div></div>
+        <div class='metric'><div class='label'>On Expiry</div><div class='value'>7SEP26</div></div>
+        <div class='metric'><div class='label'>On Expiry GEX</div><div class='value'>2,252,194</div></div>
+        <div class='metric'><div class='label'>Total GEX</div><div class='value'>1,851,710</div></div>
+        <div class='metric'><div class='label'>Spot</div><div class='value'>79,810</div></div>
       </div>
-      <p><strong>Headline:</strong> The front expiry 6SEP26 carries positive gamma; passive support is present, but there is still a negative-gamma pocket in 8SEP26.</p>
+      <p><strong>Headline:</strong> The front expiry 7SEP26 carries positive gamma; passive support is present, but there is still a negative-gamma pocket in 8SEP26.</p>
       <p><strong>Front gamma roll-off risk:</strong> High: on vade destegin buyuk kismini tasiyor; bu pencere bosalirken tampon hizla inceliyor olabilir.</p>
       <p><strong>Next support expiry:</strong> 25SEP26: the next positive-gamma buffer sits here; support can rotate here first as the front expiry rolls off.</p>
-      <p><strong>Gamma vacuum window:</strong> 7SEP26 area: the first nearby window after the front expiry carries negative gamma, so there is a risk of shifting from passive support to directional behavior.</p>
-      <ul><li>The strongest positive-gamma expiry is 6SEP26 (11,964,444); passive support is concentrated there most heavily.</li><li>The riskiest negative-gamma expiry is 8SEP26 (-2,116,071); that window can make price action more directional.</li><li>On vade 6SEP26 pozitif gamma ile 11,964,444; bu expiry gectikce pasif desteğin ilk nereye kayacagi term structure ile okunabilir.</li></ul>
-      <ul><li>Total expiry-bazli GEX 2026-09-05 snapshot'ina gore -2,285,466 vs yesterday.</li><li>The clearest support build was seen in 6SEP26  (+5,938,400).</li><li>The clearest weakening was seen in 11SEP26  (-1,688,533).</li></ul>
+      <p><strong>Gamma vacuum window:</strong> 8SEP26 area: the first nearby window after the front expiry carries negative gamma, so there is a risk of shifting from passive support to directional behavior.</p>
+      <ul><li>The strongest positive-gamma expiry is 7SEP26 (2,252,194); passive support is concentrated there most heavily.</li><li>The riskiest negative-gamma expiry is 8SEP26 (-1,024,566); that window can make price action more directional.</li><li>On vade 7SEP26 pozitif gamma ile 2,252,194; bu expiry gectikce pasif desteğin ilk nereye kayacagi term structure ile okunabilir.</li></ul>
+      <ul><li>Total expiry-bazli GEX 2026-09-06 snapshot'ina gore -7,880,025 vs yesterday.</li><li>The clearest support build was seen in 7SEP26  (+2,651,271).</li><li>The clearest weakening was seen in 9SEP26  (-280,283).</li></ul>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Opex Calendar and Regime Transition</h2>
-      <div class='opex-visual-grid'><div class='opex-card tone-up'><div class='label'>Support until</div><div class='value'>06SEP26</div><div class='opex-card-detail'>0 day | front-end support horizon</div><div class='opex-meter-label'><span>Calendar progress</span><span>8%</span></div><div class='opex-meter'><span style='width:8.0%'></span></div></div><div class='opex-card tone-down'><div class='label'>Highest roll-off risk date</div><div class='value'>06SEP26</div><div class='opex-card-detail'>0 day | OI share 0.5%</div><div class='opex-meter-label'><span>Roll-off intensity</span><span>8%</span></div><div class='opex-meter'><span style='width:8.0%'></span></div></div><div class='opex-card tone-up'><div class='label'>Next stabilizing expiry</div><div class='value'>25SEP26</div><div class='opex-card-detail'>19 day | GEX +1,705,113</div><div class='opex-meter-label'><span>Positive gamma buffer</span><span>14%</span></div><div class='opex-meter'><span style='width:14.3%'></span></div></div><div class='opex-card tone-down'><div class='label'>Post-opex vacuum window</div><div class='value'>06SEP26 -> 07SEP26</div><div class='opex-card-detail'>1 day transition | post-front gap map</div><div class='opex-meter-label'><span>Vacuum width</span><span>8%</span></div><div class='opex-meter'><span style='width:8.0%'></span></div></div></div>
-      <p><strong>Headline:</strong> The opex calendar shows that support concentration around 06SEP26 and sonrasi icin kritiklestigini gosteriyor; destegin front expiry'den sonraki pencereye nasil devredilecegi ana okuma olmali.</p>
+      <div class='opex-visual-grid'><div class='opex-card tone-up'><div class='label'>Support until</div><div class='value'>07SEP26</div><div class='opex-card-detail'>0 day | front-end support horizon</div><div class='opex-meter-label'><span>Calendar progress</span><span>8%</span></div><div class='opex-meter'><span style='width:8.0%'></span></div></div><div class='opex-card tone-down'><div class='label'>Highest roll-off risk date</div><div class='value'>25SEP26</div><div class='opex-card-detail'>18 day | OI share 43.1%</div><div class='opex-meter-label'><span>Roll-off intensity</span><span>100%</span></div><div class='opex-meter'><span style='width:100.0%'></span></div></div><div class='opex-card tone-up'><div class='label'>Next stabilizing expiry</div><div class='value'>25SEP26</div><div class='opex-card-detail'>18 day | GEX +1,682,028</div><div class='opex-meter-label'><span>Positive gamma buffer</span><span>75%</span></div><div class='opex-meter'><span style='width:74.7%'></span></div></div><div class='opex-card tone-down'><div class='label'>Post-opex vacuum window</div><div class='value'>07SEP26 -> 08SEP26</div><div class='opex-card-detail'>1 day transition | post-front gap map</div><div class='opex-meter-label'><span>Vacuum width</span><span>8%</span></div><div class='opex-meter'><span style='width:8.0%'></span></div></div></div>
+      <p><strong>Headline:</strong> The opex calendar shows that support concentration around 25SEP26 and sonrasi icin kritiklestigini gosteriyor; destegin front expiry'den sonraki pencereye nasil devredilecegi ana okuma olmali.</p>
       <ul><li>Support until shows how far front-end gamma support extends on the calendar.</li><li>Highest roll-off risk date marks the expiry most likely to cause the biggest support loss or regime shift when it rolls off.</li><li>Next stabilizing expiry shows where passive support is likely to rotate first if the front window weakens.</li><li>Post-opex vacuum window describes the first fragile gap or negative-gamma pocket after expiry.</li></ul>
     </div>
     <div>
       <h2>Upcoming Opex Calendar</h2>
-      <table><tr><th>Expiry</th><th>DTE</th><th>Open Interest</th><th>OI Payi</th><th>GEX</th><th>Tag</th></tr><tr><td>06SEP26</td><td>0</td><td>$181,198,345</td><td>0.5%</td><td>+11,964,444</td><td>Strong support</td></tr><tr><td>07SEP26</td><td>1</td><td>$136,350,177</td><td>0.4%</td><td>-399,077</td><td>Fragile / risky</td></tr><tr><td>08SEP26</td><td>2</td><td>$80,871,335</td><td>0.2%</td><td>-2,116,071</td><td>Fragile / risky</td></tr><tr><td>09SEP26</td><td>3</td><td>$7,318,936</td><td>0.0%</td><td>-61,495</td><td>Negative gamma</td></tr><tr><td>11SEP26</td><td>5</td><td>$1,805,222,508</td><td>5.4%</td><td>-1,032,772</td><td>Fragile / risky</td></tr><tr><td>18SEP26</td><td>12</td><td>$726,471,636</td><td>2.2%</td><td>-1,218,050</td><td>Fragile / risky | Quarterly</td></tr><tr><td>25SEP26</td><td>19</td><td>$14,456,368,890</td><td>43.1%</td><td>+1,705,113</td><td>Strong support | Quarterly</td></tr><tr><td>30OCT26</td><td>54</td><td>$3,321,488,877</td><td>9.9%</td><td>+1,010,738</td><td>Strong support</td></tr></table>
+      <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Expiry</th><th>DTE</th><th>Open Interest</th><th>OI Payi</th><th>GEX</th><th>Tag</th></tr><tr><td>07SEP26</td><td>0</td><td>$178,696,487</td><td>0.5%</td><td>+2,252,194</td><td>Strong support</td></tr><tr><td>08SEP26</td><td>1</td><td>$120,500,229</td><td>0.4%</td><td>-1,024,566</td><td>Fragile / risky</td></tr><tr><td>09SEP26</td><td>2</td><td>$74,681,275</td><td>0.2%</td><td>-341,779</td><td>Fragile / risky</td></tr><tr><td>10SEP26</td><td>3</td><td>$5,848,864</td><td>0.0%</td><td>-23,062</td><td>Negative gamma</td></tr><tr><td>11SEP26</td><td>4</td><td>$1,825,363,042</td><td>5.4%</td><td>-794,104</td><td>Fragile / risky</td></tr><tr><td>18SEP26</td><td>11</td><td>$734,623,319</td><td>2.2%</td><td>-871,319</td><td>Fragile / risky</td></tr><tr><td>25SEP26</td><td>18</td><td>$14,460,673,200</td><td>43.1%</td><td>+1,682,028</td><td>Strong support | Quarterly</td></tr><tr><td>30OCT26</td><td>53</td><td>$3,324,750,513</td><td>9.9%</td><td>+1,021,179</td><td>Strong support</td></tr></table></div>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>OI / GEX Migration</h2>
-      <div class='delta-row'><span class='delta-badge delta-up'>Spot +294</span><span class='delta-badge delta-up'>Front IV +11.07</span><span class='delta-badge delta-down'>IV-RV +11.86</span><span class='delta-badge delta-up'>Net gamma +0.374</span><span class='delta-badge delta-down'>Next-day OI -21.7mn USD</span><span class='delta-badge delta-down'>Total GEX: -2,285,466</span><span class='delta-badge delta-up'>Front 6SEP26: +5,938,400</span></div>
-      <ul><li>Spot changed +294 vs yesterday.</li><li>ATM spot IV changed by +2.15 points; front ATM IV changed by +11.07; net gamma changed by +0.374.</li><li>Magnet strike was unchanged at 80,000.</li><li>The center of the put hedge zone was unchanged (60,000-75,000).</li><li>Total expiry-bazli GEX 2026-09-05 snapshot'ina gore -2,285,466 vs yesterday.</li><li>The clearest support build was seen in 6SEP26  (+5,938,400).</li></ul>
-      <p><strong>5-day reference:</strong> Spot +2,117, ATM IV +2.73, next-day OI -12.8 million USD.</p>
+      <div class='delta-row'><span class='delta-badge delta-down'>Spot -4</span><span class='delta-badge delta-up'>Front IV +3.99</span><span class='delta-badge delta-down'>IV-RV +3.84</span><span class='delta-badge delta-down'>Net gamma -0.150</span><span class='delta-badge delta-neutral'>On vade degisti; OI stoklari dogrudan karsilastirilmadi</span><span class='delta-badge delta-down'>Total GEX: -7,880,025</span><span class='delta-badge delta-up'>Front 7SEP26: +2,651,271</span></div>
+      <ul><li>Spot changed -4 vs yesterday.</li><li>ATM spot IV changed by +0.07 points; front ATM IV changed by +3.99; net gamma changed by -0.150.</li><li>Magnet strike was unchanged at 80,000.</li><li>The center of the put hedge zone was unchanged (60,000-75,000).</li><li>Total expiry-bazli GEX 2026-09-06 snapshot'ina gore -7,880,025 vs yesterday.</li><li>The clearest support build was seen in 7SEP26  (+2,651,271).</li></ul>
+      <p><strong>5-day reference:</strong> Spot +2,020, ATM IV +3.86. Rolling vade OI farki akis kaniti olarak gosterilmez.</p>
     </div>
     <div>
       <h2>Risk Migration Trend</h2>
-      <img src='laevitas/btc_archive_trend_en.png?v=20260906063625' alt='Daily trend'>
+      <img src='laevitas/btc_archive_trend_en.png?v=20260907061442' alt='Daily trend' width="1600" height="800" loading="lazy" decoding="async">
       <p>Bu grafik spot, vol and net gamma'nin zaman icindeki kaymasini birlikte izler. Ana okuma ise riskin hangi strike and expiry'ye tasindigini migration notlariyla birlikte okumaktir.</p>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Protection Demand / Skew Repositioning</h2>
-      <p><span class='delta-badge delta-up'>Protection demand easing</span></p>
-      <p><strong>Headline:</strong> Vol is falling and skew is relaxing; downside protection demand may be easing.</p>
-      <div class='delta-row'><span class='delta-badge delta-neutral'>Front IV: 26.73</span><span class='delta-badge delta-down'>7d IV change: -2.89</span><span class='delta-badge delta-down'>30d IV change: -2.58</span><span class='delta-badge delta-neutral'>25D RR: 2.63</span><span class='delta-badge delta-up'>7d RR change: +4.47</span><span class='delta-badge delta-up'>30d RR change: +7.65</span><span class='delta-badge delta-neutral'>2/8 expiries saw IV fall week over week</span><span class='delta-badge delta-neutral'>2/5 expiries saw IV fall month over month</span></div>
-      <ul><li>Short read: option premium is easing and downside protection demand is also fading; this can mark a shift toward a calmer regime.</li><li>One month ago, the market was pricing a much richer vol / protection regime; today the IV curve is materially lower.</li><li>As spot moved higher, risk reversal generally moved into a less stressed zone; however, over the last 7 days RR has turned more negative again, so downside protection has not been fully abandoned.</li><li>Forward read: if spot holds up and RR moves back toward zero, the relief / hedge-unwind regime continues. If spot falls while RR turns more negative, the market is buying protection again.</li><li>Flow confirmation: Top-instrument tape gives limited confirmation of put unwind.</li></ul>
+      <p><span class='delta-badge delta-up'>Research composition / not signed trade flow</span></p>
+      <p><strong>Headline:</strong> 08SEP26 RR (call IV minus put IV) +1.02. Call IV exceeds put IV.</p>
+      <div class='delta-row'><span class='delta-badge delta-neutral'>IV expiry: 08SEP26</span><span class='delta-badge delta-down'>Rolling 7D IV: -4.92</span><span class='delta-badge delta-up'>Rolling 30D IV: +13.82</span><span class='delta-badge delta-up'>Rolling 7D RR: +2.18</span><span class='delta-badge delta-up'>Rolling 30D RR: +1.74</span></div>
+      <ul><li>Rolling-front comparisons include maturity and DTE changes; they are not constant-tenor or same-contract flows.</li><li>Historical front RR is recovered from front IV and normalized skew, never substituted from another expiry.</li><li>OI changes cannot identify the initiating buyer or seller.</li></ul>
       <p class='small-muted'>This block answers one question: is the market reducing downside protection, or is put premium still defensive? It is not a signed dealer-inventory claim.</p>
     </div>
     <div>
-      <img src='laevitas/btc_vol_skew_spot_en.png?v=20260906063625' alt='Spot versus front 25D RR'>
-      <img src='laevitas/btc_vol_skew_term_compare_en.png?v=20260906063625' alt='Today versus one-week ATM IV curve'>
+      <img src='laevitas/btc_vol_skew_spot_en.png?v=20260907061442' alt='Spot versus front 25D RR' width="1760" height="800" loading="lazy" decoding="async">
+      <img src='laevitas/btc_vol_skew_term_compare_en.png?v=20260907061442' alt='Today versus one-week ATM IV curve' width="1760" height="800" loading="lazy" decoding="async">
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Vol Market Intelligence</h2>
-      <ul><li>Front-end ATM IV (07SEP26) 26.73, while back-end ATM IV is (25DEC26) 39.34. The vol curve slopes upward; the market is pricing longer-lasting uncertainty rather than near-dated panic.</li><li>Front ATM IV is 16.74 points below 7-day realized vol. Spot has moved more aggressively than options premia imply, so there is underpriced-move risk.</li><li>25d RR 2.63; skew is defensive but not outright panic. The market is taking downside seriously without pricing one-way fear.</li><li>10d RR 3.92 and 25d BF 0.56; that combination shows how elevated short-dated tail premium remains.</li></ul>
+      <ul><li>Front-end ATM IV (08SEP26) 30.72, while back-end ATM IV is (18SEP26) 37.95. The vol curve slopes upward; the market is pricing longer-lasting uncertainty rather than near-dated panic.</li><li>Front ATM IV is 12.90 points below 7-day realized vol. Spot has moved more aggressively than options premia imply, so there is underpriced-move risk.</li><li>25d RR 1.02; skew is defensive but not outright panic. The market is taking downside seriously without pricing one-way fear.</li><li>10d RR 1.96 and 25d BF 0.18; that combination shows how elevated short-dated tail premium remains.</li></ul>
       <p><strong>Front maturity:</strong> 11SEP26</p>
-      <p><strong>Daily ATM IV change:</strong> +3.51</p>
-      <p><strong>Weekly ATM IV change:</strong> +1.45</p>
+      <p><strong>Daily ATM IV change:</strong> +1.40</p>
+      <p><strong>Weekly ATM IV change:</strong> +3.69</p>
       
     </div>
     <div>
       <h2>IV vs RV Comparison</h2>
-      <img src='laevitas/btc_iv_rv_en.png?v=20260906063625' alt='IV RV chart'>
+      <img src='laevitas/btc_iv_rv_en.png?v=20260907061442' alt='IV RV chart' width="1280" height="800" loading="lazy" decoding="async">
       <p>The Laevitas historical RV endpoint is not available under this key, so realized vol is computed from public BTC daily close data.</p>
     </div>
   </section>
@@ -333,24 +354,24 @@ small { opacity:0.82; font-size:12px; }
     <div>
       <h2>Flow & Strategy Confirmation</h2>
       <p><span class='delta-badge delta-down'>Defensive</span></p>
-      <p><strong>Flow score:</strong> Defensive / downside hedge flow (-2)</p>
-      <ul><li>Over the last 24 hours, the strongest new risk came through BTC-11SEP26-78000-P, which points to active new positioning in downside put protection.</li><li>At the same time, the clearest unwind came through BTC-11SEP26-80000-C, which suggests part of the old call risk was cleared.</li><li>The largest strike-level net additions were concentrated around 90,000 and 70,000, making those zones the new center of short-dated attention.</li><li>The sharpest net reduction came around 82,000 and 79,000, suggesting old positioning was pulled from that zone.</li></ul>
+      <p><strong>Flow score:</strong> Constructive / upside-chase flow (+2)</p>
+      <ul><li>Gorunen kontratlar arasinda son 24 saatin en buyuk OI artisi BTC-9SEP26-86000-C ($19,939,498); call OI artisi islem baslatan tarafin alici oldugunu kanitlamaz.</li><li>At the same time, the clearest unwind came through BTC-25DEC26-100000-C, which suggests part of the old call risk was cleared.</li><li>The largest strike-level net additions were concentrated around 86,000 and 82,500, making those zones the new center of short-dated attention.</li><li>The sharpest net reduction came around 79,000 and 80,000, suggesting old positioning was pulled from that zone.</li></ul>
       <p><strong>Strategy Verdict:</strong> Defensive</p>
       <p><strong>Dominant Action:</strong> Fresh hedge + upside cap</p>
       <p><strong>Trading Implication:</strong> Breakout quality weakens; even if you see upside extension, wait for acceptance because cap risk remains.</p>
-      <ul><li>On the LONG_PUT side, $58,669,550 of notional and 1,408 of OI were added; this points to fresh downside hedging.</li><li>SHORT_CALL OI increased by 684; this suggests upside is being capped through call selling and that clean breakout conviction remains limited.</li><li>LONG_CALL OI increased by 1,082; part of the tape is rebuilding upside risk, but that does not amount to standalone euphoria.</li><li>SHORT_PUT OI increased by 619; some participants are still selling downside and collecting carry.</li><li>SHORT_RATIO_CALL_SPREAD OI artisi 46; yukari senaryo tamamen reddedilmiyor ama extension daha capped / secici yapilarla trade ediliyor.</li></ul>
+      <ul><li>On the LONG_PUT side, $71,954,053 of notional and 1,068 of OI were added; this points to fresh downside hedging.</li><li>SHORT_CALL OI increased by 1,721; this suggests upside is being capped through call selling and that clean breakout conviction remains limited.</li><li>LONG_CALL OI increased by 1,426; part of the tape is rebuilding upside risk, but that does not amount to standalone euphoria.</li><li>SHORT_PUT OI increased by 1,030; some participants are still selling downside and collecting carry.</li></ul>
       
     </div>
     <div>
       <h2>Flow Change by Strike</h2>
-      <img src='laevitas/btc_flow_change_en.png?v=20260906063625' alt='Flow change chart'>
+      <img src='laevitas/btc_flow_change_en.png?v=20260907061442' alt='Flow change chart' width="1760" height="800" loading="lazy" decoding="async">
       <p>Bu grafik son 24 saatte riskin hangi strike'lara tasindigini gosterir. Core raporda flow and strategy teyidini tek panelde tutuyoruz; ham tape ayrintisi appendix'te kaliyor.</p>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Professional Final Read</h2>
-      <ul><li>Birlesik okuma, opsiyon piyasasinin halen net bir trend gununden cok kontrollu bir range/pin gunu fiyatladigini gosteriyor. Dealerlar spotu 78,000-85,000 bandinda tutmaya calisirken, vol market kisa vade riski tamamen dislamiyor ama panic rejimine de gecmis degil.</li><li>On the vol side, front ATM IV is 26.73, 7-day realized vol 43.47 and IV-RV spread is -16.74. That suggests options premia are not far from recent spot movement.</li><li>Strategy tape karari Defensive. The tape is showing both downside hedge demand and upside capping at the same time; there is direction, but it is not comfortable. Bu nedenle aktif strateji akisi, strike yigilmasindan ayri bir teyit katmani olarak okunmali.</li></ul>
+      <ul><li>Kaynak GEX toplami +4.151; gercek dealer envanteri dogrulanmiyor.</li><li>IV vadesi 08SEP26: 30.72; tarihsel 7G RV 43.62. Farkli ufuklar; bu fark tek basina ucuz/pahali opsiyon veya islem sinyali vermez.</li><li>08SEP26 RR (call IV - put IV) +1.02. Call IV put IV uzerinde. Seviye and zaman icindeki degisim ayridir.</li><li>OI stok degisimi alici/satici yonunu gostermez. Kalicilik bu raporda sure/hacim kuraliyla olculmus bir teyit degildir.</li></ul>
     </div>
     <div>
       <h2>Appendix</h2>
@@ -360,16 +381,16 @@ small { opacity:0.82; font-size:12px; }
   <section class='two'>
     <div>
       <h2>Flow Heatmap</h2>
-      <img src='laevitas/btc_flow_heatmap_en.png?v=20260906063625' alt='Flow heatmap'>
+      <img src='laevitas/btc_flow_heatmap_en.png?v=20260907061442' alt='Flow heatmap' width="1920" height="608" loading="lazy" decoding="async">
       <p>The heatmap shows exactly where call and put flow is concentrated around spot.</p>
       
     </div>
     <div>
       <h2>Daily / Weekly / Monthly Flow Note</h2>
       <p><strong>Daily:</strong></p>
-      <ul><li>Today's dominant strike-flow change appeared around 82,000 and 79,000.</li></ul>
+      <ul><li>Today's dominant strike-flow change appeared around 86,000 and 79,000.</li></ul>
       <p><strong>Weekly:</strong></p>
-      <ul><li>Son 5 gunluk yerel kayitta akis en cok 80,000 and 79,000 strike'larinda birikmis.</li></ul>
+      <ul><li>Son 5 gunluk yerel kayitta akis en cok 80,000 and 90,000 strike'larinda birikmis.</li></ul>
       <p><strong>Monthly:</strong></p>
       <ul><li>The 20-day accumulation is more call-dominant.</li></ul>
     </div>
@@ -377,15 +398,15 @@ small { opacity:0.82; font-size:12px; }
   <section class='two'>
     <div>
       <h2>ATM IV Expiry Structure</h2>
-      <img src='laevitas/btc_iv_term_structure_en.png?v=20260906063625' alt='ATM IV term structure'>
-      <table><tr><th>Expiry</th><th>ATM IV</th><th>25d RR</th><th>25d BF</th></tr><tr><td>06SEP26</td><td>0.00</td><td>0.00</td><td>0.00</td></tr><tr><td>07SEP26</td><td>26.73</td><td>2.63</td><td>0.56</td></tr><tr><td>08SEP26</td><td>30.20</td><td>1.78</td><td>1.15</td></tr><tr><td>09SEP26</td><td>32.89</td><td>2.06</td><td>1.15</td></tr><tr><td>11SEP26</td><td>35.00</td><td>2.18</td><td>1.27</td></tr><tr><td>18SEP26</td><td>37.57</td><td>1.83</td><td>0.93</td></tr><tr><td>25DEC26</td><td>39.34</td><td>-0.32</td><td>1.10</td></tr><tr><td>25JUN27</td><td>41.68</td><td>0.17</td><td>1.35</td></tr></table>
+      <img src='laevitas/btc_iv_term_structure_en.png?v=20260907061442' alt='ATM IV term structure' width="1760" height="800" loading="lazy" decoding="async">
+      <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Expiry</th><th>ATM IV</th><th>25d RR</th><th>25d BF</th></tr><tr><td>07SEP26</td><td>23.67</td><td>0.00</td><td>0.00</td></tr><tr><td>08SEP26</td><td>30.72</td><td>1.02</td><td>0.18</td></tr><tr><td>09SEP26</td><td>33.62</td><td>0.49</td><td>0.46</td></tr><tr><td>10SEP26</td><td>34.32</td><td>1.84</td><td>0.79</td></tr><tr><td>11SEP26</td><td>36.19</td><td>1.46</td><td>0.75</td></tr><tr><td>18SEP26</td><td>37.95</td><td>1.30</td><td>0.56</td></tr><tr><td>25DEC26</td><td>39.09</td><td>-0.63</td><td>1.08</td></tr><tr><td>25JUN27</td><td>41.39</td><td>0.02</td><td>1.39</td></tr></table></div>
     </div>
     <div>
       <h2>Strategy Tape</h2>
-      <img src='laevitas/btc_top_strategies_en.png?v=20260906063625' alt='Strategy chart'>
+      <img src='laevitas/btc_top_strategies_en.png?v=20260907061442' alt='Strategy chart' width="1760" height="800" loading="lazy" decoding="async">
       <p><strong>Dominant tone:</strong> constructive</p>
-      <ul><li>The strongest strategy pressure came from LONG_PUT, with roughly $58,669,550 of notional and 1,408 of OI change driving the tape.</li><li>The strategy tape is broadly constructive; short puts, long calls, and bull-spread style structures are outweighing defensive trades.</li></ul>
-      <table><tr><th>Strategy</th><th>Notional</th><th>OI Change</th><th>Delta</th></tr><tr><td>LONG_PUT</td><td>$58,669,550</td><td>1,408</td><td>-146.8</td></tr><tr><td>LONG_CALL</td><td>$54,699,843</td><td>1,082</td><td>149.2</td></tr><tr><td>SHORT_CALL</td><td>$51,514,431</td><td>684</td><td>-107.6</td></tr><tr><td>SHORT_PUT</td><td>$40,281,308</td><td>619</td><td>77.7</td></tr><tr><td>SHORT_RATIO_CALL_SPREAD</td><td>$9,566,767</td><td>46</td><td>-3.1</td></tr><tr><td>SHORT_STRANGLE</td><td>$7,986,460</td><td>50</td><td>-0.5</td></tr><tr><td>CUSTOM_STRATEGY</td><td>$6,379,758</td><td>-1</td><td>8.2</td></tr><tr><td>HEDGED_OPTIONS_STRATEGY</td><td>$4,783,100</td><td>60</td><td>1.1</td></tr></table>
+      <ul><li>The strongest strategy pressure came from LONG_PUT, with roughly $71,954,053 of notional and 1,068 of OI change driving the tape.</li><li>The strategy tape is broadly constructive; short puts, long calls, and bull-spread style structures are outweighing defensive trades.</li></ul>
+      <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Strategy</th><th>Notional</th><th>OI Change</th><th>Delta</th></tr><tr><td>LONG_PUT</td><td>$71,954,053</td><td>1,068</td><td>-142.9</td></tr><tr><td>LONG_CALL</td><td>$66,286,353</td><td>1,426</td><td>99.5</td></tr><tr><td>SHORT_CALL</td><td>$63,698,649</td><td>1,721</td><td>-117.8</td></tr><tr><td>SHORT_PUT</td><td>$48,772,486</td><td>1,030</td><td>70.2</td></tr><tr><td>LONG_IRON_CONDOR</td><td>$31,993,570</td><td>380</td><td>1.2</td></tr><tr><td>BULL_CALL_SPREAD</td><td>$31,966,375</td><td>158</td><td>16.3</td></tr><tr><td>BULL_DIAGONAL_SPREAD_(Calls)</td><td>$16,345,534</td><td>70</td><td>2.3</td></tr><tr><td>SHORT_RISK_REVERSAL</td><td>$3,983,848</td><td>14</td><td>-2.3</td></tr></table></div>
     </div>
   </section>
   <section class='two'>
@@ -396,15 +417,15 @@ small { opacity:0.82; font-size:12px; }
       <p><strong>Dominant Action:</strong> Fresh hedge + upside cap</p>
       <p><strong>Trading Implication:</strong> Breakout quality weakens; even if you see upside extension, wait for acceptance because cap risk remains.</p>
       <p><strong>Headline:</strong> The tape is showing both downside hedge demand and upside capping at the same time; there is direction, but it is not comfortable.</p>
-      <ul><li>On the LONG_PUT side, $58,669,550 of notional and 1,408 of OI were added; this points to fresh downside hedging.</li><li>SHORT_CALL OI increased by 684; this suggests upside is being capped through call selling and that clean breakout conviction remains limited.</li><li>LONG_CALL OI increased by 1,082; part of the tape is rebuilding upside risk, but that does not amount to standalone euphoria.</li><li>SHORT_PUT OI increased by 619; some participants are still selling downside and collecting carry.</li><li>SHORT_RATIO_CALL_SPREAD OI artisi 46; yukari senaryo tamamen reddedilmiyor ama extension daha capped / secici yapilarla trade ediliyor.</li></ul>
+      <ul><li>On the LONG_PUT side, $71,954,053 of notional and 1,068 of OI were added; this points to fresh downside hedging.</li><li>SHORT_CALL OI increased by 1,721; this suggests upside is being capped through call selling and that clean breakout conviction remains limited.</li><li>LONG_CALL OI increased by 1,426; part of the tape is rebuilding upside risk, but that does not amount to standalone euphoria.</li><li>SHORT_PUT OI increased by 1,030; some participants are still selling downside and collecting carry.</li></ul>
     </div>
     <div>
       <h2>Strategy Action Map</h2>
-      <img src='laevitas/btc_strategy_action_map_en.png?v=20260906063625' alt='Strategy action map'>
+      <img src='laevitas/btc_strategy_action_map_en.png?v=20260907061442' alt='Strategy action map' width="1344" height="768" loading="lazy" decoding="async">
       <p>This chart does not summarize strategy names; it shows which actions dominate the tape. Use it to read the table quickly.</p>
-      <img src='laevitas/btc_roll_transfer_map_en.png?v=20260906063625' alt='Roll transfer map'>
+      <img src='laevitas/btc_roll_transfer_map_en.png?v=20260907061442' alt='Roll transfer map' width="1632" height="576" loading="lazy" decoding="async">
       <p><strong>Estimated Roll / Transfer:</strong> Because the current strategy endpoint does not expose leg-level data, this section is an inferred transfer read.</p>
-      <ul><li>On the call side, the strongest addition was BTC-18SEP26-80000-C, while the strongest reduction was BTC-11SEP26-80000-C; this suggests upside positioning may be moving from 11SEP26 to 18SEP26.</li><li>The center of net strike flow moved from 82,000 to 90,000, which shows where new attention is concentrating.</li></ul>
+      <ul><li>On the call side, the strongest addition was BTC-9SEP26-86000-C, while the strongest reduction was BTC-25DEC26-100000-C; this suggests upside positioning may be moving from 25DEC26 to 9SEP26.</li><li>The inferred call-strike transfer moved lower from 100,000 to 86,000, which may indicate a repositioning of the upside target / cap.</li><li>The center of net strike flow moved from 79,000 to 86,000, which shows where new attention is concentrating.</li></ul>
       <h3>What Does It Mean?</h3>
       <ul>
         <li>Roll / extend: protection may not be closing; it may be moving further out the curve.</li>
@@ -418,115 +439,115 @@ small { opacity:0.82; font-size:12px; }
   <section class='two'>
     <div>
       <h2>Dealer Pressure Map (Proxy)</h2>
-      <img src='laevitas/btc_mm_position_map_en.png?v=20260906063625' alt='MM Position Map v1'>
+      <img src='laevitas/btc_mm_position_map_en.png?v=20260907061442' alt='MM Position Map v1' width="1920" height="1120" loading="lazy" decoding="async">
       <p>This chart is a proxy map that combines current GEX, strike OI, and 24h strike flow. It is not true MM inventory; it shows where upside/downside pressure is concentrated across strikes.</p>
-      <img src='laevitas/btc_dealer_pressure_delta_en.png?v=20260906063625' alt='Dealer pressure delta'>
-      <p class='small-muted'>2026-09-05 -> 2026-09-06</p>
-      <div class='delta-row'><span class='delta-badge delta-neutral'>Upside pressure fell: -408.0</span><span class='delta-badge delta-neutral'>Downside pressure fell: -1308.1</span><span class='delta-badge delta-up'>Upside build: 90,000 +16.8</span><span class='delta-badge delta-down'>Downside build: 84,000 +15.5</span></div>
-      <p><strong>Daily delta read:</strong> The clearest day-over-day upside shift was around 70,000; even if the main map still looks similar, fresh pressure rotated toward the upside.</p>
-      <ul><li>The strongest upside centers are 80,000, 90,000, 85,000; these strikes combine call-heavy positioning, positive gamma, and/or fresh flow.</li><li>The strongest downside hedge pockets are 75,000, 72,000, 68,000; these zones are where downside protection remains most concentrated.</li><li>The clearest chain shift over the last 24 hours occurred lower at the 82,000 strike (-50.9mn); this level should be read as a new short-dated focus area.</li></ul>
+      <img src='laevitas/btc_dealer_pressure_delta_en.png?v=20260907061442' alt='Dealer pressure delta' width="1984" height="2121" loading="lazy" decoding="async">
+      <p class='small-muted'>2026-09-06 -> 2026-09-07</p>
+      <div class='delta-row'><span class='delta-badge delta-up'>Upside pressure rose: +54.7</span><span class='delta-badge delta-neutral'>Downside pressure fell: -149.3</span><span class='delta-badge delta-up'>Upside build: 86,000 +57.0</span><span class='delta-badge delta-down'>Downside build: 77,500 +7.2</span></div>
+      <p><strong>Daily delta read:</strong> The clearest day-over-day upside shift was around 86,000; even if the main map still looks similar, fresh pressure rotated toward the upside.</p>
+      <ul><li>The strongest upside centers are 80,000, 90,000, 85,000; these strikes combine call-heavy positioning, positive gamma, and/or fresh flow.</li><li>The strongest downside hedge pockets are 75,000, 72,000, 68,000; these zones are where downside protection remains most concentrated.</li><li>The clearest chain shift over the last 24 hours occurred at 86,000 on the upside (+28.2mn); this level should be read as a new short-dated focus area.</li></ul>
       <ul><li>This map is not true dealer inventory; it is a proxy pressure score derived from strike OI, GEX, and 24-hour strike flow.</li><li>The top map reflects structural stock-like positioning, so the same strikes can look similar for several days in a row.</li><li>The delta chart below shows whether more upside or downside pressure accumulated at the same strikes versus yesterday.</li></ul>
     </div>
     <div>
       <h2>Chain Table v1</h2>
-      <table><tr><th>Strike</th><th>Call Notional</th><th>Put Notional</th><th>Net OI</th><th>24s Net Flow</th><th>Net GEX</th></tr><tr><td>90,000</td><td>$1,478,493,873</td><td>$100,985,625</td><td>+1377.5mn</td><td>+7.1mn</td><td>+0.43</td></tr><tr><td>80,000</td><td>$1,643,103,500</td><td>$369,556,685</td><td>+1273.5mn</td><td>-21.6mn</td><td>+0.75</td></tr><tr><td>85,000</td><td>$1,244,630,427</td><td>$96,879,036</td><td>+1147.8mn</td><td>+1.7mn</td><td>+0.60</td></tr><tr><td>82,000</td><td>$1,152,248,724</td><td>$59,492,155</td><td>+1092.8mn</td><td>-50.9mn</td><td>+0.79</td></tr><tr><td>84,000</td><td>$799,171,542</td><td>$17,131,691</td><td>+782.0mn</td><td>-15.3mn</td><td>+0.43</td></tr><tr><td>88,000</td><td>$599,237,216</td><td>$2,493,818</td><td>+596.7mn</td><td>-0.2mn</td><td>+0.17</td></tr><tr><td>86,000</td><td>$410,630,949</td><td>$16,439,185</td><td>+394.2mn</td><td>-2.9mn</td><td>+0.16</td></tr><tr><td>81,000</td><td>$364,923,842</td><td>$87,548,618</td><td>+277.4mn</td><td>-14.2mn</td><td>+0.24</td></tr><tr><td>92,000</td><td>$246,758,323</td><td>$1,457,622</td><td>+245.3mn</td><td>+0.7mn</td><td>+0.06</td></tr><tr><td>78,000</td><td>$696,479,488</td><td>$466,828,350</td><td>+229.7mn</td><td>-5.3mn</td><td>+0.19</td></tr><tr><td>83,000</td><td>$207,080,520</td><td>$14,727,837</td><td>+192.4mn</td><td>-18.4mn</td><td>+0.14</td></tr><tr><td>68,000</td><td>$213,767,227</td><td>$421,935,632</td><td>-208.2mn</td><td>+1.3mn</td><td>-0.03</td></tr><tr><td>70,000</td><td>$1,224,836,889</td><td>$1,027,313,626</td><td>+197.5mn</td><td>+5.9mn</td><td>+0.05</td></tr><tr><td>94,000</td><td>$156,848,798</td><td>$1,382,424</td><td>+155.5mn</td><td>+0.5mn</td><td>+0.04</td></tr></table>
+      <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Strike</th><th>Call Notional</th><th>Put Notional</th><th>Net OI</th><th>24s Net Flow</th><th>Net GEX</th></tr><tr><td>90,000</td><td>$1,476,802,775</td><td>$100,976,077</td><td>+1375.8mn</td><td>-3.8mn</td><td>+0.43</td></tr><tr><td>80,000</td><td>$1,632,847,523</td><td>$366,512,580</td><td>+1266.3mn</td><td>-16.4mn</td><td>+0.57</td></tr><tr><td>85,000</td><td>$1,246,603,597</td><td>$96,541,135</td><td>+1150.1mn</td><td>-0.1mn</td><td>+0.59</td></tr><tr><td>82,000</td><td>$1,152,850,019</td><td>$59,043,129</td><td>+1093.8mn</td><td>-1.4mn</td><td>+0.78</td></tr><tr><td>84,000</td><td>$790,254,801</td><td>$17,033,499</td><td>+773.2mn</td><td>-10.1mn</td><td>+0.43</td></tr><tr><td>88,000</td><td>$597,346,363</td><td>$2,493,756</td><td>+594.9mn</td><td>-2.7mn</td><td>+0.16</td></tr><tr><td>86,000</td><td>$439,389,724</td><td>$16,437,784</td><td>+423.0mn</td><td>+28.2mn</td><td>+0.17</td></tr><tr><td>81,000</td><td>$360,125,807</td><td>$79,126,892</td><td>+281.0mn</td><td>-13.8mn</td><td>+0.26</td></tr><tr><td>92,000</td><td>$246,756,541</td><td>$1,457,430</td><td>+245.3mn</td><td>-0.3mn</td><td>+0.06</td></tr><tr><td>78,000</td><td>$695,416,663</td><td>$473,661,579</td><td>+221.8mn</td><td>+4.3mn</td><td>+0.19</td></tr><tr><td>68,000</td><td>$213,441,904</td><td>$420,327,035</td><td>-206.9mn</td><td>-2.8mn</td><td>-0.03</td></tr><tr><td>83,000</td><td>$211,455,647</td><td>$15,071,649</td><td>+196.4mn</td><td>+4.5mn</td><td>+0.14</td></tr><tr><td>70,000</td><td>$1,224,370,322</td><td>$1,028,046,268</td><td>+196.3mn</td><td>-2.8mn</td><td>+0.05</td></tr><tr><td>94,000</td><td>$156,860,653</td><td>$1,382,454</td><td>+155.5mn</td><td>-0.2mn</td><td>+0.03</td></tr></table></div>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Proxy Hedge-Impact Surface</h2>
-      <img src='laevitas/btc_proxy_hedge_impact_en.png?v=20260906063625' alt='Proxy hedge impact surface'>
+      <img src='laevitas/btc_proxy_hedge_impact_en.png?v=20260907061442' alt='Proxy hedge impact surface' width="1888" height="896" loading="lazy" decoding="async">
       <p>This chart does not use true dealer inventory; it idealizes whether hedge impact would behave in a more stabilizing or more fragile way if spot moved across different levels, using strike OI, proxy pressure, and GEX.</p>
-      <div class='delta-row'><span class='delta-badge delta-up'>Current proxy score: +1373</span><span class='delta-badge delta-down'>Regime: Stabilizing / long-gamma-like</span><span class='delta-badge delta-down'>Long-gamma pocket: 76,314-94,814</span><span class='delta-badge delta-neutral'>Stabilizing pocket: 82,314</span><span class='delta-badge delta-neutral'>Fragile pocket: 74,314</span></div>
-      <p><strong>Headline:</strong> The proxy model suggests spot is sitting near a more stabilizing hedge regime inside the 76,314-94,814 band; moves are more likely to be absorbed than amplified.</p>
-      <p><strong>One-line read:</strong> Local gamma tone around spot is positive (+1.32); this implies the idealized hedge effect is leaning toward damping moves.</p>
-      <img src='laevitas/btc_proxy_hedge_impact_trend_en.png?v=20260906063625' alt='Proxy hedge impact trend'>
-      <p class='small-muted'>2026-09-05 -> 2026-09-06</p>
-      <div class='delta-row'><span class='delta-badge delta-up'>Score change: +259</span><span class='delta-badge delta-up'>Stabilizing pocket shift: +294</span><span class='delta-badge delta-up'>Fragile pocket shift: +294</span></div>
-      <p><strong>Day over day:</strong> The proxy hedge-impact score strengthened meaningfully day over day; the market may be moving toward a more stabilizing pocket.</p>
+      <div class='delta-row'><span class='delta-badge delta-up'>Current proxy score: +1271</span><span class='delta-badge delta-down'>Regime: Stabilizing / long-gamma-like</span><span class='delta-badge delta-down'>Long-gamma pocket: 76,310-94,810</span><span class='delta-badge delta-neutral'>Stabilizing pocket: 82,310</span><span class='delta-badge delta-neutral'>Fragile pocket: 74,310</span></div>
+      <p><strong>Headline:</strong> The proxy model suggests spot is sitting near a more stabilizing hedge regime inside the 76,310-94,810 band; moves are more likely to be absorbed than amplified.</p>
+      <p><strong>One-line read:</strong> Local gamma tone around spot is positive (+1.19); this implies the idealized hedge effect is leaning toward damping moves.</p>
+      <img src='laevitas/btc_proxy_hedge_impact_trend_en.png?v=20260907061442' alt='Proxy hedge impact trend' width="1536" height="704" loading="lazy" decoding="async">
+      <p class='small-muted'>2026-09-06 -> 2026-09-07</p>
+      <div class='delta-row'><span class='delta-badge delta-down'>Score change: -102</span><span class='delta-badge delta-down'>Stabilizing pocket shift: -4</span><span class='delta-badge delta-down'>Fragile pocket shift: -4</span></div>
+      <p><strong>Day over day:</strong> Proxy hedge-impact skoru day over day weakladi; hedge etkisi daha kirilgan bir rejime kayiyor olabilir.</p>
     </div>
     <div>
       <h2>How To Read It</h2>
       <p><span class='delta-badge delta-up'>Stabilizing / long-gamma-like</span></p>
       <div class='grid'>
-        <div class='metric'><div class='label'>Spot</div><div class='value'>79,814</div></div>
-        <div class='metric'><div class='label'>Current score</div><div class='value'>+1373</div></div>
-        <div class='metric'><div class='label'>Stabilizing Pocket</div><div class='value'>82,314</div></div>
-        <div class='metric'><div class='label'>Fragile Pocket</div><div class='value'>74,314</div></div>
+        <div class='metric'><div class='label'>Spot</div><div class='value'>79,810</div></div>
+        <div class='metric'><div class='label'>Current score</div><div class='value'>+1271</div></div>
+        <div class='metric'><div class='label'>Stabilizing Pocket</div><div class='value'>82,310</div></div>
+        <div class='metric'><div class='label'>Fragile Pocket</div><div class='value'>74,310</div></div>
       </div>
-      <ul><li>This section is not true dealer positioning; it is a scenario-based hedge-impact exercise derived from strike OI, proxy pressure, and GEX.</li><li>A positive score implies a long-gamma-like pocket where dealers are more likely to absorb moves; a negative score implies more fragile short-gamma-like behavior.</li><li>The strongest stabilizing pocket appears near 82,314, while the most fragile pocket appears near 74,314.</li><li>Local gamma tone around spot is positive (+1.32); this implies the idealized hedge effect is leaning toward damping moves.</li></ul>
-      <ul><li>This trend is not true dealer positioning; it shows the time series of the proxy hedge-impact score built from daily snapshots.</li><li>On the latest daily move, the stabilizing pocket shifted by +294 points and the fragile pocket shifted by +294 points.</li></ul>
+      <ul><li>This section is not true dealer positioning; it is a scenario-based hedge-impact exercise derived from strike OI, proxy pressure, and GEX.</li><li>A positive score implies a long-gamma-like pocket where dealers are more likely to absorb moves; a negative score implies more fragile short-gamma-like behavior.</li><li>The strongest stabilizing pocket appears near 82,310, while the most fragile pocket appears near 74,310.</li><li>Local gamma tone around spot is positive (+1.19); this implies the idealized hedge effect is leaning toward damping moves.</li></ul>
+      <ul><li>This trend is not true dealer positioning; it shows the time series of the proxy hedge-impact score built from daily snapshots.</li><li>On the latest daily move, the stabilizing pocket shifted by -4 points and the fragile pocket shifted by -4 points.</li></ul>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Gamma Map</h2>
-      <img src='laevitas/btc_gex_en.png?v=20260906063625' alt='GEX chart'>
+      <img src='laevitas/btc_gex_en.png?v=20260907061442' alt='GEX chart' width="1920" height="800" loading="lazy" decoding="async">
     </div>
     <div>
       <h2>Key Gamma Nodes</h2>
       <h3>Positive</h3>
-      <table><tr><th>Strike</th><th>Net</th><th>Call</th><th>Put</th></tr><tr><td>82000</td><td>0.793</td><td>0.827</td><td>-0.034</td></tr><tr><td>80000</td><td>0.748</td><td>1.053</td><td>-0.305</td></tr><tr><td>85000</td><td>0.597</td><td>0.636</td><td>-0.040</td></tr><tr><td>84000</td><td>0.432</td><td>0.438</td><td>-0.006</td></tr><tr><td>90000</td><td>0.430</td><td>0.461</td><td>-0.031</td></tr></table>
+      <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Strike</th><th>Net</th><th>Call</th><th>Put</th></tr><tr><td>82000</td><td>0.782</td><td>0.814</td><td>-0.033</td></tr><tr><td>85000</td><td>0.593</td><td>0.633</td><td>-0.039</td></tr><tr><td>80000</td><td>0.565</td><td>0.861</td><td>-0.296</td></tr><tr><td>84000</td><td>0.430</td><td>0.435</td><td>-0.006</td></tr><tr><td>90000</td><td>0.429</td><td>0.461</td><td>-0.031</td></tr></table></div>
       <h3>Negative</h3>
-      <table><tr><th>Strike</th><th>Net</th><th>Call</th><th>Put</th></tr><tr><td>77000</td><td>-0.102</td><td>0.032</td><td>-0.133</td></tr><tr><td>79500</td><td>-0.085</td><td>0.038</td><td>-0.123</td></tr><tr><td>75000</td><td>-0.071</td><td>0.218</td><td>-0.288</td></tr><tr><td>60000</td><td>-0.064</td><td>0.024</td><td>-0.088</td></tr><tr><td>78500</td><td>-0.040</td><td>0.000</td><td>-0.041</td></tr></table>
+      <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Strike</th><th>Net</th><th>Call</th><th>Put</th></tr><tr><td>77000</td><td>-0.102</td><td>0.032</td><td>-0.134</td></tr><tr><td>79500</td><td>-0.097</td><td>0.040</td><td>-0.137</td></tr><tr><td>75000</td><td>-0.070</td><td>0.218</td><td>-0.288</td></tr><tr><td>60000</td><td>-0.064</td><td>0.024</td><td>-0.088</td></tr><tr><td>55000</td><td>-0.039</td><td>0.001</td><td>-0.040</td></tr></table></div>
       <div class='metric' style='margin-top:14px;'>
         <div class='label'>Gamma Regime Read</div>
         <div class='delta-row'><span class='delta-badge delta-up'>Pin / Stabilizing</span></div>
         <p><strong>Spot Location:</strong> Spot is currently inside the positive-gamma balance band between 78,000 and 85,000.</p>
-        <p><strong>Behavior In This Zone:</strong> In this regime, the default behavior is mean reversion, pinning, and move suppression. The natural center is 82,000, and the first reflex is usually a pullback toward that axis.</p>
-        <p><strong>Behavior In Positive Gamma:</strong> In positive gamma (78,000-82,000), price action is more controlled, more mean-reverting, and more likely to be dampened by hedge flow.</p>
-        <p><strong>Transition Zone:</strong> The transition zone sits around 78,000. As long as spot stays above it, the pin logic remains intact; acceptance below it starts to shift the market from absorbing moves to amplifying them.</p>
-        <p><strong>Behavior In Negative Gamma:</strong> The negative-gamma / hedge-acceleration zones sit lower at 77,000 and 79,500. If those pockets open up, dealer flow can amplify downside.</p>
-        <p><strong>Where To Look For Shorts?:</strong> Band icinde short ancak 85,000 civari reject veya 78,000 alti acceptance ile aranir. Band ortasinda yone kovalamak weak trade olur.</p>
-        <p><strong>Where To Look For Longs?:</strong> Inside the band, longs become cleaner on holding above 78,000-82,000 or on acceptance above 85,000.</p>
-        <p><strong>No-Trade / Unconfirmed Zone:</strong> Spot 78,000-85,000 araliginda sikişiyorsa and akis karisiksa en weak trade ortadan zorla yone girmektir.</p>
-        <p><strong>Base Case:</strong> Base case: gamma rejimi destekleyici. Spot 78,000 ustunde and denge bandinin icinde kaldikca ana beklenti kontrollu trade, pin and yukari denemelerde once 82,000 civarinda surtunme.</p>
+        <p><strong>Behavior In This Zone:</strong> 78,000-85,000 pozitif dugum yogunlugu; merkez 82,000. Ic negatif dugumler bulunabilir.</p>
+        <p><strong>Behavior In Positive Gamma:</strong> Kaynak GEX toplami +4.151; gercek dealer envanteri dogrulanmiyor.</p>
+        <p><strong>Transition Zone:</strong> OI stok degisimi alici/satici yonunu gostermez. Kalicilik bu raporda sure/hacim kuraliyla olculmus bir teyit degildir.</p>
+        <p><strong>Behavior In Negative Gamma:</strong> Asagi kaynak dugumleri: 78,000 -> 77,000. Bant siniri bir gamma-flip hesabi degildir.</p>
+        <p><strong>Where To Look For Shorts?:</strong> OI stok degisimi alici/satici yonunu gostermez. Kalicilik bu raporda sure/hacim kuraliyla olculmus bir teyit degildir.</p>
+        <p><strong>Where To Look For Longs?:</strong> OI stok degisimi alici/satici yonunu gostermez. Kalicilik bu raporda sure/hacim kuraliyla olculmus bir teyit degildir.</p>
+        <p><strong>No-Trade / Unconfirmed Zone:</strong> OI stok degisimi alici/satici yonunu gostermez. Kalicilik bu raporda sure/hacim kuraliyla olculmus bir teyit degildir.</p>
+        <p><strong>Base Case:</strong> 78,000-85,000 pozitif dugum yogunlugu; merkez 82,000. Ic negatif dugumler bulunabilir.</p>
       </div>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Fresh Positioning</h2>
-      <table><tr><th>Expiry</th><th>24h OI Change</th><th>BTC Change</th></tr><tr><td>06SEP26</td><td>$319,137,286</td><td>3,985</td></tr><tr><td>07SEP26</td><td>$159,397,530</td><td>1,990</td></tr><tr><td>08SEP26</td><td>$68,788,239</td><td>859</td></tr><tr><td>09SEP26</td><td>$14,085,394</td><td>176</td></tr><tr><td>11SEP26</td><td>$68,399,645</td><td>791</td></tr><tr><td>18SEP26</td><td>$21,310,421</td><td>239</td></tr></table>
+      <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Expiry</th><th>24h OI Change</th><th>BTC Change</th></tr><tr><td>07SEP26</td><td>$80,156,036</td><td>1,006</td></tr><tr><td>08SEP26</td><td>$33,719,497</td><td>423</td></tr><tr><td>11SEP26</td><td>$7,976,831</td><td>104</td></tr><tr><td>18SEP26</td><td>$1,375,744</td><td>20</td></tr><tr><td>25SEP26</td><td>$3,911,454</td><td>59</td></tr><tr><td>30OCT26</td><td>$241,727</td><td>6</td></tr></table></div>
     </div>
     <div>
       <h2>Volatility Context</h2>
       <p><strong>Reference expiry:</strong> 25SEP26</p>
-      <p><strong>Forward:</strong> 79,951.64</p>
-      <p><strong>ATM spot IV:</strong> 36.95</p>
-      <p><strong>25d skew:</strong> -4.62</p>
-      <p><strong>25d RR:</strong> 1.71</p>
-      <p><strong>10d fly:</strong> 4.31</p>
+      <p><strong>Forward:</strong> 79,903.88</p>
+      <p><strong>ATM spot IV:</strong> 37.02</p>
+      <p><strong>25d skew:</strong> -3.68</p>
+      <p><strong>25d RR:</strong> 1.36</p>
+      <p><strong>10d fly:</strong> 4.35</p>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Dealer Inventory Proxy</h2>
-      <img src='laevitas/btc_inventory_proxy_en.png?v=20260906063625' alt='Dealer inventory proxy chart'>
-      <p><strong>Net tone:</strong> MM long gamma / stabilizing (+1.98)</p>
+      <img src='laevitas/btc_inventory_proxy_en.png?v=20260907061442' alt='Dealer inventory proxy chart' width="1440" height="800" loading="lazy" decoding="async">
+      <p><strong>Net tone:</strong> Arastirma proxy: +2.96; dealer pozisyonu degil (+2.96)</p>
       <p>This chart is not true MM inventory; it is a proxy score built from gamma, flow, skew, IV-RV, and the strategy tape.</p>
-      <img src='laevitas/btc_inventory_proxy_trend_en.png?v=20260906063625' alt='Dealer inventory proxy trend'>
+      <img src='laevitas/btc_inventory_proxy_trend_en.png?v=20260907061442' alt='Dealer inventory proxy trend' width="1600" height="768" loading="lazy" decoding="async">
       <p>As the local archive grows, this chart should give a cleaner view of MM/dealer tone through time.</p>
     </div>
     <div>
       <h2>Trigger Rules</h2>
-      <ul><li>Accept above 90,000: spot bu seviye ustunde kalir and yeni call akisiyla desteklenirse yukari test aktif olur.</li><li>Reject above 85,000: if price only wicks into the zone and reverses, do not trust the rally; pin/range logic is still in force.</li><li>Accept below 78,000: if spot holds below the level, downside hedge flow should strengthen and 77,000 becomes the next downside target.</li><li>Reject below 78,000: if price trades below and is quickly reclaimed, read it as a stop-hunt / return-to-range move.</li></ul>
+      <ul><li>Yukari kaynak dugumleri: 85,000 -> 90,000. If price accepts above hedefi garantisi yok.</li><li>Asagi kaynak dugumleri: 78,000 -> 77,000. Bant siniri bir gamma-flip hesabi degildir.</li><li>OI stok degisimi alici/satici yonunu gostermez. Kalicilik bu raporda sure/hacim kuraliyla olculmus bir teyit degildir.</li></ul>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Dealer Read</h2>
-      <ul><li>Dealers are still carrying net long gamma overall; that means hedging flow is expected to suppress the intraday range around spot.</li><li>The heaviest positive GEX nodes sit at 82,000, 80,000, 85,000; these zones are more likely to act as upside magnets than as pure squeeze triggers.</li><li>The most sensitive downside hedge pockets remain near 77,000 and 79,500; a break there could accelerate hedge demand.</li></ul>
+      <ul><li>Kaynak GEX toplami +4.151; gercek dealer envanteri dogrulanmiyor.</li><li>78,000-85,000 pozitif dugum yogunlugu; merkez 82,000. Ic negatif dugumler bulunabilir.</li><li>OI stok degisimi alici/satici yonunu gostermez. Kalicilik bu raporda sure/hacim kuraliyla olculmus bir teyit degildir.</li></ul>
     </div>
     <div>
       <h2>Crowding Read</h2>
-      <ul><li>Call notional is still 1.82x put notional, and open-interest count is 1.82x in favor of calls. This is not panic hedging; it is constructive positioning.</li><li>The largest call clusters near spot sit at 80,000, 90,000, 85,000; the largest put clusters sit at 70,000, 75,000, 78,000.</li><li>The next-day expiry 07SEP26 is only 0.4% of total visible expiry OI, so on its own it is unlikely to drag the full band unless spot trades directly into crowded strikes.</li></ul>
+      <ul><li>Call notional is still 1.82x put notional, and open-interest count is 1.82x in favor of calls. This is not panic hedging; it is constructive positioning.</li><li>The largest call clusters near spot sit at 80,000, 90,000, 85,000; the largest put clusters sit at 70,000, 75,000, 78,000.</li><li>The next-day expiry 08SEP26 is only 0.4% of total visible expiry OI, so on its own it is unlikely to drag the full band unless spot trades directly into crowded strikes.</li></ul>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>What the Market Is Pricing</h2>
-      <ul><li>The market is pricing orderly downside protection rather than crash panic: 25SEP26 in the 25-delta risk reversal 1.71, context, while 25-delta skew is -4.62.</li><li>ATM spot IV is is 36.95; risk is being taken seriously, but this alone does not signal disorder.</li><li>Fresh risk is still being added to the front of the expiry curve: roughly $159,397,530 was added to the next-day expiry over the last 24 hours.</li></ul>
+      <ul><li>The market is pricing orderly downside protection rather than crash panic: 25SEP26 in the 25-delta risk reversal 1.36, context, while 25-delta skew is -3.68.</li><li>ATM spot IV is is 37.02; risk is being taken seriously, but this alone does not signal disorder.</li><li>Fresh risk is still being added to the front of the expiry curve: roughly $33,719,497 was added to the next-day expiry over the last 24 hours.</li></ul>
     </div>
     <div>
       <h2>What the Market May Be Missing</h2>
@@ -540,52 +561,52 @@ small { opacity:0.82; font-size:12px; }
       <p><span class='delta-badge delta-down'>Weak</span></p>
       <p><strong>Takeaway:</strong> Decay flow etkisi weak; bu bolum tek basina vol compression beklemek icin yeterli sinyal vermiyor.</p>
       <div class='grid'>
-        <div class='metric'><div class='label'>Charm Proxy</div><div class='value'>28</div></div>
-        <div class='metric'><div class='label'>Vanna Proxy</div><div class='value'>26</div></div>
-        <div class='metric'><div class='label'>Compression</div><div class='value'>28</div></div>
+        <div class='metric'><div class='label'>Charm Proxy</div><div class='value'>32</div></div>
+        <div class='metric'><div class='label'>Vanna Proxy</div><div class='value'>34</div></div>
+        <div class='metric'><div class='label'>Compression</div><div class='value'>34</div></div>
         <div class='metric'><div class='label'>Front DTE</div><div class='value'>1</div></div>
       </div>
-      <ul><li>This section does not calculate direct vanna/charm greeks; it is a proxy built from near-dated OI concentration, positive gamma, proximity to the pin center, and IV premium.</li><li>Front expiry 07SEP26 with roughly 1 days remaining. The share of OI expiring within 3 days is 1.2, and within 7 days it is 6.6.</li><li>There is no meaningful quarterly expiry concentration over the next 7 days.</li><li>Charm proxy 28: near-dated OI concentration is low, so time-decay-driven pin pressure remains limited even with dealer gamma in the background.</li><li>Vanna proxy 26: front IV premium versus realized vol (-16.74) and the gamma tone suggest that if vol mean-reverts lower, hedge flows may only provide limited stabilizing support.</li><li>Net read: low compression / freer price discovery. Spot-to-pin proximity score is 69%, gamma support is 50.</li></ul>
+      <ul><li>This section does not calculate direct vanna/charm greeks; it is a proxy built from near-dated OI concentration, positive gamma, proximity to the pin center, and IV premium.</li><li>Front expiry 08SEP26 with roughly 1 days remaining. The share of OI expiring within 3 days is 1.1, and within 7 days it is 6.6.</li><li>There is no meaningful quarterly expiry concentration over the next 7 days.</li><li>Charm proxy 32: near-dated OI concentration is low, so time-decay-driven pin pressure remains limited even with dealer gamma in the background.</li><li>Vanna proxy 34: front IV premium versus realized vol (-12.90) and the gamma tone suggest that if vol mean-reverts lower, hedge flows may only provide limited stabilizing support.</li><li>Net read: low compression / freer price discovery. Spot-to-pin proximity score is 69%, gamma support is 74.</li></ul>
     </div>
     <div>
-      <img src='laevitas/btc_vanna_charm_proxy_en.png?v=20260906063625' alt='Vanna charm proxy'>
+      <img src='laevitas/btc_vanna_charm_proxy_en.png?v=20260907061442' alt='Vanna charm proxy' width="1376" height="768" loading="lazy" decoding="async">
       <p>This chart does not show true greeks; it combines near-dated expiry concentration, quarterly pressure, gamma support, proximity to the pin center, and IV premium in a single panel.</p>
       <p><strong>Checklist:</strong></p>
-      <ul><li>Spot 78,000-85,000 bandinda kaldikca compression proxy daha anlamli calisir.</li><li>80,000 ustu acceptance gelirse pin baskisi weaklar, proxy'nin yonlendiriciligi duser.</li><li>If the IV-RV spread closes quickly, the vanna component weakens; watch from the -16.74 level.</li></ul>
+      <ul><li>Spot 78,000-85,000 bandinda kaldikca compression proxy daha anlamli calisir.</li><li>80,000 ustu acceptance gelirse pin baskisi weaklar, proxy'nin yonlendiriciligi duser.</li><li>If the IV-RV spread closes quickly, the vanna component weakens; watch from the -12.90 level.</li></ul>
     </div>
   </section>
   <section>
     <h2>Expiry Structure</h2>
-    <img src='laevitas/btc_expiry_oi_en.png?v=20260906063625' alt='Expiry OI chart'>
-    <table><tr><th>Expiry</th><th>Open Interest</th><th>Call OI (BTC)</th><th>Put OI (BTC)</th><th>Call Notional</th><th>Put Notional</th><th>24h OI Change</th></tr><tr><td>25SEP26</td><td>$14,456,368,890</td><td>120,355</td><td>60,525</td><td>$9,619,046,014</td><td>$4,837,322,876</td><td>$0</td></tr><tr><td>25DEC26</td><td>$9,124,704,529</td><td>71,711</td><td>41,086</td><td>$5,801,053,814</td><td>$3,323,650,715</td><td>$0</td></tr><tr><td>30OCT26</td><td>$3,321,488,877</td><td>26,755</td><td>14,629</td><td>$2,147,372,613</td><td>$1,174,116,264</td><td>$0</td></tr><tr><td>26MAR27</td><td>$2,578,466,865</td><td>20,137</td><td>11,380</td><td>$1,647,434,084</td><td>$931,032,781</td><td>$0</td></tr><tr><td>11SEP26</td><td>$1,805,222,508</td><td>12,778</td><td>9,838</td><td>$1,019,921,621</td><td>$785,300,887</td><td>$0</td></tr><tr><td>25JUN27</td><td>$780,613,800</td><td>6,208</td><td>3,225</td><td>$513,738,345</td><td>$266,875,455</td><td>$0</td></tr><tr><td>18SEP26</td><td>$726,471,636</td><td>5,666</td><td>3,428</td><td>$452,621,040</td><td>$273,850,597</td><td>$0</td></tr><tr><td>27NOV26</td><td>$349,772,623</td><td>3,070</td><td>1,270</td><td>$247,418,134</td><td>$102,354,489</td><td>$0</td></tr></table>
+    <img src='laevitas/btc_expiry_oi_en.png?v=20260907061442' alt='Expiry OI chart' width="1600" height="800" loading="lazy" decoding="async">
+    <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Expiry</th><th>Open Interest</th><th>Call OI (BTC)</th><th>Put OI (BTC)</th><th>Call Notional</th><th>Put Notional</th><th>24h OI Change</th></tr><tr><td>25SEP26</td><td>$14,460,673,200</td><td>120,379</td><td>60,601</td><td>$9,618,515,821</td><td>$4,842,157,379</td><td>veri yok</td></tr><tr><td>25DEC26</td><td>$9,125,465,675</td><td>71,760</td><td>41,058</td><td>$5,804,419,449</td><td>$3,321,046,226</td><td>veri yok</td></tr><tr><td>30OCT26</td><td>$3,324,750,513</td><td>26,760</td><td>14,668</td><td>$2,147,593,841</td><td>$1,177,156,672</td><td>veri yok</td></tr><tr><td>26MAR27</td><td>$2,580,089,544</td><td>20,128</td><td>11,405</td><td>$1,646,891,736</td><td>$933,197,809</td><td>veri yok</td></tr><tr><td>11SEP26</td><td>$1,825,363,042</td><td>12,775</td><td>10,101</td><td>$1,019,397,305</td><td>$805,965,737</td><td>veri yok</td></tr><tr><td>25JUN27</td><td>$782,383,342</td><td>6,220</td><td>3,232</td><td>$514,875,560</td><td>$267,507,782</td><td>veri yok</td></tr><tr><td>18SEP26</td><td>$734,623,319</td><td>5,763</td><td>3,436</td><td>$460,236,865</td><td>$274,386,453</td><td>veri yok</td></tr><tr><td>27NOV26</td><td>$357,269,742</td><td>3,151</td><td>1,283</td><td>$253,902,344</td><td>$103,367,398</td><td>veri yok</td></tr></table></div>
   </section>
   <section class='two'>
     <div>
       <h2>Nearest Expiry Detail</h2>
       <p><strong>Front Expiry Verdict:</strong> The front expiry is mixed; the call/put split is close to balanced.</p>
       <div class='grid'>
-        <div class='metric'><div class='label'>Expiry</div><div class='value'>06SEP26</div></div>
-        <div class='metric'><div class='label'>Call OI</div><div class='value'>1,190</div></div>
-        <div class='metric'><div class='label'>Put OI</div><div class='value'>1,080</div></div>
-        <div class='metric'><div class='label'>Put Premium</div><div class='value'>$181,308</div></div>
+        <div class='metric'><div class='label'>Expiry</div><div class='value'>07SEP26</div></div>
+        <div class='metric'><div class='label'>Call OI</div><div class='value'>997</div></div>
+        <div class='metric'><div class='label'>Put OI</div><div class='value'>1,242</div></div>
+        <div class='metric'><div class='label'>Put Premium</div><div class='value'>$201,301</div></div>
       </div>
-      <ul><li>The nearest expiry is 06SEP26; total notional is $181,198,345 and total OI is about 2,270 BTC.</li><li>Call OI is 1,190 BTC, put OI is 1,080 BTC; put OI share is 47.6%.</li><li>Call notional is $94,964,481, put notional is $86,233,864; put notional share is 47.6%.</li><li>Call premium is $415,361, put premium is $181,308; put premium share is 30.4%.</li></ul>
+      <ul><li>The nearest expiry is 07SEP26; total notional is $178,696,487 and total OI is about 2,240 BTC.</li><li>Call OI is 997 BTC, put OI is 1,242 BTC; put OI share is 55.5%.</li><li>Call notional is $79,574,917, put notional is $99,121,570; put notional share is 55.5%.</li><li>Call premium is $195,061, put premium is $201,301; put premium share is 50.8%.</li></ul>
     </div>
     <div>
       <h2>Expiry Close Read</h2>
       <ul>
         <li><strong>Positioning:</strong> The front expiry is mixed.</li>
-        <li><strong>Premium:</strong> Premium is constructive; most of the spend is on the call side.</li>
-        <li><strong>Post-Expiry Implication:</strong> Expiry on its own does not determine direction; the real read comes from where spot is held relative to key levels.</li>
-        <li><strong>Expected First Effect:</strong> Base case is mild relief; after expiry, put premium can unwind and allow an initial bounce, but that does not automatically turn into sustained bullish continuation.</li>
-        <li><strong>Confirmation Needed:</strong> Teyit sarti: spotun once 82,000, ideal olarak 80,000 ustunde acceptance gormesi and call akisinin dagilmamasi.</li>
-        <li><strong>Negative Trigger:</strong> Negative tetik: 78,000 alti kalicilik hedge cozulmesi yerine yeniden savunma and downside baskisi uretebilir.</li>
+        <li><strong>Premium:</strong> Kaynak premium alani; gerceklesmis nakit prim odemesi olarak dogrulanmadi.</li>
+        <li><strong>Post-Expiry Implication:</strong> Expiry sonu acik kontratlari kapatir; ilk fiyat yonu yalniz call/put dagilimindan belirlenemez.</li>
+        <li><strong>Expected First Effect:</strong> Expiry sonu acik kontratlari kapatir; ilk fiyat yonu yalniz call/put dagilimindan belirlenemez.</li>
+        <li><strong>Confirmation Needed:</strong> OI stok degisimi alici/satici yonunu gostermez. Kalicilik bu raporda sure/hacim kuraliyla olculmus bir teyit degildir. Yukari kaynak dugumleri: 85,000 -> 90,000. If price accepts above hedefi garantisi yok.</li>
+        <li><strong>Negative Trigger:</strong> Asagi kaynak dugumleri: 78,000 -> 77,000. Bant siniri bir gamma-flip hesabi degildir.</li>
       </ul>
       <h2>How To Read The Front Expiry</h2>
       <ul>
         <li>Call OI shows which expiry is carrying the open upside risk.</li>
         <li>Put OI shows the weight of downside protection or speculative downside demand.</li>
-        <li>The premium split shows where more money was paid; this is often the cleaner way to identify the side that mattered most.</li>
+        <li>Premium, kaynagin raporladigi alandir; gerceklesmis nakit prim odemesi veya islem baslatan taraf bu alandan dogrulanmaz.</li>
         <li>If the expiry that closes tomorrow is large and put-premium heavy, the post-expiry hedge unwind effect can matter more.</li>
       </ul>
     </div>
@@ -595,16 +616,16 @@ small { opacity:0.82; font-size:12px; }
       <h2>IV Percentile and Rank</h2>
       <p><span class='delta-badge delta-down'>Vol buyer bias</span></p>
       <p>Implied vol looks cheap versus the local sample; if realized movement can keep pressuring IV, a vol-buyer stance makes more sense.</p>
-      <ul><li>Front ATM IV is percentile is 9; today's implied vol is richer than roughly 9% of the local sample.</li><li>Front ATM IV is rank 21; ham min-max araligina gore vol rejimi orta-alt bolgede.</li><li>Outlier-adjusted rank is 7; a winsorized rank is used to reduce the scaling impact of single spike days.</li><li>Hem percentile hem rank dusuk; vol yerel seriye gore ucuz and vol alici bakisi daha anlamli.</li></ul>
+      <ul><li>Front ATM IV is percentile is 20; today's implied vol is richer than roughly 20% of the local sample.</li><li>Front ATM IV is rank 29; ham min-max araligina gore vol rejimi orta-alt bolgede.</li><li>Outlier-adjusted rank is 21; a winsorized rank is used to reduce the scaling impact of single spike days.</li><li>Hem percentile hem rank dusuk; vol yerel seriye gore ucuz and vol alici bakisi daha anlamli.</li></ul>
     </div>
     <div>
       <div class='grid'>
-        <div class='metric'><div class='label'>IV Percentile</div><div class='value'>9</div></div>
-        <div class='metric'><div class='label'>IV Rank</div><div class='value'>21</div></div>
-        <div class='metric'><div class='label'>Adj. IV Rank</div><div class='value'>7</div></div>
-        <div class='metric'><div class='label'>Sample</div><div class='value'>185</div></div>
+        <div class='metric'><div class='label'>IV Percentile</div><div class='value'>20</div></div>
+        <div class='metric'><div class='label'>IV Rank</div><div class='value'>29</div></div>
+        <div class='metric'><div class='label'>Adj. IV Rank</div><div class='value'>21</div></div>
+        <div class='metric'><div class='label'>Sample</div><div class='value'>186</div></div>
       </div>
-      <img src='laevitas/btc_iv_regime_en.png?v=20260906063625' alt='IV regime trend'>
+      <img src='laevitas/btc_iv_regime_en.png?v=20260907061442' alt='IV regime trend' width="1600" height="768" loading="lazy" decoding="async">
       <p>Percentile shows how often today's implied vol sits in an expensive zone versus the local sample; rank shows how high it sits inside the min-max range.</p>
       <p><strong>Vol checklist:</strong></p>
       <ul><li>Is percentile staying low?</li><li>Is realized movement running above implied vol?</li><li>Is the risk of a fresh directional / breakout move increasing in spot?</li></ul>
@@ -613,25 +634,25 @@ small { opacity:0.82; font-size:12px; }
   <section class='two'>
     <div>
       <h2>Normalized 25D Skew</h2>
-      <img src='laevitas/btc_normalized_skew_en.png?v=20260906063625' alt='Normalized 25D skew'>
-      <p><strong>Current ratio:</strong> -0.098</p>
+      <img src='laevitas/btc_normalized_skew_en.png?v=20260907061442' alt='Normalized 25D skew' width="1600" height="768" loading="lazy" decoding="async">
+      <p><strong>Current ratio:</strong> -0.033</p>
       <p>This metric is the ratio of the 25-delta put vol minus the 25-delta call vol to ATM IV. When the ratio rises, the market is pricing puts richer than calls.</p>
     </div>
     <div>
       <h2>Skew Read</h2>
-      <ul><li>Front 25D RR: 2.63</li><li>Front ATM IV: 26.73</li><li>As long as the normalized ratio stays elevated, downside protection remains more expensive than call demand.</li></ul>
+      <ul><li>Front 25D RR: 1.02</li><li>Front ATM IV: 30.72</li><li>As long as the normalized ratio stays elevated, downside protection remains more expensive than call demand.</li></ul>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Pain Drift</h2>
-      <img src='laevitas/btc_pain_drift_en.png?v=20260906063625' alt='Pain drift chart'>
-      <ul><li>Today's aggregate max-pain level is 73,000.</li><li>The gap between spot and max pain is +6,814 points.</li><li>The daily pain shift is +0 points; the spot-pain gap changed by +294 points.</li><li>The 5-day pain shift is +1,000 points.</li></ul>
+      <img src='laevitas/btc_pain_drift_en.png?v=20260907061442' alt='Pain drift chart' width="1600" height="768" loading="lazy" decoding="async">
+      <ul><li>Today's aggregate max-pain level is 73,000.</li><li>The gap between spot and max pain is +6,810 points.</li><li>The daily pain shift is +0 points; the spot-pain gap changed by -4 points.</li><li>The 5-day pain shift is +1,000 points.</li></ul>
     </div>
     <div>
       <div class='grid'>
         <div class='metric'><div class='label'>Max Pain</div><div class='value'>73,000</div></div>
-        <div class='metric'><div class='label'>Spot - Pain</div><div class='value'>+6,814</div></div>
+        <div class='metric'><div class='label'>Spot - Pain</div><div class='value'>+6,810</div></div>
         <div class='metric'><div class='label'>Daily Pain Shift</div><div class='value'>+0</div></div>
         <div class='metric'><div class='label'>5 Daily Pain Shift</div><div class='value'>+1,000</div></div>
       </div>
@@ -640,25 +661,29 @@ small { opacity:0.82; font-size:12px; }
   <section class='two'>
     <div>
       <h2>Largest Instrument OI Additions</h2>
-      <table><tr><th>Instrument</th><th>OI Change</th><th>Total Notional</th><th>Open Interest</th></tr><tr><td>BTC-11SEP26-78000-P</td><td>$8,203,734</td><td>$8,516,919</td><td>102</td></tr><tr><td>BTC-18SEP26-80000-C</td><td>$8,156,880</td><td>$12,165,788</td><td>101</td></tr><tr><td>BTC-11SEP26-74000-P</td><td>$5,848,006</td><td>$6,537,173</td><td>71</td></tr><tr><td>BTC-7SEP26-80000-P</td><td>$4,576,242</td><td>$4,604,651</td><td>57</td></tr><tr><td>BTC-11SEP26-79000-P</td><td>$4,566,887</td><td>$5,930,549</td><td>56</td></tr><tr><td>BTC-25SEP26-75000-P</td><td>$4,467,206</td><td>$3,524,542</td><td>44</td></tr><tr><td>BTC-6SEP26-81000-C</td><td>$3,897,402</td><td>$6,017,510</td><td>49</td></tr><tr><td>BTC-7SEP26-78500-P</td><td>$3,762,071</td><td>$6,017,170</td><td>47</td></tr></table>
+      <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Instrument</th><th>OI Change</th><th>Total Notional</th><th>Open Interest</th></tr><tr><td>BTC-9SEP26-86000-C</td><td>$19,939,498</td><td>$19,955,509</td><td>250</td></tr><tr><td>BTC-9SEP26-77500-P</td><td>$9,101,383</td><td>$10,699,868</td><td>114</td></tr><tr><td>BTC-11SEP26-74000-P</td><td>$8,948,249</td><td>$10,836,346</td><td>114</td></tr><tr><td>BTC-9SEP26-80500-C</td><td>$8,417,761</td><td>$8,417,868</td><td>106</td></tr><tr><td>BTC-9SEP26-82500-C</td><td>$8,145,887</td><td>$8,146,581</td><td>102</td></tr><tr><td>BTC-9SEP26-79500-P</td><td>$8,058,732</td><td>$8,058,812</td><td>101</td></tr><tr><td>BTC-7SEP26-79500-P</td><td>$6,695,414</td><td>$7,715,317</td><td>84</td></tr><tr><td>BTC-7SEP26-80500-C</td><td>$6,625,777</td><td>$8,122,238</td><td>83</td></tr></table></div>
       
     </div>
     <div>
       <h2>Largest Instrument OI Reductions</h2>
-      <table><tr><th>Instrument</th><th>OI Change</th><th>Total Notional</th><th>Open Interest</th></tr><tr><td>BTC-11SEP26-80000-C</td><td>$-3,407,280</td><td>$10,751,912</td><td>-44</td></tr></table>
+      <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Instrument</th><th>OI Change</th><th>Total Notional</th><th>Open Interest</th></tr><tr><td>BTC-25DEC26-100000-C</td><td>$-699,242</td><td>$12,165,677</td><td>-0</td></tr></table></div>
     </div>
   </section>
   <section class='two'>
     <div>
       <h2>Strike-Level OI Additions</h2>
-      <table><tr><th>Strike</th><th>Call Change</th><th>Put Change</th><th>Net</th></tr><tr><td>90000</td><td>$6,863,839</td><td>$254,320</td><td>$7,118,160</td></tr><tr><td>70000</td><td>$3,174,376</td><td>$2,707,765</td><td>$5,882,141</td></tr><tr><td>100000</td><td>$5,524,511</td><td>$132,836</td><td>$5,657,347</td></tr><tr><td>60000</td><td>$643,756</td><td>$3,140,209</td><td>$3,783,965</td></tr><tr><td>75000</td><td>$1,340,914</td><td>$2,066,008</td><td>$3,406,922</td></tr><tr><td>95000</td><td>$2,965,318</td><td>$72,711</td><td>$3,038,028</td></tr><tr><td>72000</td><td>$800,324</td><td>$1,860,561</td><td>$2,660,885</td></tr><tr><td>89000</td><td>$2,546,897</td><td>$1,124</td><td>$2,548,021</td></tr></table>
+      <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Strike</th><th>Call Change</th><th>Put Change</th><th>Net</th></tr><tr><td>86000</td><td>$28,218,044</td><td>$-22,982</td><td>$28,195,062</td></tr><tr><td>82500</td><td>$11,957,532</td><td>$-453</td><td>$11,957,078</td></tr><tr><td>74000</td><td>$-1,274,892</td><td>$9,809,269</td><td>$8,534,377</td></tr><tr><td>77500</td><td>$-4,723,987</td><td>$11,316,367</td><td>$6,592,380</td></tr><tr><td>106000</td><td>$4,639,681</td><td>$-33</td><td>$4,639,648</td></tr><tr><td>83000</td><td>$4,101,615</td><td>$404,666</td><td>$4,506,281</td></tr><tr><td>78000</td><td>$-1,980,594</td><td>$6,236,761</td><td>$4,256,167</td></tr><tr><td>80500</td><td>$7,120,434</td><td>$-3,504,351</td><td>$3,616,083</td></tr></table></div>
       
     </div>
     <div>
       <h2>Strike-Level OI Reductions</h2>
-      <table><tr><th>Strike</th><th>Call Change</th><th>Put Change</th><th>Net</th></tr><tr><td>82000</td><td>$-50,109,847</td><td>$-830,083</td><td>$-50,939,930</td></tr><tr><td>79000</td><td>$-13,672,661</td><td>$-12,255,373</td><td>$-25,928,035</td></tr><tr><td>80000</td><td>$-18,420,830</td><td>$-3,166,782</td><td>$-21,587,612</td></tr><tr><td>83000</td><td>$-18,465,947</td><td>$65,221</td><td>$-18,400,726</td></tr><tr><td>80500</td><td>$-7,116,907</td><td>$-10,470,416</td><td>$-17,587,323</td></tr><tr><td>79500</td><td>$-5,844,454</td><td>$-9,704,749</td><td>$-15,549,203</td></tr><tr><td>84000</td><td>$-15,450,744</td><td>$178,560</td><td>$-15,272,184</td></tr><tr><td>81000</td><td>$-8,365,108</td><td>$-5,870,008</td><td>$-14,235,116</td></tr></table>
+      <div class="btc-table-scroll" tabindex="0" role="region" aria-label="Veri tablosu"><table><tr><th>Strike</th><th>Call Change</th><th>Put Change</th><th>Net</th></tr><tr><td>79000</td><td>$-3,708,058</td><td>$-13,203,646</td><td>$-16,911,703</td></tr><tr><td>80000</td><td>$-12,820,120</td><td>$-3,532,463</td><td>$-16,352,583</td></tr><tr><td>81000</td><td>$-5,279,110</td><td>$-8,537,633</td><td>$-13,816,743</td></tr><tr><td>77000</td><td>$-5,643,418</td><td>$-4,963,744</td><td>$-10,607,162</td></tr><tr><td>84000</td><td>$-9,943,224</td><td>$-120,711</td><td>$-10,063,935</td></tr><tr><td>83500</td><td>$-4,369,595</td><td>$0</td><td>$-4,369,595</td></tr><tr><td>76500</td><td>$-647,317</td><td>$-3,700,055</td><td>$-4,347,372</td></tr><tr><td>90000</td><td>$-3,640,426</td><td>$-141,334</td><td>$-3,781,760</td></tr></table></div>
     </div>
   </section>
+</details>
 </main>
-</body>
+<script>(()=>{const expiry=Date.parse("2026-09-07T08:00:00+00:00");
+    const update=()=>{const e=document.getElementById('btc-expiry-warning');
+    if(e&&Date.now()>=expiry){e.textContent='VADE DOLDU: Bu snapshot yakin-vade destegi icin guncel degil.';e.style.color='#b51d28'}};
+    update();setInterval(update,60000)})();</script></body>
 </html>
