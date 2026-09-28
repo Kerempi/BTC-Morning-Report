@@ -45,18 +45,18 @@ p { color:var(--muted); line-height:1.55; }
     <div class="brand">
       <span>Private Research</span>
       <h1>Piyasa Raporları</h1>
-      <p>BTC opsiyon notları ve Makro Rejim Haritası için günlük erişim kapısı.</p>
+      <p>BTC opsiyon notları ve Makro Rejim Haritası için erişim kapısı.</p>
     </div>
-    <div class="status">Son güncelleme: 2026-09-28<br>Günlük şifre gerekir</div>
+    <div class="status">Son güncelleme: 2026-09-28<br>Erişim şifresi gerekir</div>
   </div>
 
   <form class="gate" id="gate">
     <div>
-      <label for="password">Günlük Şifre</label>
+      <label for="password">Erişim Şifresi</label>
       <input id="password" type="password" autocomplete="current-password" placeholder="Şifreyi gir">
     </div>
     <button type="submit">Giriş</button>
-    <p class="error" id="error">Şifre hatalı. Günlük şifreyi kontrol et.</p>
+    <p class="error" id="error">Şifre hatalı. Erişim şifresini kontrol et.</p>
   </form>
 
   <section class="tabs" aria-label="Rapor sekmeleri">
@@ -91,15 +91,15 @@ p { color:var(--muted); line-height:1.55; }
       </div>
     </div>
 
-    <p class="note">Not: GitHub Pages statik yayın yaptığı için bu günlük şifre kapısı hafif erişim kontrolüdür. Gerçek kullanıcı bazlı güvenlik için Cloudflare Access, Vercel/Netlify auth veya benzeri bir giriş katmanı gerekir.</p>
+    <p class="note">Not: GitHub Pages statik yayın yaptığı için bu şifre kapısı hafif erişim kontrolüdür. Gerçek kullanıcı bazlı güvenlik için Cloudflare Access, Vercel/Netlify auth veya benzeri bir giriş katmanı gerekir.</p>
   </section>
 </main>
 
 <script>
 const DAILY_HASHES = {
-  "2026-08-08": "7bf273a1bab6097b37ed60eb25479ab749028cdcb538982e8f79fd1e380b871b"
+  "2026-09-28": "d562de096d354a8b8e4b8cab80cb9d1b53f7eaf41b55f6aa7dca28c1a24734ad"
 };
-const ACCESS_STORAGE_KEY = "report_access_2026_08_08_v1";
+const ACCESS_STORAGE_KEY = "report_access_2026_09_28_v2";
 
 async function sha256(text) {
   const bytes = new TextEncoder().encode(text);
