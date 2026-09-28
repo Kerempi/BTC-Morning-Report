@@ -1,7 +1,7 @@
 (function () {
-  const storageKey = "report_access_2026_09_28_v2";
+  const storageKey = "report_access_2026_09_28_v3";
   const allowed = [
-    "d562de096d354a8b8e4b8cab80cb9d1b53f7eaf41b55f6aa7dca28c1a24734ad"
+    "0d08e0bb3ecfd5bef6ec28d1420eec213ca385ff33d092d3cbba58220de6bbb3"
 ];
   const saved = sessionStorage.getItem(storageKey);
   if (!saved || !allowed.includes(saved)) {
