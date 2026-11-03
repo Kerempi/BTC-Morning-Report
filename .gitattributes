@@ -1,0 +1,5 @@
+# Generated reports must retain the exact source bytes used by release receipts.
+/market_cockpit.html -text
+/macro_monthly_report.html -text
+/btc_morning_report.html -text
+/btc_morning_report_en.html -text
